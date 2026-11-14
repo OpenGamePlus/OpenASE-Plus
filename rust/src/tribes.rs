@@ -599,6 +599,12 @@ pub fn t2_status(
     let mut info = None;
     let mut rtt = None;
     while ping.is_none() || info.is_none() {
+        if let Err(error) = crate::quake3::give_up(started, timeout) {
+            if info.is_none() {
+                return Err(error);
+            }
+            break;
+        }
         let size = match socket.recv(&mut buffer) {
             Ok(size) => size,
             Err(error) if info.is_none() => return Err(error),

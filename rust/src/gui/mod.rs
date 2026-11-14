@@ -292,6 +292,8 @@ pub struct OpenAseApp {
     /// without an entry has not been looked up yet.
     map_images: HashMap<(String, String), Option<egui::TextureHandle>>,
     flags: Option<icons::Flags>,
+    /// Ids of `Settings::ready_games` for the tree filter; `None` = stale.
+    ready_cache: Option<Vec<String>>,
     /// Executable icons by game id: (program path it came from, icon).
     exe_icons: HashMap<String, (String, Option<egui::TextureHandle>)>,
     /// "Alert me when a slot is free" on one full server.
@@ -383,6 +385,7 @@ impl OpenAseApp {
             slot_watch: None,
             map_images: HashMap::new(),
             flags: icons::Flags::load(&cc.egui_ctx),
+            ready_cache: None,
             exe_icons: HashMap::new(),
             party: PartyTracker::default(),
             watch_in_flight: false,
@@ -1877,8 +1880,22 @@ impl OpenAseApp {
     fn tree(&mut self, ui: &mut egui::Ui) {
         ui.spacing_mut().item_spacing.y = 0.0;
         let installed_only = self.settings.filters.installed_only;
-        let ready_games = self.settings.ready_games();
-        let ready: Vec<&str> = ready_games.iter().map(|game| game.id.as_str()).collect();
+        // Cached: `ready_games` checks files on disk, which can block on a
+        // network drive; refreshed when the settings are saved.
+        if installed_only && self.ready_cache.is_none() {
+            let ids = self
+                .settings
+                .ready_games()
+                .iter()
+                .map(|g| g.id.clone())
+                .collect();
+            self.ready_cache = Some(ids);
+        }
+        let ready: Vec<String> = if installed_only {
+            self.ready_cache.clone().unwrap_or_default()
+        } else {
+            Vec::new()
+        };
         let mut new_nav: Option<Nav> = None;
         let mut toggles: Vec<String> = Vec::new();
         let mut filter_clicks: Vec<(String, String)> = Vec::new();
@@ -2019,7 +2036,7 @@ impl OpenAseApp {
 
         for game in catalog::games() {
             if !self.settings.game(&game.id).visible
-                || (installed_only && !ready.contains(&game.id.as_str()))
+                || (installed_only && !ready.contains(&game.id))
             {
                 continue;
             }
@@ -3099,6 +3116,7 @@ impl eframe::App for OpenAseApp {
 
         if self.settings_dirty {
             self.settings_dirty = false;
+            self.ready_cache = None;
             if let Err(error) = self.settings.save() {
                 self.status = fill(tr("Could not save settings: {}"), &[&error]);
             }

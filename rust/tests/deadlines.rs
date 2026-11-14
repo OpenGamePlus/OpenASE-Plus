@@ -76,3 +76,10 @@ fn honest_slow_answer_is_read() {
     let (server, _) = result.expect("returned").expect("answer read");
     assert_eq!(server.name, "Test");
 }
+
+#[test]
+fn tribes2_status_gives_up_on_junk() {
+    let port = fake(vec![b"xx".to_vec()], Duration::from_millis(100));
+    let result = bounded(move || openase::tribes::t2_status("tribes2", "127.0.0.1", port, TIMEOUT));
+    assert!(matches!(result, Some(Err(_))), "the query did not give up");
+}

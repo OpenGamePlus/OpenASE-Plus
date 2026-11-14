@@ -519,10 +519,12 @@ impl Settings {
     /// renamed to `<name>.bad` first, so the next save cannot overwrite the
     /// user's favorites and friends with defaults.
     pub fn load_from(path: &std::path::Path) -> Self {
-        let Ok(text) = std::fs::read_to_string(path) else {
+        // Bytes, not a string: a file that is not UTF-8 (saved as ANSI by an
+        // editor) must reach the `.bad` path too, not be silently replaced.
+        let Ok(bytes) = std::fs::read(path) else {
             return Self::default();
         };
-        match serde_json::from_str::<Self>(&text) {
+        match serde_json::from_slice::<Self>(&bytes) {
             Ok(settings) => settings.normalized(),
             Err(_) => {
                 let mut bad = path.as_os_str().to_owned();
@@ -660,7 +662,12 @@ impl Settings {
         // Write then rename, so a crash never leaves half a file.
         let mut partial = path.as_os_str().to_owned();
         partial.push(".partial");
-        std::fs::write(&partial, text)?;
+        // Flushed to disk before the rename, or a power cut could leave the
+        // renamed file empty.
+        let mut file = std::fs::File::create(&partial)?;
+        std::io::Write::write_all(&mut file, text.as_bytes())?;
+        file.sync_all()?;
+        drop(file);
         std::fs::rename(&partial, path)
     }
 

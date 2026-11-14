@@ -288,3 +288,17 @@ fn imported_lists_reject_option_like_hosts() {
         ["198.51.100.7:27960", "play.example.org:28960"]
     );
 }
+
+#[test]
+fn a_settings_file_that_is_not_utf8_is_kept_aside() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    // Saved as ANSI by a text editor: "Jos\xe9" is not UTF-8.
+    let ansi = b"{\"friends\":[\"Jos\xe9\"]}".to_vec();
+    std::fs::write(&path, &ansi).unwrap();
+    assert!(Settings::load_from(&path).friends.is_empty());
+    assert_eq!(
+        std::fs::read(dir.path().join("settings.json.bad")).unwrap(),
+        ansi
+    );
+}
