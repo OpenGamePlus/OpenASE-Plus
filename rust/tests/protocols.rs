@@ -24,6 +24,11 @@ fn catalog_has_every_game_with_masters_and_join_template() {
             "q3",
             "urt",
             "oa",
+            "xonotic",
+            "warsow",
+            "warfork",
+            "tremulous",
+            "smokinguns",
             "et",
             "cod",
             "cod2",
@@ -43,6 +48,10 @@ fn catalog_has_every_game_with_masters_and_join_template() {
             "css",
             "dods",
             "hl2dm",
+            "tf2",
+            "l4d",
+            "l4d2",
+            "gmod",
             "coduo",
             "ef",
             "sof2",
@@ -90,7 +99,8 @@ fn catalog_has_every_game_with_masters_and_join_template() {
             "ghostrecon",
             "ghostrecond",
             "soaf",
-            "soafd"
+            "soafd",
+            "zandronum"
         ]
     );
     for game in games() {
@@ -380,6 +390,26 @@ fn split_args_honors_quotes() {
 }
 
 #[test]
+fn join_values_never_add_arguments() {
+    let server = Server::new("q3", "host name", 27960);
+    let settings = GameSettings {
+        player_name: "Big \"Boss\" +exec evil".into(),
+        ..GameSettings::default()
+    };
+    assert_eq!(
+        join_args(game("q3").unwrap(), &settings, &server, "pw\" +rcon x"),
+        vec![
+            "+name",
+            "Big \"Boss\" +exec evil",
+            "+password",
+            "pw\" +rcon x",
+            "+connect",
+            "host name:27960"
+        ]
+    );
+}
+
+#[test]
 fn join_args_use_mod_and_unreal_join_port() {
     let mut server = Server::new("q3", "1.2.3.4", 27960);
     server.mod_name = "osp".into();
@@ -628,6 +658,9 @@ fn launch_mod_skips_base_mod_and_display_strings() {
     assert_eq!(rtcw.launch_mod("shrub"), "shrub");
     assert_eq!(rtcw.launch_mod("Dark-MoD v5.1"), "");
     assert_eq!(rtcw.launch_mod(""), "");
+    // A name that would read as another option or a hidden path is dropped.
+    assert_eq!(rtcw.launch_mod("-quit"), "");
+    assert_eq!(rtcw.launch_mod(".."), "");
 }
 
 #[test]
@@ -652,4 +685,16 @@ fn unreal_engine_games_query_the_game_port_plus_one() {
         };
         assert_eq!(game.game_port_query_offset, offset, "{}", game.id);
     }
+}
+
+#[test]
+fn urls_open_without_a_shell() {
+    let url = "steam://connect/1.2.3.4:27015/a&calc|x";
+    let command = openase::launch::url_command(url);
+    let program = command.get_program().to_string_lossy().to_string();
+    assert!(
+        ["rundll32", "open", "xdg-open"].contains(&program.as_str()),
+        "{program}"
+    );
+    assert_eq!(command.get_args().last().unwrap(), url);
 }

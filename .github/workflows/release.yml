@@ -47,6 +47,7 @@ jobs:
           $name = "OpenASE-$env:TAG-windows-x64"
           New-Item -ItemType Directory $name | Out-Null
           Copy-Item rust/target/release/openase.exe "$name/OpenASE.exe"
+          Copy-Item rust/target/release/openase-cli.exe "$name/openase-cli.exe"
           Copy-Item LICENSE, README.md $name
           Compress-Archive -Path $name -DestinationPath "$name.zip"
       - name: Build installer (Inno Setup)
@@ -92,6 +93,7 @@ jobs:
           name="OpenASE-$TAG-linux-x64"
           mkdir "$name"
           cp rust/target/release/openase "$name/openase"
+          cp rust/target/release/openase-cli "$name/openase-cli"
           cp rust/assets/icon.png "$name/openase.png"
           cp LICENSE README.md "$name/"
           cat > "$name/openase.desktop" <<'EOF'
@@ -99,9 +101,10 @@ jobs:
           Type=Application
           Name=OpenASE
           Comment=Game server browser in the spirit of The All-Seeing Eye
-          Exec=openase
+          Exec=openase %u
           Icon=openase
           Categories=Game;Network;
+          MimeType=x-scheme-handler/openase;
           EOF
           sed -i 's/^ *//' "$name/openase.desktop"
           tar czf "$name.tar.gz" "$name"
@@ -122,9 +125,10 @@ jobs:
           Type=Application
           Name=OpenASE
           Comment=Game server browser in the spirit of The All-Seeing Eye
-          Exec=openase
+          Exec=openase %u
           Icon=openase
           Categories=Game;Network;
+          MimeType=x-scheme-handler/openase;
           EOF
           sed -i 's/^ *//' "$appdir/openase.desktop"
           ln -s usr/bin/openase "$appdir/AppRun"

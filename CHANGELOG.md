@@ -3,6 +3,44 @@
 All notable changes to OpenASE. Downloads for every version are on the
 [releases page](https://github.com/tsautier/OpenASE/releases).
 
+## Unreleased
+
+### New games
+- Xonotic, Warsow, Warfork, Tremulous and Smokin' Guns (Quake 3 protocol).
+- Team Fortress 2, Left 4 Dead, Left 4 Dead 2 and Garry's Mod (Steam list, needs your own key).
+- Zandronum (multiplayer Doom), with its own protocol and master. The server's IWAD is
+  passed to the game with `-iwad`.
+
+### New
+- **Alert me when a slot is free** (right-click a full server): OpenASE checks it every
+  10 seconds for up to 30 minutes, then selects it and shows a notice.
+- **Alert when players reach N** (right-click a server): a notice when that many people,
+  not bots, are playing. Saved between sessions; the servers are checked every minute.
+
+- **Playing now** (in the Special folder): every server with people on it, across all the
+  games you can join (a program set in Options > Games, or Steam games with your key).
+  F5 there scans those games together.
+
+- **`openase://connect/<game>/<host>:<port>` links**: right-click a server to copy one.
+  Opening a link shows the server and asks before joining; if OpenASE is already open,
+  the link goes to that window. The Windows installer and the Linux `.desktop` file
+  register the scheme (not macOS yet).
+
+- **Lists kept between sessions**: the last complete scan of each game shows at start
+  (ping "—" until a server is selected or the list is refreshed).
+- **`openase-cli`**: `games`, `scan` and `query` without the GUI, with `--json` output
+  (schema 1, see `docs/cli.md`). In the Windows zip and the Linux tar.gz.
+
+### Fixes
+- A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
+- The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.
+- **Security:** a player name, password or server address with spaces or quotes can no
+  longer add arguments to the game's command line.
+- **Security (Windows):** Steam joins no longer go through `cmd`, so `&` or `|` in a server
+  address or password cannot run commands.
+- Add server and Import server list no longer freeze the window while Unreal engine servers
+  are checked for their query port.
+
 ## 0.9.6 — 2026-11-11
 
 A lighter client for the 17 games listed by 333networks, after feedback from its admins.

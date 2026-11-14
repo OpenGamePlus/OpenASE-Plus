@@ -92,6 +92,8 @@ pub struct Dialogs {
     pub find: Option<String>,
     pub friends: Option<String>,
     pub password: Option<(ServerKey, String)>,
+    /// Server of an `openase://` link, waiting for the user's yes.
+    pub link: Option<ServerKey>,
     pub options: Option<OptionsDraft>,
     pub search: Option<SearchState>,
     notices: Vec<(Instant, String)>,
@@ -120,6 +122,7 @@ impl Dialogs {
             || self.find.is_some()
             || self.friends.is_some()
             || self.password.is_some()
+            || self.link.is_some()
             || self.options.is_some()
     }
 
@@ -196,6 +199,7 @@ impl OpenAseApp {
         self.find_window(ctx);
         self.friends_window(ctx);
         self.password_window(ctx);
+        self.link_window(ctx);
         self.about_window(ctx);
         self.notices(ctx);
         self.error_window(ctx);
@@ -339,6 +343,49 @@ impl OpenAseApp {
             self.dialogs.password = None;
         } else {
             self.dialogs.password = Some((key, password));
+        }
+    }
+
+    /// Confirm an `openase://` link: it comes from outside, so it never
+    /// joins by itself. The details fill in as the query answers.
+    fn link_window(&mut self, ctx: &egui::Context) {
+        let Some(key) = self.dialogs.link.clone() else {
+            return;
+        };
+        let name = self
+            .find(&key)
+            .filter(|server| server.has_info())
+            .map(|server| strip_quake_colors(&server.name));
+        let game = catalog::game(&key.game).map_or(key.game.clone(), |game| game.name.clone());
+        let mut join = false;
+        let mut cancel = false;
+        dialog("Open link").show(ctx, |ui| {
+            ui.label(tr("Join this server?"));
+            ui.add_space(4.0);
+            egui::Grid::new("link-details")
+                .num_columns(2)
+                .show(ui, |ui| {
+                    ui.label(tr("Server"));
+                    // Plain text: the name comes from the server.
+                    ui.label(name.unwrap_or_else(|| tr("Querying...").to_string()));
+                    ui.end_row();
+                    ui.label(tr("Game"));
+                    ui.label(game);
+                    ui.end_row();
+                    ui.label(tr("Address"));
+                    ui.label(&key.address);
+                    ui.end_row();
+                });
+            buttons_right(ui, |ui| {
+                cancel = ui.button(tr("Cancel")).clicked();
+                join = ui.button(tr("   Join   ")).clicked();
+            });
+        });
+        if join {
+            self.dialogs.link = None;
+            self.join(&key);
+        } else if cancel {
+            self.dialogs.link = None;
         }
     }
 

@@ -10,7 +10,7 @@ use crate::model::{Listed, Player, Server, parse_count};
 use crate::quake3::{Quake3Client, Quake3Server, millis, parse_address};
 use crate::{
     a2s, ase, doom3, gamespy, gamespy_sb, gamespy2, ghostrecon, location, networks333, quake2,
-    ravenshield, savage, steam, tribes, unreal2,
+    ravenshield, savage, steam, tribes, unreal2, zandronum,
 };
 
 /// Network settings for queries (ASE's Options > Network).
@@ -105,6 +105,7 @@ pub fn fetch_master(
         Master::Doom3 { address, version } => doom3::master_list(address, version, timeout * 3),
         Master::SavageDrx { url } => savage::master_list(url, timeout * 10),
         Master::Csv { url } => ravenshield::csv_master_list(url, timeout * 10),
+        Master::Zandronum { address } => zandronum::master_list(address, timeout * 3),
     }?;
     Ok(MasterList::addresses(addresses))
 }
@@ -271,7 +272,13 @@ pub fn query_server(game: &Game, host: &str, port: u16, options: &QueryOptions) 
         return Server::offline(&game.id, host, port, last_error);
     };
 
-    for _ in 1..options.pings.max(1) {
+    // Zandronum ignores a second query for ~10 s: one sample only.
+    let pings = if game.protocol == Protocol::Zandronum {
+        1
+    } else {
+        options.pings
+    };
+    for _ in 1..pings.max(1) {
         attempts += 1;
         // Some servers rate-limit queries per address (MTA) or ignore the
         // short ping request (Elite Force, NOLF 2). Retry once after a pause
@@ -350,6 +357,7 @@ fn status_once(
         Protocol::Savage => savage::status(&game.id, host, port, timeout),
         Protocol::Ravenshield => ravenshield::status(&game.id, host, port, timeout),
         Protocol::Ghostrecon => ghostrecon::status(&game.id, host, port, timeout),
+        Protocol::Zandronum => zandronum::status(game, host, port, timeout),
         Protocol::Gamespy2 | Protocol::Gamespy3 => {
             let (response, rtt) = if game.protocol == Protocol::Gamespy2 {
                 gamespy2::query_v2(host, port, timeout)?
@@ -400,6 +408,7 @@ fn ping_once(game: &Game, host: &str, port: u16, timeout: Duration) -> io::Resul
         Protocol::Tribes2 => tribes::t2_ping(host, port, timeout),
         Protocol::Ravenshield => ravenshield::ping(host, port, timeout),
         Protocol::Ghostrecon => ghostrecon::ping(host, port, timeout),
+        Protocol::Zandronum => zandronum::status(game, host, port, timeout).map(|(_, rtt)| rtt),
     }
 }
 

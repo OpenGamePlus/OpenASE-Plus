@@ -17,6 +17,7 @@ use eframe::egui::{
 };
 use egui_extras::{Column, TableBuilder};
 
+use openase::alerts::{self, PartyTracker, SlotWatch};
 use openase::catalog::{self, Game, Protocol};
 use openase::colors::{parse_hex, quake_color_segments, strip_quake_colors};
 use openase::countries::country_name;
@@ -89,16 +90,24 @@ pub enum Special {
     Added,
     Imported,
     Lan,
+    /// Busy servers of every game the user can join.
+    Playing,
 }
 
 impl Special {
-    const ALL: [Special; 3] = [Special::Added, Special::Imported, Special::Lan];
+    const ALL: [Special; 4] = [
+        Special::Playing,
+        Special::Added,
+        Special::Imported,
+        Special::Lan,
+    ];
 
     fn label(self) -> &'static str {
         match self {
             Special::Added => tr("recently added"),
             Special::Imported => tr("recently imported"),
             Special::Lan => tr("LAN servers"),
+            Special::Playing => tr("Playing now"),
         }
     }
 }
@@ -176,6 +185,21 @@ pub enum Msg {
     },
     /// Saved servers to move from a game port to their query port.
     PortFixes(Vec<(ServerRef, ServerRef)>),
+    /// Lists saved by an earlier session (`openase::lists`).
+    SavedLists(Vec<(String, Vec<Server>)>),
+    /// An `openase://` link, from the command line or a second instance.
+    Link(String),
+    /// Answer of a server with a slot or party alert.
+    Watched(Server),
+    /// The query of watched servers is over.
+    WatchDone,
+    /// Addresses from Add server (`group` None) or Import list, moved to
+    /// their query port off the UI thread.
+    Resolved {
+        game: String,
+        addresses: Vec<String>,
+        group: Option<String>,
+    },
 }
 
 struct Scan {
@@ -184,6 +208,8 @@ struct Scan {
     done: Arc<AtomicUsize>,
     total: usize,
     label: String,
+    /// Games whose whole list this scan fetched: saved when it completes.
+    games: Vec<String>,
 }
 
 /// Pages loaded of a game's 333networks list.
@@ -207,6 +233,10 @@ impl Paging {
 /// Row actions collected while drawing, applied afterwards.
 enum Action {
     Select(ServerKey),
+    /// Start or stop watching a full server for a free slot.
+    WatchSlot(ServerKey),
+    /// Party alert threshold for a server; 0 removes it.
+    PartyAlert(ServerKey, usize),
     Join(ServerKey),
     ToggleFavorite(ServerKey),
     Refresh(ServerKey),
@@ -228,6 +258,12 @@ pub struct OpenAseApp {
     generation: u64,
     pub(crate) status: String,
     friend_seen: HashMap<String, ServerKey>,
+    /// "Alert me when a slot is free" on one full server.
+    slot_watch: Option<SlotWatch>,
+    party: PartyTracker,
+    /// A query of watched servers (slot or party alerts) is running.
+    watch_in_flight: bool,
+    last_party_poll: Option<Instant>,
     single_in_flight: bool,
     last_auto_refresh: Instant,
     show_toolbar: bool,
@@ -253,9 +289,25 @@ pub struct OpenAseApp {
 }
 
 impl OpenAseApp {
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    /// `link`: an `openase://` link from the command line.
+    pub fn new(cc: &eframe::CreationContext<'_>, link: Option<String>) -> Self {
         setup_style(&cc.egui_ctx);
         let (tx, rx) = channel();
+        // Become the instance that later `openase://` links are handed to.
+        let (link_tx, link_ctx) = (tx.clone(), cc.egui_ctx.clone());
+        let _ = openase::instance::listen(&openase::instance::port_file(), move |url| {
+            let _ = link_tx.send(Msg::Link(url));
+            link_ctx.request_repaint();
+        });
+        if let Some(url) = link {
+            let _ = tx.send(Msg::Link(url));
+        }
+        let (lists_tx, lists_ctx) = (tx.clone(), cc.egui_ctx.clone());
+        std::thread::spawn(move || {
+            let lists = openase::lists::load_all(&openase::lists::dir());
+            let _ = lists_tx.send(Msg::SavedLists(lists));
+            lists_ctx.request_repaint();
+        });
         let mut settings = Settings::load();
         i18n::set_language(settings.language);
         apply_palette(&cc.egui_ctx, &settings.colors);
@@ -292,6 +344,10 @@ impl OpenAseApp {
             generation: 0,
             status: tr("Ready").to_string(),
             friend_seen: HashMap::new(),
+            slot_watch: None,
+            party: PartyTracker::default(),
+            watch_in_flight: false,
+            last_party_poll: None,
             single_in_flight: false,
             last_auto_refresh: Instant::now(),
             show_toolbar: true,
@@ -332,6 +388,7 @@ impl OpenAseApp {
         }
         annotate(self.geoip.as_deref(), &mut server);
         self.check_friends(&server);
+        self.check_alerts(&server);
         let list = self.store.entry(server.game.clone()).or_default();
         match list
             .iter_mut()
@@ -403,6 +460,127 @@ impl OpenAseApp {
         }
     }
 
+    fn check_alerts(&mut self, server: &Server) {
+        let key = ServerKey::of(server);
+        let id = key.to_ref().key();
+        let name = strip_quake_colors(&server.name);
+        if self
+            .slot_watch
+            .as_ref()
+            .is_some_and(|watch| watch.key == id)
+            && alerts::has_free_slot(server)
+        {
+            self.slot_watch = None;
+            self.dialogs.notify(fill(
+                tr("A slot is free on {} ({}/{})"),
+                &[&name, &server.num_players, &server.max_players.unwrap_or(0)],
+            ));
+            self.selected = Some(key);
+            self.scroll_to_selected = true;
+        }
+        if let Some(&threshold) = self.settings.party_alerts.get(&id)
+            && self.party.update(&id, server, threshold)
+        {
+            self.dialogs.notify(fill(
+                tr("A match is on at {}: {} players"),
+                &[&name, &alerts::humans(server)],
+            ));
+        }
+    }
+
+    /// Query the servers with a slot watch (every 10 s) or a party alert
+    /// (every minute), one batch at a time.
+    fn watch_tick(&mut self, ctx: &egui::Context) {
+        let now = Instant::now();
+        if let Some(watch) = &self.slot_watch
+            && watch.expired(now)
+        {
+            let address = watch.key.split_once('|').map_or("", |(_, a)| a).to_string();
+            self.slot_watch = None;
+            self.status = fill(
+                tr("Stopped watching {}: no free slot in 30 minutes"),
+                &[&address],
+            );
+        }
+        if self.watch_in_flight {
+            return;
+        }
+        let mut targets: Vec<String> = Vec::new();
+        if let Some(watch) = &mut self.slot_watch
+            && watch.due(now)
+        {
+            watch.queried(now);
+            targets.push(watch.key.clone());
+        }
+        if !self.settings.party_alerts.is_empty()
+            && self
+                .last_party_poll
+                .is_none_or(|last| now >= last + alerts::PARTY_INTERVAL)
+        {
+            self.last_party_poll = Some(now);
+            for id in self.settings.party_alerts.keys() {
+                if !targets.contains(id) {
+                    targets.push(id.clone());
+                }
+            }
+        }
+        if targets.is_empty() {
+            return;
+        }
+        self.watch_in_flight = true;
+        let tx = self.tx.clone();
+        let ctx = ctx.clone();
+        let options = self.settings.network.query_options();
+        std::thread::spawn(move || {
+            for id in targets {
+                let Some((game, address)) = id.split_once('|') else {
+                    continue;
+                };
+                let Some(game) = catalog::game(game) else {
+                    continue;
+                };
+                if let Ok((host, port)) = parse_address(address, game.default_port) {
+                    let _ = tx.send(Msg::Watched(query_server(game, &host, port, &options)));
+                }
+            }
+            let _ = tx.send(Msg::WatchDone);
+            ctx.request_repaint();
+        });
+    }
+
+    /// Keep the lists of a completed scan for the next session (off the UI
+    /// thread: a Steam list is megabytes).
+    fn save_lists(&self, games: Vec<String>) {
+        let lists: Vec<(String, Vec<Server>)> = games
+            .into_iter()
+            .filter_map(|game| Some((game.clone(), self.store.get(&game)?.clone())))
+            .collect();
+        if lists.is_empty() {
+            return;
+        }
+        std::thread::spawn(move || {
+            for (game, servers) in lists {
+                let _ = openase::lists::save(&openase::lists::dir(), &game, &servers);
+            }
+        });
+    }
+
+    /// Show the server of an `openase://` link and ask before joining.
+    fn open_link(&mut self, ctx: &egui::Context, url: &str) {
+        let Some((game, address)) = openase::links::parse(url) else {
+            return;
+        };
+        let key = ServerKey { game, address };
+        self.ensure_placeholder(&key);
+        self.nav = Nav::Game(key.game.clone());
+        self.selected = Some(key.clone());
+        self.scroll_to_selected = true;
+        self.query_single(ctx, &key);
+        self.dialogs.link = Some(key);
+        ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(false));
+        ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+    }
+
     pub(crate) fn friend_location(&self, friend: &str) -> Option<&ServerKey> {
         self.friend_seen.get(&friend.to_lowercase())
     }
@@ -449,6 +627,7 @@ impl OpenAseApp {
         }
         match nav {
             Nav::Game(game) | Nav::GameType(game, _) => self.scan_game(ctx, &game),
+            Nav::Special(Special::Playing) => self.scan_ready_games(ctx),
             Nav::Custom(index) => {
                 let game = self
                     .settings
@@ -499,6 +678,7 @@ impl OpenAseApp {
             done: done.clone(),
             total: 0,
             label,
+            games: Vec::new(),
         });
         (self.generation, stop, done)
     }
@@ -507,32 +687,69 @@ impl OpenAseApp {
         let Some(game) = catalog::game(game_id) else {
             return;
         };
-        let (generation, stop, done) = self.start_scan(fill(tr("Scanning {}"), &[&game.name]));
         self.status = fill(tr("Querying {} master servers..."), &[&game.name]);
+        self.scan_games(ctx, vec![game], fill(tr("Scanning {}"), &[&game.name]));
+    }
+
+    /// "Playing now": scan every game the user can join.
+    fn scan_ready_games(&mut self, ctx: &egui::Context) {
+        let games = self.settings.ready_games();
+        if games.is_empty() {
+            self.status = tr("No game is set up: set its program in Options > Games").to_string();
+            return;
+        }
+        self.status = fill(
+            tr("Querying the master servers of {} games..."),
+            &[&games.len()],
+        );
+        self.scan_games(ctx, games, tr("Playing now").to_string());
+    }
+
+    /// Fetch the master lists of `games` in parallel, then query their servers.
+    fn scan_games(&mut self, ctx: &egui::Context, games: Vec<&'static Game>, label: String) {
+        let (generation, stop, done) = self.start_scan(label);
+        if let Some(scan) = &mut self.scan {
+            scan.games = games.iter().map(|game| game.id.clone()).collect();
+        }
         let tx = self.tx.clone();
         let ctx = ctx.clone();
         let network = self.settings.network.clone();
         let steam_key = self.settings.steam_api_key.clone();
         std::thread::spawn(move || {
             let options = network.query_options();
-            let mut list = fetch_all_masters(game, options.timeout, &steam_key, network.scan_limit);
-            list.servers.truncate(network.scan_limit.max(1));
-            // Servers listed with their details (333networks) are shown as
-            // listed and queried only on demand; the others are queried now.
-            let targets = list
-                .servers
-                .iter()
-                .filter(|entry| entry.preview.is_none())
-                .map(|entry| (game.id.clone(), entry.address.clone()))
-                .collect();
-            let _ = tx.send(Msg::MasterList {
-                generation,
-                game: game.id.clone(),
-                servers: list.servers,
-                errors: list.errors,
-                paged_total: list.paged_total,
+            let targets = std::sync::Mutex::new(Vec::new());
+            std::thread::scope(|scope| {
+                for game in games {
+                    let (tx, ctx, targets) = (&tx, &ctx, &targets);
+                    let (network, steam_key, options) = (&network, &steam_key, &options);
+                    scope.spawn(move || {
+                        let mut list =
+                            fetch_all_masters(game, options.timeout, steam_key, network.scan_limit);
+                        list.servers.truncate(network.scan_limit.max(1));
+                        // Servers listed with their details (333networks) are shown
+                        // as listed and queried only on demand; the others now.
+                        targets.lock().unwrap().extend(
+                            list.servers
+                                .iter()
+                                .filter(|entry| entry.preview.is_none())
+                                .map(|entry| (game.id.clone(), entry.address.clone())),
+                        );
+                        let _ = tx.send(Msg::MasterList {
+                            generation,
+                            game: game.id.clone(),
+                            servers: list.servers,
+                            errors: list.errors,
+                            paged_total: list.paged_total,
+                        });
+                        ctx.request_repaint();
+                    });
+                }
             });
-            ctx.request_repaint();
+            if stop.load(Ordering::Relaxed) {
+                let _ = tx.send(Msg::ScanDone { generation });
+                return;
+            }
+            let targets = targets.into_inner().unwrap();
             run_queries(targets, &network, &tx, &ctx, generation, &stop, &done);
         });
     }
@@ -678,8 +895,9 @@ impl OpenAseApp {
                             self.paging.remove(&game);
                         }
                     }
+                    // Summed: a "Playing now" scan lists several games.
                     if let Some(scan) = &mut self.scan {
-                        scan.total = queried;
+                        scan.total += queried;
                     }
                     // The details pane of a selected listed server needs a query.
                     if let Some(key) = self.selected.clone().filter(|key| key.game == game) {
@@ -743,7 +961,11 @@ impl OpenAseApp {
                         .scan
                         .as_ref()
                         .is_some_and(|scan| scan.stop.load(Ordering::Relaxed));
-                    self.scan = None;
+                    if let Some(scan) = self.scan.take()
+                        && !stopped
+                    {
+                        self.save_lists(scan.games);
+                    }
                     self.status = if stopped {
                         tr("Scan stopped").to_string()
                     } else {
@@ -795,6 +1017,30 @@ impl OpenAseApp {
                         self.dialogs.error = Some(fill(tr("LAN search failed: {}"), &[&error]))
                     }
                 },
+                Msg::Link(url) => self.open_link(ctx, &url),
+                Msg::SavedLists(lists) => {
+                    // A list scanned meanwhile is newer: keep it.
+                    for (game, mut rows) in lists {
+                        if !self.store.contains_key(&game) {
+                            for server in &mut rows {
+                                annotate(self.geoip.as_deref(), server);
+                            }
+                            self.store.insert(game, rows);
+                        }
+                    }
+                }
+                Msg::Watched(server) => self.upsert(server),
+                Msg::WatchDone => self.watch_in_flight = false,
+                Msg::Resolved {
+                    game,
+                    addresses,
+                    group,
+                } => match group {
+                    None => addresses
+                        .iter()
+                        .for_each(|address| self.finish_add(ctx, &game, address)),
+                    Some(group) => self.finish_import(ctx, &game, &group, addresses),
+                },
                 Msg::PortFixes(fixes) => {
                     for (old, new) in &fixes {
                         self.settings.replace_server(old, new);
@@ -837,6 +1083,12 @@ impl OpenAseApp {
                 .values()
                 .flatten()
                 .filter(|server| self.server_has_friend(server))
+                .collect(),
+            Nav::Special(Special::Playing) => self
+                .store
+                .values()
+                .flatten()
+                .filter(|server| server.has_info() && !server.saved && alerts::humans(server) > 0)
                 .collect(),
             Nav::FriendGroup(group) => {
                 let keys: Vec<&ServerKey> = self
@@ -1013,6 +1265,35 @@ impl OpenAseApp {
                 self.settings_dirty = true;
                 self.status = fill(tr("Added to {}"), &[&group_name(&group)]);
             }
+            Action::WatchSlot(key) => {
+                let id = key.to_ref().key();
+                if self
+                    .slot_watch
+                    .as_ref()
+                    .is_some_and(|watch| watch.key == id)
+                {
+                    self.slot_watch = None;
+                } else {
+                    self.slot_watch = Some(SlotWatch::new(id, Instant::now()));
+                    self.status = fill(tr("Watching {} for a free slot..."), &[&key.address]);
+                }
+            }
+            Action::PartyAlert(key, threshold) => {
+                let id = key.to_ref().key();
+                self.party.reset(&id);
+                if threshold == 0 {
+                    self.settings.party_alerts.remove(&id);
+                    self.status = fill(tr("No more match alerts for {}"), &[&key.address]);
+                } else {
+                    self.settings.party_alerts.insert(id, threshold);
+                    self.last_party_poll = None;
+                    self.status = fill(
+                        tr("I will alert you when {} has {} players"),
+                        &[&key.address, &threshold],
+                    );
+                }
+                self.settings_dirty = true;
+            }
             Action::Copy(text) => {
                 ctx.copy_text(text.clone());
                 self.status = fill(tr("Copied {}"), &[&text]);
@@ -1033,13 +1314,37 @@ impl OpenAseApp {
         let game = catalog::game(game_id).ok_or_else(|| tr("Unknown game").to_string())?;
         let (host, port) =
             parse_address(address.trim(), game.default_port).map_err(|error| error.to_string())?;
-        // Players share the game port of Unreal engine servers: switch to the
-        // query port so OpenASE never queries the game port.
+        self.resolve_in_background(ctx, &game.id, vec![format!("{host}:{port}")], None);
+        Ok(())
+    }
+
+    /// Players share the game port of Unreal engine servers: move typed or
+    /// imported addresses to their query port in a worker (it sends a query),
+    /// so OpenASE never queries the game port. Answers with `Msg::Resolved`.
+    pub(crate) fn resolve_in_background(
+        &self,
+        ctx: &egui::Context,
+        game: &str,
+        addresses: Vec<String>,
+        group: Option<String>,
+    ) {
         let timeout = self.settings.network.query_options().timeout;
-        let port = openase::query::resolve_query_port(game, &host, port, timeout);
+        let (tx, ctx, game) = (self.tx.clone(), ctx.clone(), game.to_string());
+        std::thread::spawn(move || {
+            let addresses = extra::resolve_query_ports(&game, addresses, timeout);
+            let _ = tx.send(Msg::Resolved {
+                game,
+                addresses,
+                group,
+            });
+            ctx.request_repaint();
+        });
+    }
+
+    fn finish_add(&mut self, ctx: &egui::Context, game: &str, address: &str) {
         let key = ServerKey {
-            game: game.id.clone(),
-            address: format!("{host}:{port}"),
+            game: game.to_string(),
+            address: address.to_string(),
         };
         if !self.settings.is_favorite(&key.to_ref()) {
             self.settings.toggle_favorite(key.to_ref());
@@ -1049,7 +1354,6 @@ impl OpenAseApp {
         self.nav = Nav::Favorites;
         self.selected = Some(key.clone());
         self.query_single(ctx, &key);
-        Ok(())
     }
 
     // ----- UI: menus and toolbar -------------------------------------------
@@ -1668,9 +1972,20 @@ impl OpenAseApp {
                 }
                 let lan_first_visit =
                     nav == Nav::Special(Special::Lan) && self.lan_servers.is_empty();
+                // First visit: scan the ready games that have no list yet.
+                let playing_first_visit = nav == Nav::Special(Special::Playing)
+                    && self.settings.ready_games().iter().any(|game| {
+                        !self
+                            .store
+                            .get(&game.id)
+                            .is_some_and(|list| list.iter().any(|s| !s.saved))
+                    });
                 self.nav = nav;
                 if lan_first_visit {
                     self.scan_lan(ui.ctx());
+                }
+                if playing_first_visit {
+                    self.scan_ready_games(ui.ctx());
                 }
             }
             self.settings_dirty = true;
@@ -1805,6 +2120,13 @@ impl OpenAseApp {
                     row.set_selected(is_selected);
                     let game = catalog::game(&server.game);
                     let favorite = self.settings.is_favorite(&key.to_ref());
+                    let alert_id = key.to_ref().key();
+                    let watching = self
+                        .slot_watch
+                        .as_ref()
+                        .is_some_and(|watch| watch.key == alert_id);
+                    let threshold = self.settings.party_alerts.get(&alert_id).copied();
+                    let full = server.is_full();
                     let friend = self.server_has_friend(server);
                     let highlight = if friend {
                         Some(Color32::from_rgb(0xe0, 0xf5, 0xe0))
@@ -1925,8 +2247,43 @@ impl OpenAseApp {
                                 }
                             }
                         });
+                        ui.separator();
+                        if watching {
+                            if ui.button(tr("Stop watching for a free slot")).clicked() {
+                                actions.push(Action::WatchSlot(key.clone()));
+                                ui.close();
+                            }
+                        } else if ui
+                            .add_enabled(
+                                full,
+                                egui::Button::new(tr("Alert me when a slot is free")),
+                            )
+                            .clicked()
+                        {
+                            actions.push(Action::WatchSlot(key.clone()));
+                            ui.close();
+                        }
+                        ui.menu_button(tr("Alert when players reach"), |ui| {
+                            for n in [2, alerts::DEFAULT_THRESHOLD, 6, 8, 12, 16, 24, 32] {
+                                let label = fill(tr("At {} players"), &[&n]);
+                                if ui.radio(threshold == Some(n), label).clicked() {
+                                    actions.push(Action::PartyAlert(key.clone(), n));
+                                    ui.close();
+                                }
+                            }
+                            if ui.radio(threshold.is_none(), tr("No alert")).clicked() {
+                                actions.push(Action::PartyAlert(key.clone(), 0));
+                                ui.close();
+                            }
+                        });
+                        ui.separator();
                         if ui.button(tr("Copy address")).clicked() {
                             actions.push(Action::Copy(address.clone()));
+                            ui.close();
+                        }
+                        if ui.button(tr("Copy openase:// link")).clicked() {
+                            let link = openase::links::build(&key.game, &key.address);
+                            actions.push(Action::Copy(link));
                             ui.close();
                         }
                     });
@@ -2225,6 +2582,10 @@ impl eframe::App for OpenAseApp {
             || self.dialogs.has_notices()
         {
             ctx.request_repaint_after(Duration::from_millis(500));
+        }
+        self.watch_tick(&ctx);
+        if self.slot_watch.is_some() || !self.settings.party_alerts.is_empty() {
+            ctx.request_repaint_after(Duration::from_secs(1));
         }
 
         let no_dialog = !self.dialogs.any_modal();

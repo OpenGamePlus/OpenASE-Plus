@@ -273,6 +273,8 @@ pub struct Settings {
     /// Favorites of Unreal engine games saved with their game port have been
     /// moved to the query port once (see `query::resolve_query_port`).
     pub unreal_ports_checked: bool,
+    /// "Alert when players reach": humans threshold, keyed by [`ServerRef::key`].
+    pub party_alerts: BTreeMap<String, usize>,
 }
 
 pub const RECENT_LIMIT: usize = 20;
@@ -348,6 +350,21 @@ impl Settings {
         }
         let text = serde_json::to_string_pretty(self).map_err(std::io::Error::other)?;
         std::fs::write(path, text)
+    }
+
+    /// Games the user can join: a program is set, or a Steam game and a Steam
+    /// Web API key to list it.
+    pub fn ready_games(&self) -> Vec<&'static crate::catalog::Game> {
+        crate::catalog::games()
+            .iter()
+            .filter(|game| {
+                let program = self
+                    .games
+                    .get(&game.id)
+                    .is_some_and(|g| !g.program_location.trim().is_empty());
+                program || (game.steam_appid.is_some() && !self.steam_api_key.trim().is_empty())
+            })
+            .collect()
     }
 
     pub fn game(&self, id: &str) -> GameSettings {

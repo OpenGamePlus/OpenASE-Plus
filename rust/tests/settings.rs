@@ -155,3 +155,29 @@ fn old_settings_have_not_checked_unreal_ports() {
     let settings: Settings = serde_json::from_str("{}").unwrap();
     assert!(!settings.unreal_ports_checked);
 }
+
+#[test]
+fn ready_games_have_a_program_or_steam_with_a_key() {
+    use openase::settings::GameSettings;
+    let mut settings = Settings::default();
+    assert!(settings.ready_games().is_empty());
+    settings.games.insert(
+        "q3".into(),
+        GameSettings {
+            program_location: "quake3.exe".into(),
+            ..GameSettings::default()
+        },
+    );
+    let ids = |s: &Settings| {
+        s.ready_games()
+            .iter()
+            .map(|g| g.id.as_str())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(ids(&settings), ["q3"]);
+    // Steam games join through Steam: ready once there is an API key.
+    settings.steam_api_key = "key".into();
+    let with_key = ids(&settings);
+    assert!(with_key.contains(&"q3") && with_key.contains(&"tf2") && with_key.contains(&"css"));
+    assert!(!with_key.contains(&"ut99"));
+}

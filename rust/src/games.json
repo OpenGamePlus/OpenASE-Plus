@@ -104,6 +104,116 @@
     "join": "[+set fs_game {mod} ][+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
   },
   {
+    "id": "xonotic",
+    "name": "Xonotic",
+    "short": "XO",
+    "color": "#3c8fd6",
+    "protocol": "quake3",
+    "default_port": 26000,
+    "masters": [
+      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers Xonotic 3 empty full" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "modname",
+    "base_mod": "data",
+    "filters": [
+      { "name": "Mods", "key": "modname", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [],
+    "exe_names": ["xonotic.exe", "xonotic-x86_64.exe", "xonotic-linux64-sdl", "xonotic-linux64-glx"],
+    "join": "[+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "warsow",
+    "name": "Warsow",
+    "short": "WS",
+    "color": "#d6a23c",
+    "protocol": "quake3",
+    "default_port": 44400,
+    "masters": [
+      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers Warsow 22 empty full" }
+    ],
+    "game_type_key": "gametype",
+    "game_types": [],
+    "mod_key": "fs_game",
+    "base_mod": "basewsw",
+    "filters": [
+      { "name": "Mods", "key": "fs_game", "dynamic": true },
+      { "name": "Game types", "key": "gametype", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [],
+    "exe_names": ["warsow_x64.exe", "warsow_x86.exe", "warsow.x86_64", "warsow"],
+    "join": "[+set fs_game {mod} ][+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "warfork",
+    "name": "Warfork",
+    "short": "WF",
+    "color": "#8c4fd6",
+    "protocol": "quake3",
+    "default_port": 44400,
+    "masters": [
+      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers Warfork 26 empty full" }
+    ],
+    "game_type_key": "gametype",
+    "game_types": [],
+    "mod_key": "fs_game",
+    "base_mod": "basewf",
+    "filters": [
+      { "name": "Mods", "key": "fs_game", "dynamic": true },
+      { "name": "Game types", "key": "gametype", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [],
+    "exe_names": ["warfork_x64.exe", "warfork.x86_64", "warfork"],
+    "join": "[+set fs_game {mod} ][+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "tremulous",
+    "name": "Tremulous",
+    "short": "TR",
+    "color": "#5a9e3a",
+    "protocol": "quake3",
+    "default_port": 30720,
+    "masters": [
+      { "kind": "quake3", "address": "master.tremulous.net:30710", "query": "getservers 69 empty full" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "",
+    "base_mod": "",
+    "filters": [
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [],
+    "exe_names": ["tremulous.exe", "tremulous.x86_64", "tremulous"],
+    "join": "[+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "smokinguns",
+    "name": "Smokin' Guns",
+    "short": "SG",
+    "color": "#9e6a3a",
+    "protocol": "quake3",
+    "default_port": 27960,
+    "masters": [
+      { "kind": "quake3", "address": "master.smokin-guns.org:27950", "query": "getservers 68 empty full" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "",
+    "base_mod": "",
+    "filters": [
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [],
+    "exe_names": ["smokinguns.exe", "smokinguns.x86_64", "smokinguns"],
+    "join": "[+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
     "id": "et",
     "name": "Wolfenstein: Enemy Territory",
     "short": "ET",
@@ -661,6 +771,110 @@
     ],
     "exe_names": ["hl2.exe", "hl2_linux", "hl2_osx"],
     "join": "-game hl2mp [+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "tf2",
+    "name": "Team Fortress 2",
+    "short": "TF2",
+    "color": "#b8383b",
+    "protocol": "a2s",
+    "default_port": 27015,
+    "steam_appid": 440,
+    "masters": [
+      { "kind": "steam_web", "filter": "\\appid\\440" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "folder",
+    "base_mod": "tf",
+    "filters": [
+      { "name": "VAC", "key": "secure", "options": [{"label": "Secure", "values": ["1"]}, {"label": "Insecure", "values": ["0"]}] },
+      { "name": "Version", "key": "version", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [
+      { "key": "HKEY_CURRENT_USER\\Software\\Valve\\Steam", "value": "SteamPath", "exe": "steamapps\\common\\Team Fortress 2\\tf_win64.exe" }
+    ],
+    "exe_names": ["tf_win64.exe", "hl2.exe", "tf_linux64", "hl2_linux"],
+    "join": "-game tf [+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "l4d",
+    "name": "Left 4 Dead",
+    "short": "L4D",
+    "color": "#7a2020",
+    "protocol": "a2s",
+    "default_port": 27015,
+    "steam_appid": 500,
+    "masters": [
+      { "kind": "steam_web", "filter": "\\appid\\500" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "folder",
+    "base_mod": "left4dead",
+    "filters": [
+      { "name": "VAC", "key": "secure", "options": [{"label": "Secure", "values": ["1"]}, {"label": "Insecure", "values": ["0"]}] },
+      { "name": "Version", "key": "version", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [
+      { "key": "HKEY_CURRENT_USER\\Software\\Valve\\Steam", "value": "SteamPath", "exe": "steamapps\\common\\Left 4 Dead\\left4dead.exe" }
+    ],
+    "exe_names": ["left4dead.exe", "hl2_linux"],
+    "join": "-game left4dead [+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "l4d2",
+    "name": "Left 4 Dead 2",
+    "short": "L4D2",
+    "color": "#a03030",
+    "protocol": "a2s",
+    "default_port": 27015,
+    "steam_appid": 550,
+    "masters": [
+      { "kind": "steam_web", "filter": "\\appid\\550" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "folder",
+    "base_mod": "left4dead2",
+    "filters": [
+      { "name": "VAC", "key": "secure", "options": [{"label": "Secure", "values": ["1"]}, {"label": "Insecure", "values": ["0"]}] },
+      { "name": "Version", "key": "version", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [
+      { "key": "HKEY_CURRENT_USER\\Software\\Valve\\Steam", "value": "SteamPath", "exe": "steamapps\\common\\Left 4 Dead 2\\left4dead2.exe" }
+    ],
+    "exe_names": ["left4dead2.exe", "hl2_linux"],
+    "join": "-game left4dead2 [+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
+  },
+  {
+    "id": "gmod",
+    "name": "Garry's Mod",
+    "short": "GM",
+    "color": "#2a6fb8",
+    "protocol": "a2s",
+    "default_port": 27015,
+    "steam_appid": 4000,
+    "masters": [
+      { "kind": "steam_web", "filter": "\\appid\\4000" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "folder",
+    "base_mod": "garrysmod",
+    "filters": [
+      { "name": "VAC", "key": "secure", "options": [{"label": "Secure", "values": ["1"]}, {"label": "Insecure", "values": ["0"]}] },
+      { "name": "Version", "key": "version", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [
+      { "key": "HKEY_CURRENT_USER\\Software\\Valve\\Steam", "value": "SteamPath", "exe": "steamapps\\common\\GarrysMod\\hl2.exe" }
+    ],
+    "exe_names": ["gmod.exe", "hl2.exe", "hl2_linux"],
+    "join": "-game garrysmod [+name \"{name}\" ][+password \"{password}\" ]+connect {address}"
   },
   {
     "id": "coduo",
@@ -2112,5 +2326,28 @@
     "registry": [],
     "exe_names": ["SOAFDemo.exe"],
     "join": "-client {ip} {port}[ -password \"{password}\"]"
+  },
+  {
+    "id": "zandronum",
+    "name": "Zandronum (Doom)",
+    "short": "ZD",
+    "color": "#b02a1e",
+    "protocol": "zandronum",
+    "default_port": 10666,
+    "masters": [
+      { "kind": "zandronum", "address": "master.zandronum.com:15300" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "iwad",
+    "base_mod": "",
+    "filters": [
+      { "name": "IWAD", "key": "iwad", "dynamic": true },
+      { "name": "Version", "key": "version", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [],
+    "exe_names": ["zandronum.exe", "zandronum"],
+    "join": "[-iwad {mod} ][+cl_password \"{password}\" ][+cl_joinpassword \"{password}\" ][+name \"{name}\" ]-connect {address}"
   }
 ]

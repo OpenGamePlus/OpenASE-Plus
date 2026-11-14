@@ -726,6 +726,38 @@ impl OpenAseApp {
         }
     }
 
+    /// Second half of Import list, once the addresses are resolved.
+    pub(super) fn finish_import(
+        &mut self,
+        ctx: &egui::Context,
+        game: &str,
+        group: &str,
+        addresses: Vec<String>,
+    ) {
+        let keys: Vec<ServerKey> = addresses
+            .iter()
+            .map(|address| ServerKey {
+                game: game.to_string(),
+                address: address.clone(),
+            })
+            .collect();
+        for key in &keys {
+            let server = ServerRef {
+                game: key.game.clone(),
+                address: key.address.clone(),
+            };
+            self.settings.add_favorite_to(server.clone(), group);
+            Settings::push_front(&mut self.settings.recently_imported, server);
+        }
+        self.mark_dirty();
+        self.nav = Nav::FavoriteGroup(group.to_string());
+        self.scan_list(ctx, keys, noop("imported servers"));
+        self.status = fill(
+            tr("Imported {} servers into {}"),
+            &[&addresses.len(), &group_name(group)],
+        );
+    }
+
     fn import_window(&mut self, ctx: &egui::Context) {
         let Some(mut import) = self.extra.import_list.take() else {
             return;
@@ -761,37 +793,14 @@ impl OpenAseApp {
             match std::fs::read(&import.path) {
                 Ok(bytes) => {
                     let text = String::from_utf8_lossy(&bytes);
-                    let timeout = self.settings.network.query_options().timeout;
-                    let addresses =
-                        resolve_query_ports(&import.game, parse_address_list(&text), timeout);
+                    let addresses = parse_address_list(&text);
                     if addresses.is_empty() {
                         self.dialogs.error =
                             Some(tr("No ip:port entries found in this file.").to_string());
                         self.extra.import_list = Some(import);
                         return;
                     }
-                    let keys: Vec<ServerKey> = addresses
-                        .iter()
-                        .map(|address| ServerKey {
-                            game: import.game.clone(),
-                            address: address.clone(),
-                        })
-                        .collect();
-                    for key in &keys {
-                        let server = ServerRef {
-                            game: key.game.clone(),
-                            address: key.address.clone(),
-                        };
-                        self.settings.add_favorite_to(server.clone(), &import.group);
-                        Settings::push_front(&mut self.settings.recently_imported, server);
-                    }
-                    self.mark_dirty();
-                    self.nav = Nav::FavoriteGroup(import.group.clone());
-                    self.scan_list(ctx, keys, noop("imported servers"));
-                    self.status = fill(
-                        tr("Imported {} servers into {}"),
-                        &[&addresses.len(), &group_name(&import.group)],
-                    );
+                    self.resolve_in_background(ctx, &import.game, addresses, Some(import.group));
                 }
                 Err(error) => {
                     self.dialogs.error =

@@ -1,6 +1,7 @@
 //! OpenASE: an open-source game server browser inspired by The All-Seeing Eye.
 
 pub mod a2s;
+pub mod alerts;
 pub mod ase;
 pub mod ase_filters;
 pub mod catalog;
@@ -14,8 +15,11 @@ pub mod gamespy_sb;
 pub mod geoip;
 pub mod ghostrecon;
 pub mod i18n;
+pub mod instance;
 pub mod lan;
 pub mod launch;
+pub mod links;
+pub mod lists;
 pub mod location;
 pub mod model;
 pub mod networks333;
@@ -31,3 +35,4 @@ pub mod text;
 pub mod tribes;
 pub mod unreal2;
 pub mod update;
+pub mod zandronum;
