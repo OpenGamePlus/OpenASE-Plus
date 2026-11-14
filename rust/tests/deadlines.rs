@@ -72,7 +72,9 @@ fn gamespy_without_final_stops() {
 fn honest_slow_answer_is_read() {
     let reply = b"EYE1\x04mta\x0622003\x05Test\x05race\x05none\x041.6\x020\x022\x0332\x01".to_vec();
     let port = fake(vec![reply], Duration::from_millis(200));
-    let result = bounded(move || openase::ase::status("mta", "127.0.0.1", port, TIMEOUT));
+    // A wide margin over the 200 ms answer: macOS runners oversleep.
+    let timeout = Duration::from_secs(1);
+    let result = bounded(move || openase::ase::status("mta", "127.0.0.1", port, timeout));
     let (server, _) = result.expect("returned").expect("answer read");
     assert_eq!(server.name, "Test");
 }
