@@ -4,7 +4,7 @@ All notable changes to OpenASE-Plus, and before 1.0.0 to OpenASE. Downloads
 are on the [OpenASE-Plus releases page](https://github.com/OpenGamePlus/OpenASE-Plus/releases);
 versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases).
 
-## 1.0.0 — unreleased (first OpenASE-Plus release)
+## 1.0.0 — 2026-11-14 (first OpenASE-Plus release)
 
 ### Identity
 - **OpenASE-Plus**, a fork of OpenASE 0.9.6 by Thomas Sautier. It installs next to
@@ -77,6 +77,12 @@ versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases
   draws thin, pixel-exact sunken frames.
 
 ### Fixes
+- The panels no longer show thick dark borders: the gaps between them took the window's
+  near-black clear color. Edges are one pixel wide in every theme.
+- Yellow and cyan Quake color codes are darkened on light themes, and control characters
+  in server names no longer show as boxes.
+- The server list stays responsive with thousands of servers: rows are filtered and
+  sorted once per frame, with sort keys built once per row.
 - Settings are saved atomically; an unreadable settings file is kept as `settings.json.bad`
   instead of being overwritten.
 - Imported server lists ignore host names that are not valid (such as ones starting with `-`).

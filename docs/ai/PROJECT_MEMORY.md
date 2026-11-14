@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — 1.0.0 release
+- README rewritten in the OpenGamePlus family layout: `docs/banner.svg` (the app icon as emblem), badges, tagline, screenshots, "What works today" for players and server admins, NOTE / IMPORTANT callouts.
+- CHANGELOG 1.0.0 dated; `plus-identity` merged into `main` and tagged `v1.0.0`, which runs the release workflow.
+- Not done: translated READMEs (siblings have them; English only here), the upstream website `docs/index.html`, winget / Scoop hashes (filled by hand after the release).
+
 ## 2026-11-14 — exe name, visual polish, own screenshots
 - The GUI binary is `OpenASEplus` (`OpenASEplus.exe`, explicit `[[bin]]`); Windows zip, installer and Scoop ship that name, Linux and macOS packages keep theirs.
 - The thick dark borders were eframe's near-black clear color showing in the gaps between boxes: `clear_color` now returns the panel fill; box edges are 1 px on whole pixels in every theme; light Quake colors darkened on light themes; control characters (`\x07`) removed from colored names.

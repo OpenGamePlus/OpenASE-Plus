@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">OpenASE-Plus</title>
+  <desc id="desc">Game server browser for classic online games, in the spirit of The All-Seeing Eye, for Windows, Linux and macOS</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#121a24"/>
+      <stop offset="1" stop-color="#0b0f14"/>
+    </linearGradient>
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#19f5e1" opacity="0.035"/>
+    </pattern>
+    <radialGradient id="iris" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#b6fff7"/>
+      <stop offset="1" stop-color="#0a8f86"/>
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="280" rx="14" fill="url(#bg)"/>
+  <rect width="1200" height="280" rx="14" fill="url(#scan)"/>
+  <rect x="10" y="10" width="1180" height="260" rx="9" fill="none" stroke="#19f5e1" stroke-opacity="0.35" stroke-width="2"/>
+
+  <!-- emblem: the app icon (scripts/make_icon.sh), an eye in a triangle in a circle -->
+  <g transform="translate(22 12)">
+    <g fill="none" stroke="#19f5e1" stroke-linejoin="round" filter="url(#glow)">
+      <circle cx="128" cy="128" r="98" stroke-width="9"/>
+      <polygon points="128,30 43,177 213,177" stroke-width="9"/>
+      <path d="M 74,128 Q 128,78 182,128 Q 128,176 74,128 Z" stroke-width="8"/>
+    </g>
+    <circle cx="128" cy="128" r="23" fill="url(#iris)"/>
+    <circle cx="128" cy="128" r="11" fill="#0b0f14"/>
+    <circle cx="133" cy="123" r="3.5" fill="#e8fffd"/>
+  </g>
+
+  <text x="300" y="136" font-family="'Segoe UI', 'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif" font-size="80" font-weight="800" fill="#e8fffd">OpenASE<tspan fill="#19f5e1">-Plus</tspan></text>
+  <text x="304" y="182" font-family="'Segoe UI', 'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="600" fill="#b8d6d3">Game server browser for classic online games</text>
+  <text x="304" y="218" font-family="'Segoe UI', 'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#6f8f8c">Windows · Linux · macOS — 80 games, 16 query protocols, in the spirit of The All-Seeing Eye</text>
+</svg>
