@@ -48,11 +48,12 @@ Yahoo program.
 | Tribes 2 | Tribes 2 | TribesNext (master.tribesnext.com) |
 | Savage: The Battle for Newerth | Savage | Savage DRX server list |
 | Rainbow Six 3: Raven Shield | Raven Shield | OpenRVS server list |
+| Zandronum (Doom) | Zandronum | master.zandronum.com |
 | Ghost Recon (+ demo), The Sum of All Fears (+ demo) | Ghost Recon | none: Add server and LAN only |
 | Counter-Strike 1.6, Condition Zero, Team Fortress Classic, Day of Defeat, Half-Life, Opposing Force, Deathmatch Classic, Ricochet | Valve A2S | Steam Web API (needs your own key) |
 | Counter-Strike: Source, Day of Defeat: Source, Half-Life 2: Deathmatch, Team Fortress 2, Left 4 Dead, Left 4 Dead 2, Garry's Mod | Valve A2S | Steam Web API (needs your own key) |
 
-79 games in total, spoken in 15 query protocols and listed by 48 master
+80 games in total, spoken in 16 query protocols and listed by 49 master
 servers. "OpenSpy" means the OpenSpy master servers
 (<https://github.com/openspy>), "333networks" the 333networks masters.
 Ghost Recon and The Sum of All Fears have no master server left: their

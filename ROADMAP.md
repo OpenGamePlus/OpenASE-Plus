@@ -12,7 +12,7 @@ OpenASE-Plus forks OpenASE 0.9.6 and brings in features of JASE, an earlier
 Python browser by the same maintainer. In priority order:
 
 1. [x] Games on existing protocols: Xonotic, Warsow, Warfork, Tremulous, Smokin' Guns (Quake 3); Team Fortress 2, Left 4 Dead, Left 4 Dead 2, Garry's Mod (Steam). D-Day: Normandy postponed: one live server, needs a Quake 2 `gamedir` filter
-2. [ ] Zandronum (its own protocol, Huffman-compressed packets)
+2. [x] Zandronum (its own protocol, Huffman-compressed packets)
 3. [ ] Alerts: a slot frees up on a full server, a match is filling up
 4. [ ] "Playing now": one list of busy servers across all games
 5. [ ] `openase://connect/<game>/<host>:<port>` links; favorites export and import

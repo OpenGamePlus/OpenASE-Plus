@@ -18,7 +18,7 @@ main.rs ──► gui/  (binary only: egui, threads, channels)
                │
                ▼
    protocols: quake3 quake2 a2s gamespy gamespy2 gamespy_sb unreal2 ase tribes
-              doom3 savage ravenshield ghostrecon networks333 steam
+              doom3 savage ravenshield ghostrecon zandronum networks333 steam
                │
                ▼
    leaves:    model · text · colors · countries · ase_filters · location
@@ -36,7 +36,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/gui/extra.rs` | binary | First-run wizard, friends, import list, custom filter editor, About |
 | `rust/src/gui/icons.rs` | binary | Toolbar and tree icons painted by hand, game badges |
 | `rust/src/catalog.rs` | dispatch | Loads `games.json` (`include_str!`), `Game`, `Protocol`, `Master` |
-| `rust/src/games.json` | data | The game catalog: 79 games, 15 protocols, 14 master kinds |
+| `rust/src/games.json` | data | The game catalog: 80 games, 16 protocols, 15 master kinds |
 | `rust/src/query.rs` | dispatch | `fetch_all_masters`, `query_server`, Ping/Flux/PL from samples |
 | protocol modules | protocols | One per query or master protocol, see [protocols.md](protocols.md) |
 | `rust/src/model.rs` | leaf | `Server`, `Player`, `Listed`: protocol-independent results |

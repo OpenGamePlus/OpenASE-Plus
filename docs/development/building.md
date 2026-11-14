@@ -37,3 +37,4 @@ macOS.
 `rust/tests/*.rs`: `protocols` (catalog-wide checks and several protocols), `parsers`,
 per-family files (`quake2`, `doom3`, `tribes`, `unreal2_ase`...), `settings`, `text`, `i18n` and `docs`. No unit tests
 inside `src/`. Offline only ([ADR 0003](../architecture/adr/0003-offline-tests.md)).
+Binary captures too large to inline live in `rust/tests/fixtures/` (loaded with `include_bytes!`).

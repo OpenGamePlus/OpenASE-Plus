@@ -2326,5 +2326,28 @@
     "registry": [],
     "exe_names": ["SOAFDemo.exe"],
     "join": "-client {ip} {port}[ -password \"{password}\"]"
+  },
+  {
+    "id": "zandronum",
+    "name": "Zandronum (Doom)",
+    "short": "ZD",
+    "color": "#b02a1e",
+    "protocol": "zandronum",
+    "default_port": 10666,
+    "masters": [
+      { "kind": "zandronum", "address": "master.zandronum.com:15300" }
+    ],
+    "game_type_key": "",
+    "game_types": [],
+    "mod_key": "iwad",
+    "base_mod": "",
+    "filters": [
+      { "name": "IWAD", "key": "iwad", "dynamic": true },
+      { "name": "Version", "key": "version", "dynamic": true },
+      { "name": "Maps", "key": "mapname", "dynamic": true }
+    ],
+    "registry": [],
+    "exe_names": ["zandronum.exe", "zandronum"],
+    "join": "[-iwad {mod} ][+cl_password \"{password}\" ][+cl_joinpassword \"{password}\" ][+name \"{name}\" ]-connect {address}"
   }
 ]

@@ -99,7 +99,8 @@ fn catalog_has_every_game_with_masters_and_join_template() {
             "ghostrecon",
             "ghostrecond",
             "soaf",
-            "soafd"
+            "soafd",
+            "zandronum"
         ]
     );
     for game in games() {
@@ -657,6 +658,9 @@ fn launch_mod_skips_base_mod_and_display_strings() {
     assert_eq!(rtcw.launch_mod("shrub"), "shrub");
     assert_eq!(rtcw.launch_mod("Dark-MoD v5.1"), "");
     assert_eq!(rtcw.launch_mod(""), "");
+    // A name that would read as another option or a hidden path is dropped.
+    assert_eq!(rtcw.launch_mod("-quit"), "");
+    assert_eq!(rtcw.launch_mod(".."), "");
 }
 
 #[test]

@@ -21,6 +21,7 @@ how the list is fetched. They are independent: SWAT 4 is queried with
 | `savage` | `savage.rs` | Savage |
 | `ravenshield` | `ravenshield.rs` | Raven Shield (query port = game port + 1000) |
 | `ghostrecon` | `ghostrecon.rs` | Ghost Recon, The Sum of All Fears (no master) |
+| `zandronum` | `zandronum.rs` | Zandronum (Doom); Huffman packets, one ping sample (a server ignores a second query for ~10 s) |
 
 ## Master kinds
 
@@ -39,6 +40,7 @@ how the list is fetched. They are independent: SWAT 4 is queried with
 | `http_list` | `tribes.rs` | `url` (one `ip:port` per line: `http://master.tribesnext.com/list`) |
 | `doom3` | `doom3.rs` | `address`, `version` (`1.0` DOOM 3, `2.0` Quake 4) |
 | `savage_drx` | `savage.rs` | `url` (JSON: `https://savagedrx.com/api/server/online`) |
+| `zandronum` | `zandronum.rs` | `address` (UDP: `master.zandronum.com:15300`); asks ~10 s between queries |
 | `csv` | `ravenshield.rs` | `url` (CSV with `ip`, `port`: `http://api.openrvs.org/servers`) |
 
 `"masters": []` is valid: servers then come from Add server, lists and LAN.
