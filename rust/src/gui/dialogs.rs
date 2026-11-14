@@ -1383,7 +1383,7 @@ fn games_tab(ui: &mut egui::Ui, draft: &mut OptionsDraft) -> Option<String> {
                             {
                                 ui.strong(heading);
                                 for game in catalog::games() {
-                                    let settings = draft.settings.game(&game.id);
+                                    let settings = draft.settings.game_ref(&game.id);
                                     let is_installed = !settings.program_location.is_empty()
                                         && Path::new(&settings.program_location).is_file();
                                     if is_installed != installed {

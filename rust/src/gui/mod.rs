@@ -2035,7 +2035,7 @@ impl OpenAseApp {
         }
 
         for game in catalog::games() {
-            if !self.settings.game(&game.id).visible
+            if !self.settings.game_ref(&game.id).visible
                 || (installed_only && !ready.contains(&game.id))
             {
                 continue;
@@ -2509,7 +2509,7 @@ impl OpenAseApp {
                                         && !is_selected
                                         && self
                                             .settings
-                                            .game(&server.game)
+                                            .game_ref(&server.game)
                                             .draw_player_names_with_game_font;
                                     if colored {
                                         colored_label(ui, &server.name, color);
@@ -2768,7 +2768,7 @@ impl OpenAseApp {
                 catalog::game(&server.game).is_some_and(|game| game.protocol == Protocol::Quake3)
                     && self
                         .settings
-                        .game(&server.game)
+                        .game_ref(&server.game)
                         .draw_player_names_with_game_font
             });
         let friends: Vec<String> = self

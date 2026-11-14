@@ -302,3 +302,19 @@ fn a_settings_file_that_is_not_utf8_is_kept_aside() {
         ansi
     );
 }
+
+#[test]
+fn game_ref_reads_without_cloning_and_defaults_like_game() {
+    use openase::settings::GameSettings;
+    let mut settings = Settings::default();
+    assert_eq!(settings.game_ref("q3"), &GameSettings::default());
+    settings.games.insert(
+        "q3".into(),
+        GameSettings {
+            visible: false,
+            ..GameSettings::default()
+        },
+    );
+    assert!(!settings.game_ref("q3").visible);
+    assert_eq!(settings.game_ref("q3"), &settings.game("q3"));
+}

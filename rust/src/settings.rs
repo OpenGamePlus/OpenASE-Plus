@@ -567,6 +567,14 @@ impl Settings {
         self.games.get(id).cloned().unwrap_or_default()
     }
 
+    /// Like [`Settings::game`] without the clone, for code that runs every
+    /// frame (tree, list rows, panes).
+    pub fn game_ref(&self, id: &str) -> &GameSettings {
+        static DEFAULT: std::sync::LazyLock<GameSettings> =
+            std::sync::LazyLock::new(GameSettings::default);
+        self.games.get(id).unwrap_or(&DEFAULT)
+    }
+
     pub fn is_favorite(&self, server: &ServerRef) -> bool {
         self.favorites.contains(server)
     }

@@ -507,7 +507,7 @@ impl OpenAseApp {
     fn open_wizard(&mut self) {
         let visible = catalog::games()
             .iter()
-            .map(|game| (game.id.clone(), self.settings.game(&game.id).visible))
+            .map(|game| (game.id.clone(), self.settings.game_ref(&game.id).visible))
             .collect();
         let player_name = self
             .settings
