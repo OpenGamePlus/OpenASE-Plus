@@ -86,7 +86,11 @@ context menu.
 
 | File | Holds |
 |---|---|
-| `src/gui/mod.rs` | `OpenAseApp`, `Msg`, columns (`Col`), main window, workers, style and palette |
+| `src/gui/mod.rs` | `OpenAseApp`, `Msg`, columns (`Col`), actions, menus, toolbar, style and palette |
+| `src/gui/scan.rs` | Scans, worker threads (`run_queries`), `drain_messages` |
+| `src/gui/list.rs` | `candidates`, `filtered_rows`, `sorted`, the server table, sort keys |
+| `src/gui/tree.rs` | The tree and `tree_row` |
+| `src/gui/panes.rs` | Friends, players and rules panes, status bar |
 | `src/gui/dialogs.rs` | Options (General, Network, Events, Games, Toolbar, Colors), Find player, Add server, notices |
 | `src/gui/extra.rs` | Setup wizard, Add friend, Import list, filter editor, About / license |
 | `src/gui/icons.rs` | Painted toolbar and tree icons, badges, lock, sort arrows |

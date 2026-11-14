@@ -19,7 +19,7 @@ the winget package and a Scoop bucket do not exist yet.
 
 | Item | Why accepted |
 |---|---|
-| `src/gui/mod.rs` is ~2900 lines | One app struct; split only along a real seam (list, tree, panes) when touched |
+| `src/gui/mod.rs` is ~1800 lines | One app struct split by job into `scan`, `list`, `tree`, `panes`; menus and toolbar stay in `mod.rs` |
 | `tribes.rs` uses `settings::parse_address_list` | Small shared parser; move to `model` or `text` if another protocol needs it |
 | Protocol modules depend on `quake3` helpers | See [boundaries](../architecture/boundaries.md) exceptions |
 | No unit tests in `src/`; GUI untested | Logic lives in the library and is tested in `rust/tests/` |

@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — GUI per-frame work and module split
+- Per-frame work cut: `catalog::game` is a map lookup, `Settings::game_ref` reads without cloning, filter groups resolve once, text columns sort with keys built once per row, the status bar counts without sorting, countries are listed only while their combo is open.
+- `SlotWatch` holds a `ServerRef`; `ServerRef::from_key` is the one inverse of `ServerRef::key` (party alert keys stay strings as JSON map keys).
+- `gui/mod.rs` (3781 lines) split by job into `scan.rs`, `list.rs`, `tree.rs`, `panes.rs`, no behavior change; not profiled, costs counted from the code.
+
 ## 2026-11-14 — audit fixes
 - Ponytail audit: settings saved atomically with unreadable files kept as `.bad`; `quake3::give_up` (2 × timeout) and `MAX_PACKETS` on 11 receive loops; imported hosts validated by `links::valid_host` (keeping the dot-and-letter rule for scanned text); `ready_games` needs the program file; one `quake3::udp_connect`; French-only i18n helpers and per-frame clones removed.
 - Rulings: gamespy2 already had deadlines (11 loops, not 14); gamespy2 now picks IPv4 like the rest.

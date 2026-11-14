@@ -32,7 +32,11 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | Module | Layer | Role |
 |---|---|---|
 | `rust/src/main.rs` | binary | Window options, starts `gui::OpenAseApp` |
-| `rust/src/gui/mod.rs` | binary | App state, main window (tree, list, panes), worker threads, `Msg` channel |
+| `rust/src/gui/mod.rs` | binary | App state, `Msg` channel, actions, menus and toolbar, style and palette |
+| `rust/src/gui/scan.rs` | binary | Scans (masters, LAN, single servers), worker threads, message handling |
+| `rust/src/gui/list.rs` | binary | Server list: filtering, sorting, the table |
+| `rust/src/gui/tree.rs` | binary | Navigation tree |
+| `rust/src/gui/panes.rs` | binary | Bottom panes (friends, players, rules), status bar |
 | `rust/src/gui/dialogs.rs` | binary | Options dialog (tabs), Find player, Add server |
 | `rust/src/gui/extra.rs` | binary | First-run wizard, friends, import list, custom filter editor, About |
 | `rust/src/gui/icons.rs` | binary | Toolbar and tree icons painted by hand, game badges |
