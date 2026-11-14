@@ -7,23 +7,13 @@ deferred in the code. Remove an item in the commit that fixes it.
 
 | # | Risk | Where | Note |
 |---|---|---|---|
-| R2 | The update check reports upstream releases | `rust/src/update.rs` (`RELEASES_API`, `RELEASES_PAGE`) | Point at the fork before its first release |
 
-## Fork identity still upstream's
+## Fork identity
 
-Fix together, before the first OpenASE-Plus release ([ADR 0006](../architecture/adr/0006-independent-fork.md)):
-
-| What | Where |
-|---|---|
-| Site, manual, message board links | `rust/src/gui/extra.rs` (`SITE`, `MANUAL`, `MESSAGE_BOARD`), `rust/src/gui/dialogs.rs` |
-| 333networks User-Agent `OpenASE/<v> (+https://openase.org)` | `rust/src/networks333.rs` |
-| `authors`, `repository` | `rust/Cargo.toml` |
-| Installer `AppId` / `AppName` (same as upstream: installs over it), URLs | `packaging/windows/openase.iss` |
-| winget / Scoop ids and URLs | `packaging/make-manifests.mjs`, `packaging/scoop/openase.json` |
-| Config folder `OpenASE` shared with an upstream install | `settings::config_dir` |
-| `docs/CNAME` = `openase.org` (GitHub Pages of the fork would claim it), site `docs/index.html` | `docs/` |
-| Fork repo is `OpenGamePlus/OpenASE-Plus` (`origin`); update URLs above to it | local git config |
-| README, website texts, issue templates | `README.md`, `docs/index.html`, `.github/ISSUE_TEMPLATE/add_game.yml` |
+Done for 1.0.0 (OpenASE-Plus name, own installer `AppId`, config folder with a
+one-time import of OpenASE's, URLs and User-Agents at OpenGamePlus/OpenASE-Plus).
+Left: `docs/index.html` is still upstream's website (no Pages for the fork);
+the winget package and a Scoop bucket do not exist yet.
 
 ## Accepted debt
 

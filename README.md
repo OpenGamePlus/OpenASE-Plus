@@ -1,6 +1,12 @@
-# OpenASE
+# OpenASE-Plus
 
-Website: https://openase.org/
+Repository: https://github.com/OpenGamePlus/OpenASE-Plus
+
+OpenASE-Plus is a fork of [OpenASE](https://github.com/tsautier/OpenASE) by
+Thomas Sautier, part of the OpenGamePlus family. It adds the features of JASE:
+more games (Xonotic, Warsow, Tremulous, Zandronum, TF2...), slot and match
+alerts, "Playing now", `openase://` links, saved lists, `openase-cli`, RCON,
+themes, country flags and map images. See `CHANGELOG.md`.
 
 OpenASE is an open-source game server browser in the spirit of The All-Seeing
 Eye: a filter tree on the left, the server list with Ping, Flux and PL on the
@@ -110,13 +116,13 @@ game types, filter groups, registry detection and the command line used to join.
 
 ## Download
 
-Every [GitHub release](https://github.com/tsautier/OpenASE/releases/latest) ships three packages:
+Every [GitHub release](https://github.com/OpenGamePlus/OpenASE-Plus/releases/latest) ships three packages:
 
 | System | Package | How to run |
 | --- | --- | --- |
-| Windows 10/11 (x64) | `OpenASE-<version>-windows-x64.zip` | Unzip, run `OpenASE.exe`. |
-| Linux (x64) | `OpenASE-<version>-linux-x86_64.AppImage` or `OpenASE-<version>-linux-x64.tar.gz` | AppImage: `chmod +x` it and run it, on any distribution. Archive: extract, run `./openase`; an `openase.desktop` file and icon are included. |
-| macOS 11+ (Apple Silicon and Intel) | `OpenASE-<version>-macos-universal.zip` | Unzip, move `OpenASE.app` to Applications. The app is not notarized: the first time, right-click it and choose **Open**, or run `xattr -dr com.apple.quarantine /Applications/OpenASE.app`. |
+| Windows 10/11 (x64) | `OpenASE-Plus-<version>-windows-x64.zip` | Unzip, run `OpenASE-Plus.exe`. |
+| Linux (x64) | `OpenASE-Plus-<version>-linux-x86_64.AppImage` or `OpenASE-Plus-<version>-linux-x64.tar.gz` | AppImage: `chmod +x` it and run it, on any distribution. Archive: extract, run `./openase-plus`; an `openase-plus.desktop` file and icon are included. |
+| macOS 11+ (Apple Silicon and Intel) | `OpenASE-Plus-<version>-macos-universal.zip` | Unzip, move `OpenASE-Plus.app` to Applications. The app is not notarized: the first time, right-click it and choose **Open**, or run `xattr -dr com.apple.quarantine /Applications/OpenASE-Plus.app`. |
 
 The games themselves still need to run on your system: native Linux and macOS
 builds exist for ioquake3, Urban Terror, OpenArena, ET: Legacy, Jedi Outcast
@@ -188,7 +194,8 @@ Options > General. Servers added by hand work without a key.
 
 ## License
 
-Copyright (C) 2026 Thomas Sautier
+Copyright (C) 2026 Thomas Sautier (OpenASE)
+Copyright (C) 2026 OpenGamePlus contributors (OpenASE-Plus)
 
 OpenASE is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software

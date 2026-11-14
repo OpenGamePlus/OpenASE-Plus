@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Read the manual
-    url: https://openase.org/#manual
-    about: "How to use OpenASE: filters, joining, friends and options."
+    url: https://github.com/OpenGamePlus/OpenASE-Plus#readme
+    about: "How to use OpenASE-Plus: filters, joining, friends and options."

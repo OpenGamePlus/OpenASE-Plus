@@ -215,3 +215,29 @@ fn ping_levels_and_theme_colors() {
         assert_ne!(theme.occupancy(), theme.colors().list_bg, "{theme:?}");
     }
 }
+
+#[test]
+fn upstream_settings_are_imported_once() {
+    use openase::settings::import_upstream;
+    let root = tempfile::tempdir().unwrap();
+    let (old, new) = (
+        root.path().join("OpenASE"),
+        root.path().join("OpenASE-Plus"),
+    );
+    // Nothing to import.
+    assert!(!import_upstream(&old, &new));
+    std::fs::create_dir_all(&old).unwrap();
+    std::fs::write(old.join("settings.json"), "{\"friends\":[\"Visor\"]}").unwrap();
+    assert!(import_upstream(&old, &new));
+    assert_eq!(
+        std::fs::read_to_string(new.join("settings.json")).unwrap(),
+        "{\"friends\":[\"Visor\"]}"
+    );
+    // Never over an existing OpenASE-Plus profile.
+    std::fs::write(new.join("settings.json"), "{}").unwrap();
+    assert!(!import_upstream(&old, &new));
+    assert_eq!(
+        std::fs::read_to_string(new.join("settings.json")).unwrap(),
+        "{}"
+    );
+}

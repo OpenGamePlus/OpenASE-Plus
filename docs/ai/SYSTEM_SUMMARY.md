@@ -1,6 +1,6 @@
 # System summary
 
-Last updated: 2026-11-14 (fork point: OpenASE 0.9.6).
+Last updated: 2026-11-14. Version 1.0.0 (unreleased), forked from OpenASE 0.9.6.
 
 ## Tree
 
@@ -47,7 +47,7 @@ packaging/           Inno Setup, Scoop, winget generator
 | Saved lists | Last completed scan per game, shown at start as listed rows (no ping, `saved`), queried on demand |
 | GeoIP | DB-IP country database, monthly download |
 | i18n | English, French |
-| Update check | Points at upstream releases (debt R2) |
+| Update check | OpenGamePlus/OpenASE-Plus releases |
 | Docs | This system; checker in `rust/tests/docs.rs` |
 
 ## Commands

@@ -76,7 +76,7 @@ queried only on demand ([ADR 0005](adr/0005-333networks-light-lists.md)).
 
 | What | Where |
 |---|---|
-| Settings, favorites, friends | `settings.json` in the config folder (`settings::config_dir`: `%APPDATA%\OpenASE`, `~/Library/Application Support/OpenASE`, `$XDG_CONFIG_HOME/OpenASE`, else `~/.config/OpenASE`) |
+| Settings, favorites, friends | `settings.json` in the config folder (`settings::config_dir`: `%APPDATA%\OpenASE-Plus`, `~/Library/Application Support/OpenASE-Plus`, `$XDG_CONFIG_HOME/OpenASE-Plus`, else `~/.config/OpenASE-Plus`; upstream OpenASE's `settings.json` is copied in once by `settings::import_upstream`) |
 | Window, panel and column sizes | eframe persistence |
 | Last list of each game | `lists/<id>.json` in the config folder (written after a completed scan, loaded at start) |
 | GeoIP database | config folder, downloaded monthly from DB-IP |

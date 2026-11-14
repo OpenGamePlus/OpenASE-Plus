@@ -1253,7 +1253,7 @@ impl OpenAseApp {
                 Msg::Update { result, manual } => match result {
                     Ok(Some(tag)) => self.extra.update_available = Some(tag),
                     Ok(None) if manual => self.dialogs.notify(fill(
-                        tr("OpenASE {} is up to date."),
+                        tr("OpenASE-Plus {} is up to date."),
                         &[&env!("CARGO_PKG_VERSION")],
                     )),
                     Err(error) if manual => {

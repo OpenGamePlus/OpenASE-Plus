@@ -1,0 +1,30 @@
+{
+    "version": "1.0.0",
+    "description": "OpenASE-Plus: game server browser in the spirit of The All-Seeing Eye (fork of OpenASE)",
+    "homepage": "https://github.com/OpenGamePlus/OpenASE-Plus",
+    "license": "GPL-3.0-or-later",
+    "url": "https://github.com/OpenGamePlus/OpenASE-Plus/releases/download/v1.0.0/OpenASE-Plus-v1.0.0-windows-x64.zip",
+    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "extract_dir": "OpenASE-Plus-v1.0.0-windows-x64",
+    "bin": [
+        "OpenASE-Plus.exe",
+        "openase-cli.exe"
+    ],
+    "shortcuts": [
+        [
+            "OpenASE-Plus.exe",
+            "OpenASE-Plus"
+        ]
+    ],
+    "checkver": {
+        "github": "https://github.com/OpenGamePlus/OpenASE-Plus"
+    },
+    "autoupdate": {
+        "url": "https://github.com/OpenGamePlus/OpenASE-Plus/releases/download/v$version/OpenASE-Plus-v$version-windows-x64.zip",
+        "extract_dir": "OpenASE-Plus-v$version-windows-x64",
+        "hash": {
+            "url": "https://github.com/OpenGamePlus/OpenASE-Plus/releases/download/v$version/SHA256SUMS.txt",
+            "regex": "$sha256\\s+$basename"
+        }
+    }
+}

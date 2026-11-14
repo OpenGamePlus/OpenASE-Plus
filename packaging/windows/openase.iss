@@ -1,4 +1,4 @@
-; Inno Setup script for the OpenASE Windows installer.
+; Inno Setup script for the OpenASE-Plus Windows installer.
 ;
 ; Build (from the repository root, after `cargo build --release` in rust/):
 ;   iscc /DAppVersion=0.9.1 packaging\windows\openase.iss
@@ -15,21 +15,22 @@
   #define OutputDir "..\..\dist"
 #endif
 #ifndef OutputName
-  #define OutputName "OpenASE-v" + AppVersion + "-windows-x64-setup"
+  #define OutputName "OpenASE-Plus-v" + AppVersion + "-windows-x64-setup"
 #endif
 
 [Setup]
 ; Fixed forever: this GUID is what makes a new setup upgrade an older install.
-AppId={{5C725B6E-FEF6-47EC-94BB-279FCFB8786D}
-AppName=OpenASE
+; OpenASE-Plus has its own (not upstream OpenASE's), so both can be installed.
+AppId={{BE92ED7C-7E22-4C2E-A9CC-63ADB627803D}
+AppName=OpenASE-Plus
 AppVersion={#AppVersion}
-AppVerName=OpenASE {#AppVersion}
-AppPublisher=Thomas Sautier
-AppPublisherURL=https://openase.org
-AppSupportURL=https://github.com/tsautier/OpenASE/issues
-AppUpdatesURL=https://github.com/tsautier/OpenASE/releases
-DefaultDirName={autopf}\OpenASE
-DefaultGroupName=OpenASE
+AppVerName=OpenASE-Plus {#AppVersion}
+AppPublisher=OpenGamePlus
+AppPublisherURL=https://github.com/OpenGamePlus/OpenASE-Plus
+AppSupportURL=https://github.com/OpenGamePlus/OpenASE-Plus/issues
+AppUpdatesURL=https://github.com/OpenGamePlus/OpenASE-Plus/releases
+DefaultDirName={autopf}\OpenASE-Plus
+DefaultGroupName=OpenASE-Plus
 DisableProgramGroupPage=yes
 ; Per-user by default (no admin prompt); the user can still choose "all users".
 PrivilegesRequired=lowest
@@ -38,8 +39,8 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 LicenseFile=..\..\LICENSE
 SetupIconFile=..\..\rust\assets\icon.ico
-UninstallDisplayIcon={app}\OpenASE.exe
-UninstallDisplayName=OpenASE
+UninstallDisplayIcon={app}\OpenASE-Plus.exe
+UninstallDisplayName=OpenASE-Plus
 OutputDir={#OutputDir}
 OutputBaseFilename={#OutputName}
 Compression=lzma2
@@ -56,24 +57,24 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "OpenASE.exe"; Flags: ignoreversion
+Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "OpenASE-Plus.exe"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\rust\assets\flags-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
 ; openase://connect/<game>/<host>:<port> links (see rust/src/links.rs).
-Root: HKA; Subkey: "Software\Classes\openase"; ValueType: string; ValueName: ""; ValueData: "URL:OpenASE link"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\openase"; ValueType: string; ValueName: ""; ValueData: "URL:OpenASE-Plus link"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\openase"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
-Root: HKA; Subkey: "Software\Classes\openase\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\OpenASE.exe,0"
-Root: HKA; Subkey: "Software\Classes\openase\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\OpenASE.exe"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\openase\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\OpenASE-Plus.exe,0"
+Root: HKA; Subkey: "Software\Classes\openase\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\OpenASE-Plus.exe"" ""%1"""
 
 [Icons]
-Name: "{autoprograms}\OpenASE"; Filename: "{app}\OpenASE.exe"
-Name: "{autodesktop}\OpenASE"; Filename: "{app}\OpenASE.exe"; Tasks: desktopicon
+Name: "{autoprograms}\OpenASE-Plus"; Filename: "{app}\OpenASE-Plus.exe"
+Name: "{autodesktop}\OpenASE-Plus"; Filename: "{app}\OpenASE-Plus.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\OpenASE.exe"; Description: "{cm:LaunchProgram,OpenASE}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\OpenASE-Plus.exe"; Description: "{cm:LaunchProgram,OpenASE-Plus}"; Flags: nowait postinstall skipifsilent
 
-; Settings live in %APPDATA%\OpenASE. There is deliberately no [UninstallDelete]
+; Settings live in %APPDATA%\OpenASE-Plus (upstream OpenASE's are imported once). There is deliberately no [UninstallDelete]
 ; entry for it: uninstalling or upgrading keeps the user's settings.

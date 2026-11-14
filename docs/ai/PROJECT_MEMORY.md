@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — fork identity for 1.0.0
+- User's choices: name OpenASE-Plus, version 1.0.0, own config folder importing OpenASE's settings.json once, links to the GitHub repo. New installer `AppId` (BE92ED7C-...; also the winget ProductCode), packages `OpenASE-Plus-*`, `OpenASE-Plus.exe`, `openase-plus`, `io.github.opengameplus.openase-plus`.
+- Kept Thomas Sautier's copyright next to the fork's (GPL), the Cargo binary names (`openase`, `openase-cli`) and the `openase://` scheme. Removed the CNAME file of docs/ and upstream's 0.9.1 winget manifests.
+
 ## 2026-11-14 — JASE look for non-Classic themes, filter bar
 - Rule agreed with the user: Classic keeps ASE's look; other themes follow JASE (24 px rows, centered headers, no stripes). Filter bar under the tree reuses `FilterSettings`.
 - Thick GoldSrc frames came from the frame stroke doubling the bevel and from half-pixel lines; bevels are now one-pixel rects on whole pixels (`icons::edges`), no stroke when a bevel exists, softer light edge on boxes.

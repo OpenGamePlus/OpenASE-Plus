@@ -1,5 +1,6 @@
 //! User settings, stored as JSON in the user's config folder
-//! (`%APPDATA%\OpenASE\settings.json` on Windows).
+//! (`%APPDATA%\OpenASE-Plus\settings.json` on Windows; upstream OpenASE's
+//! file is imported once, see [`import_upstream`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
@@ -508,6 +509,7 @@ impl Settings {
     }
 
     pub fn load() -> Self {
+        import_upstream(&upstream_config_dir(), &config_dir());
         std::fs::read_to_string(Self::path())
             .ok()
             .and_then(|text| serde_json::from_str::<Self>(&text).ok())
@@ -652,8 +654,27 @@ impl Settings {
     }
 }
 
-/// Folder holding OpenASE's settings.
+/// Folder holding OpenASE-Plus's settings.
 pub fn config_dir() -> PathBuf {
+    config_base().join("OpenASE-Plus")
+}
+
+/// Folder of upstream OpenASE's settings, imported once by [`import_upstream`].
+pub fn upstream_config_dir() -> PathBuf {
+    config_base().join("OpenASE")
+}
+
+/// Copy upstream OpenASE's `settings.json` (favorites, friends, options)
+/// into a new OpenASE-Plus folder, once: never over an existing profile.
+pub fn import_upstream(old: &std::path::Path, new: &std::path::Path) -> bool {
+    let (from, to) = (old.join("settings.json"), new.join("settings.json"));
+    if to.exists() || !from.is_file() {
+        return false;
+    }
+    std::fs::create_dir_all(new).is_ok() && std::fs::copy(&from, &to).is_ok()
+}
+
+fn config_base() -> PathBuf {
     let base = if cfg!(windows) {
         std::env::var_os("APPDATA").map(PathBuf::from)
     } else if cfg!(target_os = "macos") {
@@ -663,5 +684,5 @@ pub fn config_dir() -> PathBuf {
             .map(PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
     };
-    base.unwrap_or_else(|| PathBuf::from(".")).join("OpenASE")
+    base.unwrap_or_else(|| PathBuf::from("."))
 }

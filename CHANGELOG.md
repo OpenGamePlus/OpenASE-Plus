@@ -1,9 +1,17 @@
 # Changelog
 
-All notable changes to OpenASE. Downloads for every version are on the
-[releases page](https://github.com/tsautier/OpenASE/releases).
+All notable changes to OpenASE-Plus, and before 1.0.0 to OpenASE. Downloads
+are on the [OpenASE-Plus releases page](https://github.com/OpenGamePlus/OpenASE-Plus/releases);
+versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases).
 
-## Unreleased
+## 1.0.0 — unreleased (first OpenASE-Plus release)
+
+### Identity
+- **OpenASE-Plus**, a fork of OpenASE 0.9.6 by Thomas Sautier. It installs next to
+  OpenASE (own installer id, `OpenASE-Plus.exe`, `openase-plus` on Linux) and keeps its
+  settings in an `OpenASE-Plus` folder; OpenASE's settings are imported on first start.
+- Update check, links, packages and the 333networks User-Agent point at
+  github.com/OpenGamePlus/OpenASE-Plus.
 
 ### New games
 - Xonotic, Warsow, Warfork, Tremulous and Smokin' Guns (Quake 3 protocol).

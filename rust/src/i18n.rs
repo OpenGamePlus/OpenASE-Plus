@@ -134,7 +134,7 @@ fn system_language() -> Option<String> {
 pub fn french(text: &str) -> Option<&'static str> {
     Some(match text {
         // Names and words that do not change.
-        "OpenASE" => "OpenASE",
+        "OpenASE-Plus" => "OpenASE-Plus",
         "Ping" => "Ping",
         "Flux" => "Flux",
         "DSL" => "DSL",
@@ -156,7 +156,7 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Export user profile" => "Exporter le profil utilisateur",
         "Import user profile..." => "Importer le profil utilisateur…",
         "Import user profile" => "Importer le profil utilisateur",
-        "OpenASE profile" => "Profil OpenASE",
+        "OpenASE-Plus profile" => "Profil OpenASE-Plus",
         "Save server list..." => "Enregistrer la liste des serveurs…",
         "Save server list" => "Enregistrer la liste des serveurs",
         "Import server list..." => "Importer une liste de serveurs…",
@@ -183,13 +183,13 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Manage friends..." => "Gérer les amis…",
         "Friend name search..." => "Recherche d’un nom d’ami…",
         "Show servers with friends" => "Afficher les serveurs avec des amis",
-        "OpenASE Help\tF1" => "Aide d’OpenASE\tF1",
+        "OpenASE-Plus Help\tF1" => "Aide d’OpenASE-Plus\tF1",
         "License" => "Licence",
         "Online manual" => "Manuel en ligne",
         "Message board" => "Forum de discussion",
         "Website" => "Site web",
-        "About OpenASE..." => "À propos d’OpenASE…",
-        "About OpenASE" => "À propos d’OpenASE",
+        "About OpenASE-Plus..." => "À propos d’OpenASE-Plus…",
+        "About OpenASE-Plus" => "À propos d’OpenASE-Plus",
         "Refresh list\tF5" => "Actualiser la liste\tF5",
         "Join\tEnter" => "Rejoindre\tEntrée",
         "Copy address" => "Copier l’adresse",
@@ -290,7 +290,7 @@ pub fn french(text: &str) -> Option<&'static str> {
         "GeoIP database not available: {}" => "Base GeoIP indisponible : {}",
         "No server found on the local network" => "Aucun serveur trouvé sur le réseau local",
         "LAN search failed: {}" => "Échec de la recherche LAN : {}",
-        "OpenASE {} is up to date." => "OpenASE {} est à jour.",
+        "OpenASE-Plus {} is up to date." => "OpenASE-Plus {} est à jour.",
         "Could not check for updates: {}" => "Impossible de rechercher les mises à jour : {}",
         "Launched {}" => "{} lancé",
         "Opened {}" => "{} ouvert",
@@ -347,8 +347,8 @@ pub fn french(text: &str) -> Option<&'static str> {
         "   Join   " => "  Rejoindre  ",
         "Password required" => "Mot de passe requis",
         "This server needs a password." => "Ce serveur demande un mot de passe.",
-        "OpenASE looks for these names on every server it scans." => {
-            "OpenASE recherche ces noms sur chaque serveur analysé."
+        "OpenASE-Plus looks for these names on every server it scans." => {
+            "OpenASE-Plus recherche ces noms sur chaque serveur analysé."
         }
         "No friends yet." => "Aucun ami pour l’instant.",
         "online" => "en ligne",
@@ -443,12 +443,12 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Reset to defaults" => "Rétablir les valeurs par défaut",
 
         // Setup wizard.
-        "Welcome to OpenASE!" => "Bienvenue dans OpenASE !",
-        "This is your first time running OpenASE, so let's set a few things up." => {
-            "C’est la première fois que vous lancez OpenASE : configurons quelques réglages."
+        "Welcome to OpenASE-Plus!" => "Bienvenue dans OpenASE-Plus !",
+        "This is your first time running OpenASE-Plus, so let's set a few things up." => {
+            "C’est la première fois que vous lancez OpenASE-Plus : configurons quelques réglages."
         }
-        "First, tell OpenASE about your internet connection." => {
-            "Commencez par indiquer votre connexion internet à OpenASE."
+        "First, tell OpenASE-Plus about your internet connection." => {
+            "Commencez par indiquer votre connexion internet à OpenASE-Plus."
         }
         "Refreshing a server list sends thousands of small queries; matching them to your connection keeps pings accurate." => {
             "Actualiser une liste de serveurs envoie des milliers de petites requêtes ; les adapter à votre connexion garde des pings précis."
@@ -497,8 +497,8 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Group" => "Groupe",
         "Server list" => "Liste de serveurs",
         "Add to" => "Ajouter à",
-        "Any text file with ip:port entries works: OpenASE lists, GameSpy exports, configs..." => {
-            "Tout fichier texte contenant des entrées ip:port convient : listes OpenASE, exports GameSpy, configurations…"
+        "Any text file with ip:port entries works: OpenASE-Plus lists, GameSpy exports, configs..." => {
+            "Tout fichier texte contenant des entrées ip:port convient : listes OpenASE-Plus, exports GameSpy, configurations…"
         }
         "  Import  " => "  Importer  ",
         "Edit filter" => "Modifier le filtre",
@@ -519,12 +519,12 @@ pub fn french(text: &str) -> Option<&'static str> {
         "greater than" => "supérieur à",
         "contains" => "contient",
         "does not contain" => "ne contient pas",
-        "OpenASE is free software under the GNU General Public License, version 3 or later." => {
-            "OpenASE est un logiciel libre sous licence GNU General Public License, version 3 ou ultérieure."
+        "OpenASE-Plus is free software under the GNU General Public License, version 3 or later." => {
+            "OpenASE-Plus est un logiciel libre sous licence GNU General Public License, version 3 ou ultérieure."
         }
         "Update available" => "Mise à jour disponible",
-        "OpenASE {} is available. You are running {}." => {
-            "OpenASE {} est disponible. Vous utilisez la version {}."
+        "OpenASE-Plus {} is available. You are running {}." => {
+            "OpenASE-Plus {} est disponible. Vous utilisez la version {}."
         }
         "Download it from GitHub Releases" => "Télécharger depuis les versions GitHub",
         "Later" => "Plus tard",

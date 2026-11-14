@@ -224,7 +224,7 @@ impl OpenAseApp {
         let Some(message) = self.dialogs.error.clone() else {
             return;
         };
-        dialog("OpenASE").show(ctx, |ui| {
+        dialog("OpenASE-Plus").show(ctx, |ui| {
             ui.set_max_width(420.0);
             ui.label(message);
             buttons_right(ui, |ui| {
@@ -237,8 +237,8 @@ impl OpenAseApp {
 
     fn about_window(&mut self, ctx: &egui::Context) {
         let mut open = self.dialogs.about;
-        dialog("About OpenASE").open(&mut open).show(ctx, |ui| {
-            ui.heading("OpenASE");
+        dialog("About OpenASE-Plus").open(&mut open).show(ctx, |ui| {
+            ui.heading("OpenASE-Plus");
             ui.label(fill(tr("Version {}"), &[&env!("CARGO_PKG_VERSION")]));
             ui.add_space(6.0);
             ui.label(tr(
@@ -247,7 +247,8 @@ impl OpenAseApp {
             ui.label(tr(
                 "New code, not affiliated with Yahoo or the original authors.",
             ));
-            ui.label("Copyright (C) 2026 Thomas Sautier");
+            ui.label("Copyright (C) 2026 Thomas Sautier (OpenASE)");
+            ui.label("Copyright (C) 2026 OpenGamePlus contributors (OpenASE-Plus)");
             ui.label(tr("Free software under the GNU GPL v3 or later."));
             // 333networks asks API users to credit it in the application.
             ui.label(tr(
@@ -255,7 +256,7 @@ impl OpenAseApp {
             ));
             ui.hyperlink_to("333networks.com", "https://333networks.com/");
             ui.hyperlink_to(openase::geoip::ATTRIBUTION, openase::geoip::ATTRIBUTION_URL);
-            ui.hyperlink_to("openase.org", "https://openase.org/");
+            ui.hyperlink_to("OpenGamePlus/OpenASE-Plus", super::extra::SITE);
         });
         self.dialogs.about = open;
     }
@@ -483,7 +484,7 @@ impl OpenAseApp {
         let mut sound_change: Option<(String, FriendSound)> = None;
         dialog("Friends").open(&mut open).show(ctx, |ui| {
             ui.label(tr(
-                "OpenASE looks for these names on every server it scans.",
+                "OpenASE-Plus looks for these names on every server it scans.",
             ));
             ui.add_space(4.0);
             egui::ScrollArea::vertical()
