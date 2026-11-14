@@ -5,7 +5,12 @@ All notable changes to OpenASE. Downloads for every version are on the
 
 ## Unreleased
 
+### New games
+- Xonotic, Warsow, Warfork, Tremulous and Smokin' Guns (Quake 3 protocol).
+- Team Fortress 2, Left 4 Dead, Left 4 Dead 2 and Garry's Mod (Steam list, needs your own key).
+
 ### Fixes
+- The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.
 - **Security:** a player name, password or server address with spaces or quotes can no
   longer add arguments to the game's command line.
 - **Security (Windows):** Steam joins no longer go through `cmd`, so `&` or `|` in a server

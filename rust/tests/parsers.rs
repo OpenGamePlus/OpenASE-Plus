@@ -195,6 +195,27 @@ fn server_location_does_not_guess() {
 }
 
 #[test]
+fn parse_getservers_response_accepts_a_trailing_backslash() {
+    // master.tremulous.net ends each packet with a lone `\`, no `EOT`.
+    let data = packet(&[
+        b"getserversResponse\\",
+        &[192, 0, 2, 7],
+        &30720u16.to_be_bytes(),
+        b"\\",
+        &[198, 51, 100, 9],
+        &30721u16.to_be_bytes(),
+        b"\\",
+    ]);
+    assert_eq!(
+        parse_getservers_response(&data).unwrap(),
+        vec![
+            "192.0.2.7:30720".to_string(),
+            "198.51.100.9:30721".to_string()
+        ]
+    );
+}
+
+#[test]
 fn parse_getservers_response_accepts_unpadded_eot() {
     // id Software's master ends each packet with a bare `\EOT`.
     let data = packet(&[

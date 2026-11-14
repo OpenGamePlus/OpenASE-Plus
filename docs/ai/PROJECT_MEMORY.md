@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — nine games from JASE
+- Added Xonotic, Warsow, Warfork, Tremulous, Smokin' Guns (live-checked) and TF2, L4D, L4D2, GMod (Steam, not live-checked: no key); the Quake 3 master parser now accepts Tremulous' trailing `\`.
+- dpmaster lists many dead entries first: judge a game with `scan -- <id> 40`, not 6. Dropped dpmaster.tchr.no (no answer). Xonotic joins without `fs_game` (DarkPlaces).
+- Postponed D-Day: Normandy (one server, needs a `gamedir` filter on the Quake 2 list).
+
 ## 2026-11-14 — security and UI-thread fixes
 - Join arguments can no longer be added by a name, password or host (template split with markers, values filled in after); Steam URLs open with `rundll32 url.dll,FileProtocolHandler` instead of `cmd /C start`.
 - Add server and Import list resolve Unreal query ports in a worker (`Msg::Resolved`), reusing the `PortFixes` pattern; the dialog closes at once, the server appears when resolved.

@@ -18,6 +18,9 @@ Yahoo program.
 | Quake 3: Arena | Quake 3 | master.quake3arena.com, master0.excessiveplus.net, dpmaster.deathmask.net |
 | Urban Terror | Quake 3 | master.urbanterror.info, master2.urbanterror.info |
 | OpenArena | Quake 3 | dpmaster.deathmask.net |
+| Xonotic, Warsow, Warfork | Quake 3 (DarkPlaces, qfusion) | dpmaster.deathmask.net |
+| Tremulous | Quake 3 | master.tremulous.net |
+| Smokin' Guns | Quake 3 | master.smokin-guns.org |
 | Wolfenstein: Enemy Territory | Quake 3 | etmaster.idsoftware.com, etmaster.etlegacy.com |
 | Call of Duty, CoD: United Offensive, CoD 2, CoD 4 | Quake 3 | Activision masters |
 | Star Wars Jedi Knight II: Jedi Outcast | Quake 3 | master.jkhub.org, master.jk2mv.org |
@@ -47,9 +50,9 @@ Yahoo program.
 | Rainbow Six 3: Raven Shield | Raven Shield | OpenRVS server list |
 | Ghost Recon (+ demo), The Sum of All Fears (+ demo) | Ghost Recon | none: Add server and LAN only |
 | Counter-Strike 1.6, Condition Zero, Team Fortress Classic, Day of Defeat, Half-Life, Opposing Force, Deathmatch Classic, Ricochet | Valve A2S | Steam Web API (needs your own key) |
-| Counter-Strike: Source, Day of Defeat: Source, Half-Life 2: Deathmatch | Valve A2S | Steam Web API (needs your own key) |
+| Counter-Strike: Source, Day of Defeat: Source, Half-Life 2: Deathmatch, Team Fortress 2, Left 4 Dead, Left 4 Dead 2, Garry's Mod | Valve A2S | Steam Web API (needs your own key) |
 
-70 games in total, spoken in 15 query protocols and listed by 46 master
+79 games in total, spoken in 15 query protocols and listed by 48 master
 servers. "OpenSpy" means the OpenSpy master servers
 (<https://github.com/openspy>), "333networks" the 333networks masters.
 Ghost Recon and The Sum of All Fears have no master server left: their

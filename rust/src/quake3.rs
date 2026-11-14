@@ -283,6 +283,10 @@ fn parse_getservers_packet(packet: &[u8]) -> Result<(Vec<String>, bool), ParseEr
             continue;
         }
         let chunk = &body[index + 1..(index + 7).min(body.len())];
+        // master.tremulous.net ends its packets with a lone `\` instead of `\EOT`.
+        if chunk.is_empty() {
+            return Ok((addresses, false));
+        }
         if chunk.starts_with(b"EOT") && chunk[3..].iter().all(|&byte| byte == 0) {
             return Ok((addresses, false));
         }
