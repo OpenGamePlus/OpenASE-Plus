@@ -79,6 +79,7 @@ versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases
 ### Fixes
 - Settings are saved atomically; an unreadable settings file is kept as `settings.json.bad`
   instead of being overwritten.
+- Imported server lists ignore host names that are not valid (such as ones starting with `-`).
 - Columns of the Friends, Players and Rules panes can no longer be widened past the
   pane, where their handle could not be reached again.
 - The US flag (and other flags drawn with stroked lines) shows its stripes.

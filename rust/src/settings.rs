@@ -489,12 +489,12 @@ pub fn parse_address_list(text: &str) -> Vec<String> {
         let Some((host, port)) = token.rsplit_once(':') else {
             continue;
         };
+        // Any text file is scanned: a host name also needs a dot and a
+        // letter, so tokens like `time:12` are not taken for servers.
         let valid_host = host.parse::<std::net::Ipv4Addr>().is_ok()
-            || (host.contains('.')
-                && host.chars().any(|c| c.is_ascii_alphabetic())
-                && host
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-'));
+            || (crate::links::valid_host(host)
+                && host.contains('.')
+                && host.chars().any(|c| c.is_ascii_alphabetic()));
         if valid_host
             && port.parse::<u16>().is_ok_and(|port| port > 0)
             && seen.insert(token.to_string())

@@ -266,3 +266,12 @@ fn an_unreadable_settings_file_is_kept_aside() {
     );
     assert!(!path.exists());
 }
+
+#[test]
+fn imported_lists_reject_option_like_hosts() {
+    let text = "-quit.example:7777\na..b:27960\n198.51.100.7:27960\nplay.example.org:28960\n";
+    assert_eq!(
+        openase::settings::parse_address_list(text),
+        ["198.51.100.7:27960", "play.example.org:28960"]
+    );
+}
