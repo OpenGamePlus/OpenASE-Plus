@@ -217,6 +217,105 @@ pub struct ColorSettings {
     pub text: Rgb,
     /// Draw Quake color codes in server and player names.
     pub quake_colors: bool,
+    /// Base look; choosing one loads its colors above, which stay editable.
+    pub theme: Theme,
+}
+
+/// Look presets (from JASE's themes). Classic is the original ASE look.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Theme {
+    #[default]
+    Classic,
+    Dark,
+    Terminal,
+    Amber,
+    Synthwave,
+}
+
+impl Theme {
+    pub const ALL: [Theme; 5] = [
+        Theme::Classic,
+        Theme::Dark,
+        Theme::Terminal,
+        Theme::Amber,
+        Theme::Synthwave,
+    ];
+
+    /// English name, translated where shown.
+    pub fn name(self) -> &'static str {
+        match self {
+            Theme::Classic => crate::i18n::noop("Classic"),
+            Theme::Dark => crate::i18n::noop("Dark"),
+            Theme::Terminal => crate::i18n::noop("Terminal"),
+            Theme::Amber => crate::i18n::noop("Amber terminal"),
+            Theme::Synthwave => crate::i18n::noop("Synthwave"),
+        }
+    }
+
+    /// Built on egui's dark visuals.
+    pub fn dark(self) -> bool {
+        self != Theme::Classic
+    }
+
+    /// Window and panel background; `None` keeps egui's.
+    pub fn panel(self) -> Option<Rgb> {
+        match self {
+            Theme::Classic => None,
+            Theme::Dark => Some([0x16, 0x18, 0x1d]),
+            Theme::Terminal => Some([0x05, 0x0a, 0x05]),
+            Theme::Amber => Some([0x12, 0x0c, 0x02]),
+            Theme::Synthwave => Some([0x1a, 0x10, 0x33]),
+        }
+    }
+
+    /// Text on the selection; `None` keeps egui's.
+    pub fn selection_text(self) -> Option<Rgb> {
+        match self {
+            Theme::Classic | Theme::Dark | Theme::Synthwave => None,
+            Theme::Terminal => Some([0x05, 0x0a, 0x05]),
+            Theme::Amber => Some([0x12, 0x0c, 0x02]),
+        }
+    }
+
+    /// The theme's starting colors.
+    pub fn colors(self) -> ColorSettings {
+        let (list_bg, alt_row, selection, text) = match self {
+            Theme::Classic => return ColorSettings::default(),
+            Theme::Dark => (
+                [0x1d, 0x20, 0x27],
+                [0x22, 0x26, 0x2e],
+                [0x24, 0x32, 0x4a],
+                [0xd7, 0xdb, 0xe2],
+            ),
+            Theme::Terminal => (
+                [0x08, 0x10, 0x08],
+                [0x0c, 0x18, 0x0c],
+                [0x33, 0xff, 0x66],
+                [0x33, 0xff, 0x66],
+            ),
+            Theme::Amber => (
+                [0x16, 0x0f, 0x03],
+                [0x1e, 0x15, 0x05],
+                [0xff, 0xb0, 0x00],
+                [0xff, 0xb0, 0x00],
+            ),
+            Theme::Synthwave => (
+                [0x21, 0x14, 0x42],
+                [0x29, 0x19, 0x50],
+                [0x4a, 0x1f, 0x5e],
+                [0xf3, 0xe6, 0xff],
+            ),
+        };
+        ColorSettings {
+            list_bg,
+            alt_row,
+            selection,
+            text,
+            quake_colors: true,
+            theme: self,
+        }
+    }
 }
 
 impl Default for ColorSettings {
@@ -227,6 +326,7 @@ impl Default for ColorSettings {
             selection: [0x31, 0x6a, 0xc5],
             text: [0x50, 0x50, 0x50],
             quake_colors: true,
+            theme: Theme::Classic,
         }
     }
 }

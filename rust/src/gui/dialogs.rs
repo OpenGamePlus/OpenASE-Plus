@@ -14,7 +14,9 @@ use openase::catalog;
 use openase::colors::strip_quake_colors;
 use openase::detect;
 use openase::i18n::{self, Language, fill, noop, tr};
-use openase::settings::{ColorSettings, FriendSound, NetworkSettings, Settings, ToolbarSettings};
+use openase::settings::{
+    ColorSettings, FriendSound, NetworkSettings, Settings, Theme, ToolbarSettings,
+};
 
 use super::{Msg, Nav, OpenAseApp, ServerKey, play_sound, rgb};
 
@@ -923,6 +925,22 @@ fn toolbar_tab(ui: &mut egui::Ui, toolbar: &mut ToolbarSettings) {
 }
 
 fn colors_tab(ui: &mut egui::Ui, colors: &mut ColorSettings) {
+    ui.horizontal(|ui| {
+        ui.label(tr("Theme"));
+        egui::ComboBox::from_id_salt("theme")
+            .selected_text(tr(colors.theme.name()))
+            .show_ui(ui, |ui| {
+                for theme in Theme::ALL {
+                    if ui
+                        .selectable_label(colors.theme == theme, tr(theme.name()))
+                        .clicked()
+                    {
+                        *colors = theme.colors();
+                    }
+                }
+            });
+    });
+    ui.add_space(6.0);
     ui.label(tr(COLORS_HELP));
     ui.add_space(6.0);
     egui::Grid::new("colors-grid")
@@ -947,7 +965,7 @@ fn colors_tab(ui: &mut egui::Ui, colors: &mut ColorSettings) {
     ui.checkbox(&mut colors.quake_colors, tr(COLORS_QUAKE));
     ui.add_space(8.0);
     if ui.button(tr(COLORS_RESET)).clicked() {
-        *colors = ColorSettings::default();
+        *colors = colors.theme.colors();
     }
 }
 

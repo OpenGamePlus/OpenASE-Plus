@@ -535,6 +535,13 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Querying the master servers of {} games..." => {
             "Interrogation des serveurs maîtres de {} jeux…"
         }
+        // Themes.
+        "Theme" => "Thème",
+        "Classic" => "Classique",
+        "Dark" => "Sombre",
+        "Terminal" => "Terminal",
+        "Amber terminal" => "Terminal ambre",
+        "Synthwave" => "Synthwave",
         // RCON.
         "RCON console..." => "Console RCON…",
         "Password" => "Mot de passe",

@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — themes
+- `Theme` in `ColorSettings` (five presets from JASE): base light/dark visuals, panel and selection-text colors, plus the four editable colors; `apply_palette` touches only the active base style (`style_mut_of`).
+- Rejected JASE's eleven token-based themes: egui has no stylesheet, five presets cover light, dark and the terminal looks.
+- Open: not checked by eye (no screenshot under WSLg); fixed light highlights in dark themes are debt.
+
 ## 2026-11-14 — RCON
 - `rcon.rs` ported from JASE (Quake UDP, GoldSrc UDP with challenge, Source TCP with an empty marker packet after the command), tested against fake servers on localhost; non-modal console window, answers through `Msg::Rcon`.
 - Dialect from the protocol; A2S games with a Steam app id below 200 are GoldSrc. Passwords only in memory (`Dialogs::rcon_passwords`), never in settings.

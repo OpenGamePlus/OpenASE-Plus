@@ -2847,12 +2847,28 @@ impl OpenAseApp {
 
 /// Apply the user's list colors to the egui visuals.
 fn apply_palette(ctx: &egui::Context, colors: &ColorSettings) {
-    ctx.all_styles_mut(|style| {
+    let theme = colors.theme;
+    let base = if theme.dark() {
+        egui::Theme::Dark
+    } else {
+        egui::Theme::Light
+    };
+    ctx.set_theme(base);
+    // Only the active base style: the other one keeps egui's own panels for
+    // when the user switches back.
+    ctx.style_mut_of(base, |style| {
         let visuals = &mut style.visuals;
         visuals.extreme_bg_color = rgb(colors.list_bg);
         visuals.faint_bg_color = rgb(colors.alt_row);
         visuals.selection.bg_fill = rgb(colors.selection);
         visuals.widgets.noninteractive.fg_stroke.color = rgb(colors.text);
+        if let Some(panel) = theme.panel() {
+            visuals.panel_fill = rgb(panel);
+            visuals.window_fill = rgb(panel);
+        }
+        if let Some(text) = theme.selection_text() {
+            visuals.selection.stroke.color = rgb(text);
+        }
     });
 }
 
