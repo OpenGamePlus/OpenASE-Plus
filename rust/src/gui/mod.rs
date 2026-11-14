@@ -1426,6 +1426,10 @@ impl OpenAseApp {
         let filters = &self.settings.filters;
         let candidates = self.candidates();
         let game = self.nav.game().and_then(catalog::game);
+        // The checked filter groups of the game, resolved once, not per server.
+        let groups = game
+            .map(|game| active_groups(game, &filters.checked))
+            .unwrap_or_default();
 
         let mut rows: Vec<&Server> = candidates
             .into_iter()
@@ -1464,7 +1468,7 @@ impl OpenAseApp {
                 {
                     return false;
                 }
-                game.is_none_or(|game| passes_groups(game, server, &filters.checked))
+                passes_groups(&groups, server)
             })
             .collect();
 
@@ -3603,19 +3607,32 @@ fn compare(col: Col, a: &Server, b: &Server) -> std::cmp::Ordering {
     .then_with(|| b.has_info().cmp(&a.has_info()))
 }
 
-/// Server passes every checked filter group of its game.
+/// The filter groups of `game` with at least one option checked.
+fn active_groups<'a>(
+    game: &'a Game,
+    checked: &'a BTreeMap<String, std::collections::BTreeSet<String>>,
+) -> Vec<(
+    &'a openase::catalog::FilterGroup,
+    &'a std::collections::BTreeSet<String>,
+)> {
+    game.filters
+        .iter()
+        .filter_map(|group| {
+            let set = checked.get(&format!("{}/{}", game.id, group.name))?;
+            (!set.is_empty()).then_some((group, set))
+        })
+        .collect()
+}
+
+/// Server passes every active filter group ([`active_groups`]).
 fn passes_groups(
-    game: &Game,
+    groups: &[(
+        &openase::catalog::FilterGroup,
+        &std::collections::BTreeSet<String>,
+    )],
     server: &Server,
-    checked: &BTreeMap<String, std::collections::BTreeSet<String>>,
 ) -> bool {
-    game.filters.iter().all(|group| {
-        let Some(set) = checked
-            .get(&format!("{}/{}", game.id, group.name))
-            .filter(|set| !set.is_empty())
-        else {
-            return true;
-        };
+    groups.iter().all(|(group, set)| {
         let value = server.rule(&group.key).unwrap_or("");
         if group.dynamic {
             set.iter().any(|option| option.eq_ignore_ascii_case(value))
