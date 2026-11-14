@@ -160,6 +160,58 @@ fn walk(
     }
 }
 
+/// Games an executable may belong to, each with whether it is sure.
+pub type Owners = Vec<(&'static crate::catalog::Game, bool)>;
+
+/// The games an executable found on disk can belong to, each with whether
+/// it is sure: the file name is only that game's, or the game's install
+/// folder (from its registry entry) is in the path. `hl2.exe` in
+/// `.../Counter-Strike Source/` is surely CS:Source; elsewhere it is only
+/// a guess, left for the user. Names compare without case (Windows, Wine).
+pub fn owners(path: &Path) -> Owners {
+    let Some(name) = path.file_name().map(|n| n.to_string_lossy().to_lowercase()) else {
+        return Vec::new();
+    };
+    let folders: Vec<String> = path
+        .components()
+        .map(|c| c.as_os_str().to_string_lossy().to_lowercase())
+        .collect();
+    let candidates: Vec<&crate::catalog::Game> = crate::catalog::games()
+        .iter()
+        .filter(|game| game.exe_names.iter().any(|exe| exe.to_lowercase() == name))
+        .collect();
+    let alone = candidates.len() == 1;
+    candidates
+        .into_iter()
+        .map(|game| {
+            let in_its_folder = game.registry.iter().any(|entry| {
+                let parts: Vec<&str> = entry.exe.split(['\\', '/']).collect();
+                parts.len() >= 2 && folders.contains(&parts[parts.len() - 2].to_lowercase())
+            });
+            (game, alone || in_its_folder)
+        })
+        .collect()
+}
+
+/// One walk of `roots` for the executables of every game; `found` gets
+/// each match with its [`owners`].
+pub fn search_all(
+    roots: &[PathBuf],
+    cancel: &AtomicBool,
+    progress: &mut dyn FnMut(&Path),
+    found: &mut dyn FnMut(&Path, Owners),
+) {
+    let mut names: Vec<String> = crate::catalog::games()
+        .iter()
+        .flat_map(|game| game.exe_names.iter().cloned())
+        .collect();
+    names.sort();
+    names.dedup();
+    search(roots, &names, cancel, progress, &mut |path| {
+        found(path, owners(path))
+    });
+}
+
 fn names_match(a: &str, b: &str) -> bool {
     if cfg!(windows) {
         a.eq_ignore_ascii_case(b)

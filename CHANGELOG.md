@@ -18,6 +18,9 @@ versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases
 ### Auto-Search
 - Auto-Search first asks where to look: tick drives and usual folders, or add a folder;
   the choice is remembered. Searching one drive instead of all of them is much faster.
+- **Search all games...** (Options > Games) finds every installed game in one pass and
+  lists them; sure matches are ticked, and "Apply" sets their program locations. A
+  program shared by several games (hl2.exe) is ticked only when its folder names the game.
 
 ### Languages
 - **Spanish, Portuguese (Brazil), Italian, German and Russian** join English and French.

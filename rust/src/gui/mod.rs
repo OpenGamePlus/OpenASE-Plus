@@ -182,6 +182,12 @@ pub enum Msg {
     Single(Server),
     SearchProgress(String),
     SearchFound(String),
+    /// "Search all games...": an executable and the game it may belong to.
+    SearchHit {
+        game: String,
+        path: String,
+        sure: bool,
+    },
     SearchDone,
     GeoIp(Result<Arc<GeoIp>, String>),
     Lan(Result<Vec<openase::lan::LanServer>, String>),
@@ -1215,6 +1221,7 @@ impl OpenAseApp {
                 }
                 Msg::SearchProgress(dir) => self.dialogs.search_progress(dir),
                 Msg::SearchFound(path) => self.dialogs.search_found(path),
+                Msg::SearchHit { game, path, sure } => self.dialogs.search_hit(game, path, sure),
                 Msg::SearchDone => self.dialogs.search_done(),
                 Msg::GeoIp(result) => match result {
                     Ok(geoip) => {

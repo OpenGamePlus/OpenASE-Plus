@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — Search all games
+- One disk walk for all exe names (`detect::search_all`); `detect::owners` marks a hit sure when the exe is one game's or the game's registry folder is in the path (hl2.exe under "Counter-Strike Source"); hl.exe goes to all eight GoldSrc games, which is right. Results: checklist, one per game, "Apply" writes the Options draft.
+- The i18n scanner missed `tr(` calls split by rustfmt (trailing comma); fixed, no hidden missing text found.
+
 ## 2026-11-14 — Auto-Search asks where to look
 - User request: Auto-Search started on C: and crawled every drive. It now opens on a checklist of `detect::search_roots()` plus added folders (rfd), remembered in `Settings::search_roots`; registry lookup and disk walk start with "Search".
 
