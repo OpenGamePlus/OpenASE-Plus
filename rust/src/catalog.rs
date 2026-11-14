@@ -1,5 +1,6 @@
 //! Built-in game catalog, loaded from `games.json` embedded in the binary.
 
+use std::collections::HashMap;
 use std::sync::LazyLock;
 
 use serde::{Deserialize, Serialize};
@@ -8,6 +9,14 @@ const GAMES_JSON: &str = include_str!("games.json");
 
 static CATALOG: LazyLock<Vec<Game>> =
     LazyLock::new(|| serde_json::from_str(GAMES_JSON).expect("games.json is valid"));
+
+/// Game by id: looked up for every row and every sort comparison.
+static BY_ID: LazyLock<HashMap<&'static str, &'static Game>> = LazyLock::new(|| {
+    CATALOG
+        .iter()
+        .map(|game| (game.id.as_str(), game))
+        .collect()
+});
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -238,5 +247,5 @@ pub fn games() -> &'static [Game] {
 }
 
 pub fn game(id: &str) -> Option<&'static Game> {
-    CATALOG.iter().find(|game| game.id == id)
+    BY_ID.get(id).copied()
 }
