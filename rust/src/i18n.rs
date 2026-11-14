@@ -542,6 +542,7 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Terminal" => "Terminal",
         "Amber terminal" => "Terminal ambre",
         "Synthwave" => "Synthwave",
+        "GoldSrc (Counter-Strike 1.6)" => "GoldSrc (Counter-Strike 1.6)",
         // RCON.
         "RCON console..." => "Console RCON…",
         "Password" => "Mot de passe",

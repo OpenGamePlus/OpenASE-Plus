@@ -61,9 +61,10 @@ context menu.
 | `src/gui/extra.rs` | Setup wizard, Add friend, Import list, filter editor, About / license |
 | `src/gui/icons.rs` | Painted toolbar and tree icons, badges, lock, sort arrows |
 
-Look: `setup_style` sets ASE-like fonts; `apply_palette` applies
-`ColorSettings` (Options > Colors): its `Theme` (Classic, Dark, Terminal,
-Amber terminal, Synthwave; `settings.rs`) picks egui's light or dark base and
-the panel color, the four colors on top stay editable. Only the active base
-style is changed, so switching back to Classic restores egui's panels.
+Look: `setup_style` sets ASE-like fonts and spacing; `apply_palette` applies
+`ColorSettings` (Options > Colors). Its `Theme` (Classic, Dark, Terminal,
+Amber terminal, Synthwave, GoldSrc; `settings.rs`) picks the light or dark
+base, rebuilt each time by `ase_visuals` (ASE geometry; Windows-like greys on
+the light base only), then the panel, selection-text and widget colors; the
+four list colors on top stay editable.
 Some highlights are still fixed light colors (friend rows, headers).

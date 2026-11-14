@@ -231,15 +231,19 @@ pub enum Theme {
     Terminal,
     Amber,
     Synthwave,
+    /// The olive and gold of Half-Life 1 / Counter-Strike 1.6 menus.
+    #[serde(rename = "goldsrc")]
+    GoldSrc,
 }
 
 impl Theme {
-    pub const ALL: [Theme; 5] = [
+    pub const ALL: [Theme; 6] = [
         Theme::Classic,
         Theme::Dark,
         Theme::Terminal,
         Theme::Amber,
         Theme::Synthwave,
+        Theme::GoldSrc,
     ];
 
     /// English name, translated where shown.
@@ -250,6 +254,7 @@ impl Theme {
             Theme::Terminal => crate::i18n::noop("Terminal"),
             Theme::Amber => crate::i18n::noop("Amber terminal"),
             Theme::Synthwave => crate::i18n::noop("Synthwave"),
+            Theme::GoldSrc => crate::i18n::noop("GoldSrc (Counter-Strike 1.6)"),
         }
     }
 
@@ -266,6 +271,15 @@ impl Theme {
             Theme::Terminal => Some([0x05, 0x0a, 0x05]),
             Theme::Amber => Some([0x12, 0x0c, 0x02]),
             Theme::Synthwave => Some([0x1a, 0x10, 0x33]),
+            Theme::GoldSrc => Some([0x4c, 0x58, 0x44]),
+        }
+    }
+
+    /// Fill of buttons and other controls, (idle, hovered); `None` keeps egui's.
+    pub fn widgets(self) -> Option<(Rgb, Rgb)> {
+        match self {
+            Theme::GoldSrc => Some(([0x5a, 0x66, 0x50], [0x6b, 0x77, 0x5f])),
+            _ => None,
         }
     }
 
@@ -273,6 +287,7 @@ impl Theme {
     pub fn selection_text(self) -> Option<Rgb> {
         match self {
             Theme::Classic | Theme::Dark | Theme::Synthwave => None,
+            Theme::GoldSrc => Some([0xff, 0xff, 0xff]),
             Theme::Terminal => Some([0x05, 0x0a, 0x05]),
             Theme::Amber => Some([0x12, 0x0c, 0x02]),
         }
@@ -299,6 +314,12 @@ impl Theme {
                 [0x1e, 0x15, 0x05],
                 [0xff, 0xb0, 0x00],
                 [0xff, 0xb0, 0x00],
+            ),
+            Theme::GoldSrc => (
+                [0x3e, 0x46, 0x37],
+                [0x45, 0x4e, 0x3d],
+                [0x80, 0x75, 0x2a],
+                [0xd8, 0xde, 0xd3],
             ),
             Theme::Synthwave => (
                 [0x21, 0x14, 0x42],

@@ -2794,32 +2794,44 @@ fn setup_style(ctx: &egui::Context) {
         style.spacing.item_spacing = vec2(6.0, 3.0);
         style.spacing.button_padding = vec2(8.0, 2.0);
         style.spacing.interact_size.y = 18.0;
-        let visuals = &mut style.visuals;
+    });
+}
+
+/// ASE's flat look on egui's light or dark visuals: square widgets, a small
+/// shadow, and on the light base Windows-like greys.
+fn ase_visuals(dark: bool) -> egui::Visuals {
+    let mut visuals = if dark {
+        egui::Visuals::dark()
+    } else {
+        egui::Visuals::light()
+    };
+    visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
+    visuals.window_corner_radius = CornerRadius::same(2);
+    visuals.menu_corner_radius = CornerRadius::ZERO;
+    visuals.window_shadow = egui::Shadow {
+        offset: [2, 2],
+        blur: 6,
+        spread: 0,
+        color: Color32::from_black_alpha(60),
+    };
+    for widgets in [
+        &mut visuals.widgets.noninteractive,
+        &mut visuals.widgets.inactive,
+        &mut visuals.widgets.hovered,
+        &mut visuals.widgets.active,
+        &mut visuals.widgets.open,
+    ] {
+        widgets.corner_radius = CornerRadius::ZERO;
+    }
+    if !dark {
         visuals.panel_fill = Color32::from_gray(0xf0);
         visuals.window_fill = Color32::from_gray(0xf0);
-        visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
-        visuals.window_corner_radius = CornerRadius::same(2);
-        visuals.menu_corner_radius = CornerRadius::ZERO;
-        visuals.window_shadow = egui::Shadow {
-            offset: [2, 2],
-            blur: 6,
-            spread: 0,
-            color: Color32::from_black_alpha(60),
-        };
-        for widgets in [
-            &mut visuals.widgets.noninteractive,
-            &mut visuals.widgets.inactive,
-            &mut visuals.widgets.hovered,
-            &mut visuals.widgets.active,
-            &mut visuals.widgets.open,
-        ] {
-            widgets.corner_radius = CornerRadius::ZERO;
-        }
         visuals.widgets.inactive.weak_bg_fill = Color32::from_gray(0xe1);
         visuals.widgets.inactive.bg_stroke = Stroke::new(1.0, Color32::from_gray(0xad));
         visuals.widgets.hovered.weak_bg_fill = Color32::from_rgb(0xe5, 0xf1, 0xfb);
         visuals.widgets.hovered.bg_stroke = Stroke::new(1.0, Color32::from_rgb(0x00, 0x78, 0xd7));
-    });
+    }
+    visuals
 }
 
 /// Toolbar texts (French translation pass: keep together).
@@ -2854,9 +2866,9 @@ fn apply_palette(ctx: &egui::Context, colors: &ColorSettings) {
         egui::Theme::Light
     };
     ctx.set_theme(base);
-    // Only the active base style: the other one keeps egui's own panels for
-    // when the user switches back.
+    // Rebuilt from the base each time, so nothing of a previous theme stays.
     ctx.style_mut_of(base, |style| {
+        style.visuals = ase_visuals(theme.dark());
         let visuals = &mut style.visuals;
         visuals.extreme_bg_color = rgb(colors.list_bg);
         visuals.faint_bg_color = rgb(colors.alt_row);
@@ -2868,6 +2880,15 @@ fn apply_palette(ctx: &egui::Context, colors: &ColorSettings) {
         }
         if let Some(text) = theme.selection_text() {
             visuals.selection.stroke.color = rgb(text);
+        }
+        if let Some((idle, hovered)) = theme.widgets() {
+            let widgets = &mut visuals.widgets;
+            widgets.inactive.bg_fill = rgb(idle);
+            widgets.inactive.weak_bg_fill = rgb(idle);
+            widgets.hovered.bg_fill = rgb(hovered);
+            widgets.hovered.weak_bg_fill = rgb(hovered);
+            widgets.active.bg_fill = rgb(colors.selection);
+            widgets.active.weak_bg_fill = rgb(colors.selection);
         }
     });
 }

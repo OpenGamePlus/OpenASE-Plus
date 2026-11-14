@@ -34,7 +34,8 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **RCON console** (right-click a server): send admin commands to Quake 3, Call of Duty,
   Quake 2, Half-Life and Source servers. The password is kept for the session only.
 
-- **Themes** in Options > Colors: Classic, Dark, Terminal, Amber terminal and Synthwave.
+- **Themes** in Options > Colors: Classic, Dark, Terminal, Amber terminal, Synthwave and
+  GoldSrc (the olive and gold of Counter-Strike 1.6).
   The colors stay editable on top of the theme.
 
 ### Fixes

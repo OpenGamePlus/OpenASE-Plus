@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — GoldSrc theme
+- Added `Theme::GoldSrc` (JASE's olive/gold tokens, olive widgets via `Theme::widgets`).
+- Fixed a theme leak: `setup_style` used to paint ASE's light greys on both egui bases, so dark themes had light buttons; `ase_visuals(dark)` now rebuilds the active base on every `apply_palette`.
+
 ## 2026-11-14 — themes
 - `Theme` in `ColorSettings` (five presets from JASE): base light/dark visuals, panel and selection-text colors, plus the four editable colors; `apply_palette` touches only the active base style (`style_mut_of`).
 - Rejected JASE's eleven token-based themes: egui has no stylesheet, five presets cover light, dark and the terminal looks.
