@@ -546,8 +546,8 @@ impl Settings {
         self.export_to(&path)
     }
 
-    /// Games the user can join: a program is set, or a Steam game and a Steam
-    /// Web API key to list it.
+    /// Games the user can join: their program file exists (the same rule as
+    /// Options > Games), or a Steam game and a Steam Web API key to list it.
     pub fn ready_games(&self) -> Vec<&'static crate::catalog::Game> {
         crate::catalog::games()
             .iter()
@@ -555,7 +555,7 @@ impl Settings {
                 let program = self
                     .games
                     .get(&game.id)
-                    .is_some_and(|g| !g.program_location.trim().is_empty());
+                    .is_some_and(|g| std::path::Path::new(g.program_location.trim()).is_file());
                 program || (game.steam_appid.is_some() && !self.steam_api_key.trim().is_empty())
             })
             .collect()

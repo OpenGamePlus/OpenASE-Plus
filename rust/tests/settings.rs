@@ -161,10 +161,20 @@ fn ready_games_have_a_program_or_steam_with_a_key() {
     use openase::settings::GameSettings;
     let mut settings = Settings::default();
     assert!(settings.ready_games().is_empty());
+    let exe = tempfile::NamedTempFile::new().unwrap();
     settings.games.insert(
         "q3".into(),
         GameSettings {
-            program_location: "quake3.exe".into(),
+            program_location: exe.path().display().to_string(),
+            ..GameSettings::default()
+        },
+    );
+    // A program that is gone (uninstalled, moved) is not ready; its setting stays.
+    let missing = "/no/such/UnrealTournament.exe";
+    settings.games.insert(
+        "ut99".into(),
+        GameSettings {
+            program_location: missing.into(),
             ..GameSettings::default()
         },
     );
@@ -175,6 +185,7 @@ fn ready_games_have_a_program_or_steam_with_a_key() {
             .collect::<Vec<_>>()
     };
     assert_eq!(ids(&settings), ["q3"]);
+    assert_eq!(settings.game("ut99").program_location, missing);
     // Steam games join through Steam: ready once there is an API key.
     settings.steam_api_key = "key".into();
     let with_key = ids(&settings);
