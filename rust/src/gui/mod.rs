@@ -1656,7 +1656,9 @@ fn colored_label(ui: &mut egui::Ui, raw: &str, default_color: Color32) {
     for segment in quake_color_segments(raw, &default_hex) {
         let [r, g, b] = parse_hex(&segment.color).unwrap_or([0x20, 0x20, 0x20]);
         let color = readable(Color32::from_rgb(r, g, b), ui.visuals());
-        job.append(&segment.text, 0.0, TextFormat::simple(font.clone(), color));
+        // Servers decorate names with control characters (`\x07`): no glyph.
+        let text: String = segment.text.chars().filter(|c| !c.is_control()).collect();
+        job.append(&text, 0.0, TextFormat::simple(font.clone(), color));
     }
     ui.add(egui::Label::new(job).selectable(false).truncate());
 }

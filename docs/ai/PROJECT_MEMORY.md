@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — exe name, visual polish, own screenshots
+- The GUI binary is `OpenASEplus` (`OpenASEplus.exe`, explicit `[[bin]]`); Windows zip, installer and Scoop ship that name, Linux and macOS packages keep theirs.
+- The thick dark borders were eframe's near-black clear color showing in the gaps between boxes: `clear_color` now returns the panel fill; box edges are 1 px on whole pixels in every theme; light Quake colors darkened on light themes; control characters (`\x07`) removed from colored names.
+- README screenshots are our own (`docs/screenshots/`, taken under WSLg); `docs/screenshot.png` stays only for the upstream `docs/index.html`, still undecided.
+
 ## 2026-11-14 — GUI per-frame work and module split
 - Per-frame work cut: `catalog::game` is a map lookup, `Settings::game_ref` reads without cloning, filter groups resolve once, text columns sort with keys built once per row, the status bar counts without sorting, countries are listed only while their combo is open.
 - `SlotWatch` holds a `ServerRef`; `ServerRef::from_key` is the one inverse of `ServerRef::key` (party alert keys stay strings as JSON map keys).

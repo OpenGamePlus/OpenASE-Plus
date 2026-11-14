@@ -389,7 +389,13 @@ impl OpenAseApp {
                                             .game_ref(&server.game)
                                             .draw_player_names_with_game_font;
                                     if colored {
-                                        colored_label(ui, server.name.trim_start(), color);
+                                        colored_label(
+                                            ui,
+                                            server.name.trim_start_matches(|c: char| {
+                                                c.is_whitespace() || c.is_control()
+                                            }),
+                                            color,
+                                        );
                                     } else {
                                         cell(ui, &display_name(server), color);
                                     }

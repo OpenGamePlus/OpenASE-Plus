@@ -15,7 +15,11 @@ right, and friends, players and server rules at the bottom.
 It is new code. It does not use, modify or ship anything from the original
 Yahoo program.
 
-![OpenASE](docs/screenshot.png)
+![OpenASE-Plus, Classic theme: Quake 3 servers sorted by players, with the players and rules of the selected server](docs/screenshots/classic.png)
+
+| Dark | GoldSrc |
+|---|---|
+| ![OpenASE-Plus, Dark theme](docs/screenshots/dark.png) | ![OpenASE-Plus, GoldSrc theme](docs/screenshots/goldsrc.png) |
 
 Country flags come from [flag-icons](https://github.com/lipis/flag-icons)
 (MIT, `rust/assets/flags-LICENSE.txt`).
