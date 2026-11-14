@@ -18,4 +18,4 @@ Normative summary. Full rules and exceptions: [boundaries.md](../architecture/bo
 - Bulk-query 333networks-listed servers.
 
 ## Irreversible or costly decisions
-Index and status: [ADRs](../architecture/adr/README.md).
+Index and status: [ADRs](../architecture/adr/README.md). Do not download map images ([ADR 0007](../architecture/adr/0007-map-images-from-local-files.md)).

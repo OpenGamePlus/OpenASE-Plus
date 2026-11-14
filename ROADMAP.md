@@ -17,7 +17,7 @@ Python browser by the same maintainer. In priority order:
 4. [x] "Playing now": one list of busy servers across all games
 5. [x] `openase://connect/<game>/<host>:<port>` links, handed to the running instance (Windows, Linux); favorites export and import were already there (File > Export user profile, Save server list)
 6. [x] Server lists kept between sessions; command-line tool with JSON output (`openase-cli`)
-7. [ ] RCON, map images, system tray, themes
+7. [x] RCON, themes (incl. GoldSrc), map images from the installed game's `.pk3` files (Quake 3 engine games; CoD and Unreal later). System tray postponed: a new dependency, GTK on Linux, hard to test
 
 Later, to be decided: integration with the other OpenGamePlus projects
 (launching their clients), self-update and remote master lists (would change

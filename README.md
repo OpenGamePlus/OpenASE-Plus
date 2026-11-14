@@ -11,6 +11,9 @@ Yahoo program.
 
 ![OpenASE](docs/screenshot.png)
 
+Country flags come from [flag-icons](https://github.com/lipis/flag-icons)
+(MIT, `rust/assets/flags-LICENSE.txt`).
+
 ## Supported games
 
 | Game | Protocol | Server list from |

@@ -3,6 +3,41 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — JASE look for non-Classic themes, filter bar
+- Rule agreed with the user: Classic keeps ASE's look; other themes follow JASE (24 px rows, centered headers, no stripes). Filter bar under the tree reuses `FilterSettings`.
+- Thick GoldSrc frames came from the frame stroke doubling the bevel and from half-pixel lines; bevels are now one-pixel rects on whole pixels (`icons::edges`), no stroke when a bevel exists, softer light edge on boxes.
+
+## 2026-11-14 — visual polish after a second JASE comparison
+- Flags: 2x atlas with mipmaps, pixel-aligned; ImageMagick's MSVG drops straight stroked lines (US stripes), so the script rewrites them as rects. Installing resvg was not allowed; the preprocessor avoids it.
+- Sunken occupancy meter and sunken GoldSrc boxes, tree server counts, "Installed games only" (`FilterSettings::installed_only`, uses `ready_games`), bottom pane columns capped at pane width - 40.
+
+## 2026-11-14 — flags, ping colors, occupancy bars
+- From the user's comparison with JASE: country flags (flag-icons SVG rasterized once by ImageMagick into a 74 KB atlas, `scripts/make_flag_atlas.sh`), ping colors and occupancy bars per theme (JASE tokens), solid scroll bars, 2 px gaps around boxes.
+- Rejected shipping the 2.4 MB of SVGs plus an SVG renderer (resvg); flags-LICENSE.txt ships in the zip, tar.gz, macOS zip and installer (MIT notice).
+
+## 2026-11-14 — theme colors fixed after a Windows review
+- The user's Windows build showed dark themes with light menu, toolbar, headers and status bar (unreadable): about 15 fixed light colors predated themes. They now come from `ui.visuals()`; Quake colors go through `readable` (dark `^0`/`^4` lightened on dark themes).
+- Built and tested natively on Windows (MSVC, 195 tests) in the user's E: checkout.
+
+## 2026-11-14 — map images, phase 7 closed
+- `maps.rs`: `levelshots/<map>` from the `.pk3` files named by the new `levelshots` catalog field (values from JASE), mod folder first, last pk3 in load order wins; decoded with `image` (TGA tried when no magic bytes match). ADR 0007: local files only, no GameTracker.
+- New dependencies `zip` (no default features, deflate via flate2) and `image` (jpeg, tga, png). The system tray was postponed with the user's agreement.
+- Open: CoD IWI and Unreal readers; not checked with a real install.
+
+## 2026-11-14 — GoldSrc theme
+- Added `Theme::GoldSrc` (JASE's olive/gold tokens, olive widgets via `Theme::widgets`).
+- Fixed a theme leak: `setup_style` used to paint ASE's light greys on both egui bases, so dark themes had light buttons; `ase_visuals(dark)` now rebuilds the active base on every `apply_palette`.
+
+## 2026-11-14 — themes
+- `Theme` in `ColorSettings` (five presets from JASE): base light/dark visuals, panel and selection-text colors, plus the four editable colors; `apply_palette` touches only the active base style (`style_mut_of`).
+- Rejected JASE's eleven token-based themes: egui has no stylesheet, five presets cover light, dark and the terminal looks.
+- Open: not checked by eye (no screenshot under WSLg); fixed light highlights in dark themes are debt.
+
+## 2026-11-14 — RCON
+- `rcon.rs` ported from JASE (Quake UDP, GoldSrc UDP with challenge, Source TCP with an empty marker packet after the command), tested against fake servers on localhost; non-modal console window, answers through `Msg::Rcon`.
+- Dialect from the protocol; A2S games with a Steam app id below 200 are GoldSrc. Passwords only in memory (`Dialogs::rcon_passwords`), never in settings.
+- Not checked against a live server with a real password.
+
 ## 2026-11-14 — saved lists and openase-cli
 - `lists.rs` saves each completed game scan (`lists/<id>.json`, atomic, off the UI thread) and loads them at start as `listed` + `saved` rows (no ping); `saved` keeps them out of alerts and Playing now. `model::Server` is now serde: one form for the lists and the CLI JSON.
 - `openase-cli` (`src/bin/`, `default-run = "openase"` keeps `cargo run` on the GUI): games / scan / query, schema 1, exit codes 0/1/2; tested against a fake Zandronum server. 333networks rows are not queried.

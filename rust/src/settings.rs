@@ -119,6 +119,8 @@ pub struct FilterSettings {
     pub checked: BTreeMap<String, BTreeSet<String>>,
     /// Country codes to show (`??` for unknown); empty shows all.
     pub countries: BTreeSet<String>,
+    /// The tree lists only games the user can join (`Settings::ready_games`).
+    pub installed_only: bool,
 }
 
 /// Toolbar button ids, in the default order.
@@ -217,6 +219,180 @@ pub struct ColorSettings {
     pub text: Rgb,
     /// Draw Quake color codes in server and player names.
     pub quake_colors: bool,
+    /// Base look; choosing one loads its colors above, which stay editable.
+    pub theme: Theme,
+}
+
+/// 0 good (up to 80 ms), 1 medium (up to 150 ms), 2 bad: the index into
+/// [`Theme::ping_colors`] (JASE's thresholds).
+pub fn ping_level(ping: u32) -> usize {
+    match ping {
+        0..=80 => 0,
+        81..=150 => 1,
+        _ => 2,
+    }
+}
+
+/// Look presets (from JASE's themes). Classic is the original ASE look.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Theme {
+    #[default]
+    Classic,
+    Dark,
+    Terminal,
+    Amber,
+    Synthwave,
+    /// The olive and gold of Half-Life 1 / Counter-Strike 1.6 menus.
+    #[serde(rename = "goldsrc")]
+    GoldSrc,
+}
+
+impl Theme {
+    pub const ALL: [Theme; 6] = [
+        Theme::Classic,
+        Theme::Dark,
+        Theme::Terminal,
+        Theme::Amber,
+        Theme::Synthwave,
+        Theme::GoldSrc,
+    ];
+
+    /// English name, translated where shown.
+    pub fn name(self) -> &'static str {
+        match self {
+            Theme::Classic => crate::i18n::noop("Classic"),
+            Theme::Dark => crate::i18n::noop("Dark"),
+            Theme::Terminal => crate::i18n::noop("Terminal"),
+            Theme::Amber => crate::i18n::noop("Amber terminal"),
+            Theme::Synthwave => crate::i18n::noop("Synthwave"),
+            Theme::GoldSrc => crate::i18n::noop("GoldSrc (Counter-Strike 1.6)"),
+        }
+    }
+
+    /// Built on egui's dark visuals.
+    pub fn dark(self) -> bool {
+        self != Theme::Classic
+    }
+
+    /// Window and panel background; `None` keeps egui's.
+    pub fn panel(self) -> Option<Rgb> {
+        match self {
+            Theme::Classic => None,
+            Theme::Dark => Some([0x16, 0x18, 0x1d]),
+            Theme::Terminal => Some([0x05, 0x0a, 0x05]),
+            Theme::Amber => Some([0x12, 0x0c, 0x02]),
+            Theme::Synthwave => Some([0x1a, 0x10, 0x33]),
+            Theme::GoldSrc => Some([0x4c, 0x58, 0x44]),
+        }
+    }
+
+    /// Frames, separators and header lines; `None` keeps egui's.
+    pub fn border(self) -> Option<Rgb> {
+        match self {
+            Theme::Classic => None,
+            Theme::Dark => Some([0x2a, 0x2e, 0x37]),
+            Theme::Terminal => Some([0x1d, 0x6b, 0x2c]),
+            Theme::Amber => Some([0x5a, 0x3a, 0x00]),
+            Theme::Synthwave => Some([0xff, 0x3f, 0xa4]),
+            Theme::GoldSrc => Some([0x29, 0x2c, 0x21]),
+        }
+    }
+
+    /// Ping colors (good, medium, bad), see [`ping_level`].
+    pub fn ping_colors(self) -> [Rgb; 3] {
+        match self {
+            Theme::Classic => [[0x15, 0x80, 0x3d], [0xa1, 0x62, 0x07], [0xb9, 0x1c, 0x1c]],
+            Theme::Dark => [[0x3e, 0xcf, 0x6e], [0xe5, 0xb9, 0x3a], [0xef, 0x5a, 0x5a]],
+            Theme::Terminal => [[0x33, 0xff, 0x66], [0xe6, 0xff, 0x4d], [0xff, 0x6a, 0x4a]],
+            Theme::Amber => [[0xb8, 0xe0, 0x60], [0xff, 0xd0, 0x60], [0xff, 0x6a, 0x3a]],
+            Theme::Synthwave => [[0x3f, 0xf7, 0xff], [0xff, 0xe1, 0x4a], [0xff, 0x5c, 0x8a]],
+            Theme::GoldSrc => [[0xa6, 0xd9, 0x6a], [0xe8, 0xc8, 0x60], [0xef, 0x6a, 0x5a]],
+        }
+    }
+
+    /// Fill of the occupancy bar behind the Players column.
+    pub fn occupancy(self) -> Rgb {
+        match self {
+            Theme::Classic => [0x60, 0xa5, 0xfa],
+            Theme::Dark => [0x3b, 0x82, 0xf6],
+            Theme::Terminal => [0x33, 0xff, 0x66],
+            Theme::Amber => [0xff, 0xb0, 0x00],
+            Theme::Synthwave => [0xff, 0x3f, 0xa4],
+            Theme::GoldSrc => [0x95, 0x88, 0x31],
+        }
+    }
+
+    /// Raised 3D edges of headers, (light, dark), as in Half-Life's VGUI.
+    pub fn bevel(self) -> Option<(Rgb, Rgb)> {
+        match self {
+            Theme::GoldSrc => Some(([0x8c, 0x92, 0x84], [0x29, 0x2c, 0x21])),
+            _ => None,
+        }
+    }
+
+    /// Fill of buttons and other controls, (idle, hovered); `None` keeps egui's.
+    pub fn widgets(self) -> Option<(Rgb, Rgb)> {
+        match self {
+            Theme::GoldSrc => Some(([0x5a, 0x66, 0x50], [0x6b, 0x77, 0x5f])),
+            _ => None,
+        }
+    }
+
+    /// Text on the selection; `None` keeps egui's.
+    pub fn selection_text(self) -> Option<Rgb> {
+        match self {
+            Theme::Classic | Theme::Dark | Theme::Synthwave => None,
+            Theme::GoldSrc => Some([0xff, 0xff, 0xff]),
+            Theme::Terminal => Some([0x05, 0x0a, 0x05]),
+            Theme::Amber => Some([0x12, 0x0c, 0x02]),
+        }
+    }
+
+    /// The theme's starting colors.
+    pub fn colors(self) -> ColorSettings {
+        let (list_bg, alt_row, selection, text) = match self {
+            Theme::Classic => return ColorSettings::default(),
+            Theme::Dark => (
+                [0x1d, 0x20, 0x27],
+                [0x22, 0x26, 0x2e],
+                [0x24, 0x32, 0x4a],
+                [0xd7, 0xdb, 0xe2],
+            ),
+            Theme::Terminal => (
+                [0x08, 0x10, 0x08],
+                [0x0c, 0x18, 0x0c],
+                [0x33, 0xff, 0x66],
+                [0x33, 0xff, 0x66],
+            ),
+            Theme::Amber => (
+                [0x16, 0x0f, 0x03],
+                [0x1e, 0x15, 0x05],
+                [0xff, 0xb0, 0x00],
+                [0xff, 0xb0, 0x00],
+            ),
+            Theme::GoldSrc => (
+                [0x3e, 0x46, 0x37],
+                [0x45, 0x4e, 0x3d],
+                [0x80, 0x75, 0x2a],
+                [0xd8, 0xde, 0xd3],
+            ),
+            Theme::Synthwave => (
+                [0x21, 0x14, 0x42],
+                [0x29, 0x19, 0x50],
+                [0x4a, 0x1f, 0x5e],
+                [0xf3, 0xe6, 0xff],
+            ),
+        };
+        ColorSettings {
+            list_bg,
+            alt_row,
+            selection,
+            text,
+            quake_colors: true,
+            theme: self,
+        }
+    }
 }
 
 impl Default for ColorSettings {
@@ -227,6 +403,7 @@ impl Default for ColorSettings {
             selection: [0x31, 0x6a, 0xc5],
             text: [0x50, 0x50, 0x50],
             quake_colors: true,
+            theme: Theme::Classic,
         }
     }
 }

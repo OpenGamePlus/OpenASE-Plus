@@ -38,10 +38,31 @@ shows every loaded server with at least one human; F5 or a first visit scans
 | Slot watch (every 10 s, 30 min max) and party alerts (every 60 s) | `watch_tick`, each frame | `Watched`*, `WatchDone` |
 | Friend sound | friend found | none (waits for the player process) |
 | Saved lists: load at start, save after a completed game scan | `OpenAseApp::new`, `save_lists` | `SavedLists` |
+| Map image of the selected server (once per game and map) | `request_map_image`, each frame | `MapImage` |
+| RCON command | `send_rcon` (console window, right-click > RCON console) | `Rcon` |
 | `openase://` links from a second instance | `instance::listen` in `OpenAseApp::new` | `Link` (also sent once for a link on the command line) |
 
 `run_queries` runs `parallel_queries` (1..128) scoped threads over a shared
 queue and checks the stop flag between servers.
+
+## List cells
+
+Location draws the server's country flag from `rust/assets/flags.png` (a
+40x30-per-flag atlas drawn at 20x15 with mipmaps, built by
+`scripts/make_flag_atlas.sh` from flag-icons, MIT, which rewrites straight
+stroked lines as rectangles for ImageMagick; codes in `rust/assets/flags.txt`)
+with `icons::Flags`. Ping is colored by `settings::ping_level` and
+`Theme::ping_colors`; Players has a sunken meter (`icons::meter`) in
+`Theme::occupancy`. Scroll bars are solid; boxes have a 2 px gap, and GoldSrc
+draws them sunken (`icons::sunken`, one-pixel `icons::edges` on whole pixels,
+no frame stroke, no egui separator lines between panels). Classic keeps ASE's compact rows, left headers and striped
+panes; the other themes follow JASE (`jase_look`: 24 px rows, centered
+headers, no stripes). A filter bar under the tree (`filter_bar`: hide empty,
+full, passworded, unresponsive; max ping; country) edits the same settings
+as the Modifiers branch. The tree shows server counts and can
+list installed games only (`FilterSettings::installed_only`). Bottom pane
+columns are capped below the pane width, so a resize handle never leaves the
+screen.
 
 ## Alerts
 
@@ -60,5 +81,14 @@ context menu.
 | `src/gui/extra.rs` | Setup wizard, Add friend, Import list, filter editor, About / license |
 | `src/gui/icons.rs` | Painted toolbar and tree icons, badges, lock, sort arrows |
 
-Look: `setup_style` forces egui's light theme and ASE-like fonts;
-`ColorSettings` (Options > Colors) is applied by `apply_palette`. No themes.
+Look: `setup_style` sets ASE-like fonts and spacing; `apply_palette` applies
+`ColorSettings` (Options > Colors). Its `Theme` (Classic, Dark, Terminal,
+Amber terminal, Synthwave, GoldSrc; `settings.rs`) picks the light or dark
+base, rebuilt each time by `ase_visuals` (ASE geometry; Windows-like greys on
+the light base only), then the panel, border, selection-text and widget
+colors, and for GoldSrc raised header bevels (`Theme::bevel`, read by
+`header_cell` from egui temp data); the
+four list colors on top stay editable. Bars, headers, hover, frames and
+selected text come from the active visuals; `online_green`, `friend_fill`
+and `readable` (Quake colors) adapt to light or dark. Do not add fixed light
+colors: read them from `ui.visuals()`.

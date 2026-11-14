@@ -31,7 +31,29 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **`openase-cli`**: `games`, `scan` and `query` without the GUI, with `--json` output
   (schema 1, see `docs/cli.md`). In the Windows zip and the Linux tar.gz.
 
+- **RCON console** (right-click a server): send admin commands to Quake 3, Call of Duty,
+  Quake 2, Half-Life and Source servers. The password is kept for the session only.
+
+- **Themes** in Options > Colors: Classic, Dark, Terminal, Amber terminal, Synthwave and
+  GoldSrc (the olive and gold of Counter-Strike 1.6).
+  The colors stay editable on top of the theme.
+
+- **Map images**: the levelshot of the selected server's map, read from your installed
+  game's `.pk3` files (Quake 3 engine games). Nothing is downloaded.
+
+- **Country flags** in Location, **ping colors** (good, medium, bad), an **occupancy bar**
+  in Players, always-visible scroll bars and framed panels. Flags from flag-icons (MIT).
+
+- **Installed games only** at the top of the tree, server counts next to each game, and a
+  filter bar under it (hide empty, full, passworded or unresponsive servers; max ping;
+  country).
+- Themes other than Classic get taller rows, centered headers and no stripes; GoldSrc
+  draws thin, pixel-exact sunken frames.
+
 ### Fixes
+- Columns of the Friends, Players and Rules panes can no longer be widened past the
+  pane, where their handle could not be reached again.
+- The US flag (and other flags drawn with stroked lines) shows its stripes.
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.
 - **Security:** a player name, password or server address with spaces or quotes can no

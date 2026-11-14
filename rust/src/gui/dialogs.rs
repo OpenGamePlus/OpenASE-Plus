@@ -1,6 +1,7 @@
 //! Dialog windows: Options (General, Network, Events, Games), Auto-Search,
 //! Add Server, Find Player, Friends, password prompt, notices and About.
 
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -13,7 +14,9 @@ use openase::catalog;
 use openase::colors::strip_quake_colors;
 use openase::detect;
 use openase::i18n::{self, Language, fill, noop, tr};
-use openase::settings::{ColorSettings, FriendSound, NetworkSettings, Settings, ToolbarSettings};
+use openase::settings::{
+    ColorSettings, FriendSound, NetworkSettings, Settings, Theme, ToolbarSettings,
+};
 
 use super::{Msg, Nav, OpenAseApp, ServerKey, play_sound, rgb};
 
@@ -84,6 +87,14 @@ pub struct SearchState {
     done: bool,
 }
 
+/// The RCON console of one server.
+pub struct RconConsole {
+    pub key: ServerKey,
+    pub command: String,
+    pub output: String,
+    pub in_flight: bool,
+}
+
 #[derive(Default)]
 pub struct Dialogs {
     pub error: Option<String>,
@@ -94,6 +105,9 @@ pub struct Dialogs {
     pub password: Option<(ServerKey, String)>,
     /// Server of an `openase://` link, waiting for the user's yes.
     pub link: Option<ServerKey>,
+    pub rcon: Option<RconConsole>,
+    /// RCON passwords typed this session, by server address; never saved.
+    pub rcon_passwords: HashMap<String, String>,
     pub options: Option<OptionsDraft>,
     pub search: Option<SearchState>,
     notices: Vec<(Instant, String)>,
@@ -200,6 +214,7 @@ impl OpenAseApp {
         self.friends_window(ctx);
         self.password_window(ctx);
         self.link_window(ctx);
+        self.rcon_window(ctx);
         self.about_window(ctx);
         self.notices(ctx);
         self.error_window(ctx);
@@ -257,7 +272,7 @@ impl OpenAseApp {
             .show(ctx, |ui| {
                 for (_, text) in &self.dialogs.notices {
                     egui::Frame::popup(ui.style()).show(ui, |ui| {
-                        ui.label(RichText::new(text).color(Color32::from_rgb(0x14, 0x64, 0x1e)));
+                        ui.label(RichText::new(text).color(super::online_green(ui.visuals())));
                     });
                 }
             });
@@ -389,6 +404,75 @@ impl OpenAseApp {
         }
     }
 
+    fn rcon_window(&mut self, ctx: &egui::Context) {
+        let Some(console) = self.dialogs.rcon.as_mut() else {
+            return;
+        };
+        let address = console.key.address.clone();
+        let title = self
+            .store
+            .get(&console.key.game)
+            .and_then(|list| list.iter().find(|s| s.address() == address))
+            .map_or(address.clone(), |s| strip_quake_colors(&s.name));
+        let password = self
+            .dialogs
+            .rcon_passwords
+            .entry(address.clone())
+            .or_default();
+        let mut open = true;
+        let mut send = false;
+        egui::Window::new(fill(tr("RCON: {}"), &[&title]))
+            .id(egui::Id::unique("rcon"))
+            .open(&mut open)
+            .default_size([520.0, 320.0])
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(tr("Password"));
+                    ui.add(
+                        egui::TextEdit::singleline(password)
+                            .password(true)
+                            .desired_width(160.0),
+                    );
+                });
+                ui.horizontal(|ui| {
+                    let input = ui.add(
+                        egui::TextEdit::singleline(&mut console.command)
+                            .hint_text(tr("Command, e.g. status"))
+                            .desired_width(360.0),
+                    );
+                    send = input.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    send |= ui
+                        .add_enabled(!console.in_flight, egui::Button::new(tr("Send")))
+                        .clicked();
+                    if send {
+                        input.request_focus();
+                    }
+                });
+                // Plain text: the answer comes from the server.
+                egui::ScrollArea::vertical()
+                    .stick_to_bottom(true)
+                    .show(ui, |ui| {
+                        ui.add(
+                            egui::TextEdit::multiline(&mut console.output.as_str())
+                                .font(egui::TextStyle::Monospace)
+                                .desired_width(f32::INFINITY),
+                        );
+                    });
+            });
+        if !open {
+            self.dialogs.rcon = None;
+            return;
+        }
+        if send && !console.in_flight && !console.command.trim().is_empty() {
+            let command = std::mem::take(&mut console.command);
+            console.output.push_str(&format!("> {command}\n"));
+            console.in_flight = true;
+            let key = console.key.clone();
+            let password = password.clone();
+            self.send_rcon(ctx, key, password, command);
+        }
+    }
+
     fn friends_window(&mut self, ctx: &egui::Context) {
         let Some(mut new_name) = self.dialogs.friends.clone() else {
             return;
@@ -416,7 +500,7 @@ impl OpenAseApp {
                             let online = self.friend_location(friend).is_some();
                             ui.colored_label(
                                 if online {
-                                    Color32::from_rgb(0x14, 0x78, 0x1e)
+                                    super::online_green(ui.visuals())
                                 } else {
                                     Color32::from_gray(0x60)
                                 },
@@ -730,8 +814,8 @@ impl OpenAseApp {
                 });
                 ui.add_space(4.0);
                 egui::Frame::NONE
-                    .fill(Color32::WHITE)
-                    .stroke(egui::Stroke::new(1.0, Color32::from_gray(0xa0)))
+                    .fill(ui.visuals().extreme_bg_color)
+                    .stroke(ui.visuals().widgets.noninteractive.bg_stroke)
                     .show(ui, |ui| {
                         ui.set_min_size(vec2(456.0, 110.0));
                         ui.strong(tr("Location"));
@@ -841,6 +925,22 @@ fn toolbar_tab(ui: &mut egui::Ui, toolbar: &mut ToolbarSettings) {
 }
 
 fn colors_tab(ui: &mut egui::Ui, colors: &mut ColorSettings) {
+    ui.horizontal(|ui| {
+        ui.label(tr("Theme"));
+        egui::ComboBox::from_id_salt("theme")
+            .selected_text(tr(colors.theme.name()))
+            .show_ui(ui, |ui| {
+                for theme in Theme::ALL {
+                    if ui
+                        .selectable_label(colors.theme == theme, tr(theme.name()))
+                        .clicked()
+                    {
+                        *colors = theme.colors();
+                    }
+                }
+            });
+    });
+    ui.add_space(6.0);
     ui.label(tr(COLORS_HELP));
     ui.add_space(6.0);
     egui::Grid::new("colors-grid")
@@ -865,7 +965,7 @@ fn colors_tab(ui: &mut egui::Ui, colors: &mut ColorSettings) {
     ui.checkbox(&mut colors.quake_colors, tr(COLORS_QUAKE));
     ui.add_space(8.0);
     if ui.button(tr(COLORS_RESET)).clicked() {
-        *colors = ColorSettings::default();
+        *colors = colors.theme.colors();
     }
 }
 
@@ -977,8 +1077,8 @@ fn games_tab(ui: &mut egui::Ui, draft: &mut OptionsDraft) -> Option<String> {
         let top_down = Layout::top_down(Align::Min);
         ui.allocate_ui_with_layout(vec2(220.0, 320.0), top_down, |ui| {
             egui::Frame::NONE
-                .fill(Color32::WHITE)
-                .stroke(egui::Stroke::new(1.0, Color32::from_gray(0xa0)))
+                .fill(ui.visuals().extreme_bg_color)
+                .stroke(ui.visuals().widgets.noninteractive.bg_stroke)
                 .show(ui, |ui| {
                     egui::ScrollArea::vertical()
                         .id_salt("games-list")

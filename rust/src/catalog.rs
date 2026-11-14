@@ -169,6 +169,10 @@ pub struct Game {
     pub mod_key: String,
     #[serde(default)]
     pub base_mod: String,
+    /// Folder (under the install folder) whose `.pk3` files hold the
+    /// `levelshots/` map images; empty when the game has none we can read.
+    #[serde(default)]
+    pub levelshots: String,
     #[serde(default)]
     pub filters: Vec<FilterGroup>,
     #[serde(default)]

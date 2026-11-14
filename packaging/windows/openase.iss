@@ -59,6 +59,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "OpenASE.exe"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\rust\assets\flags-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
 ; openase://connect/<game>/<host>:<port> links (see rust/src/links.rs).

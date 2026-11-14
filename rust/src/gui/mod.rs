@@ -6,6 +6,7 @@ mod extra;
 mod icons;
 
 use std::collections::{BTreeMap, HashMap, VecDeque};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex};
@@ -35,7 +36,10 @@ use openase::settings::{
 use dialogs::Dialogs;
 use icons::{Tool, TreeIcon};
 
+/// Row height of the lists: ASE's compact rows in Classic, JASE's taller
+/// ones in the other themes.
 const ROW_HEIGHT: f32 = 18.0;
+const ROW_HEIGHT_TALL: f32 = 24.0;
 const PING_LIMITS: [u32; 4] = [50, 100, 150, 250];
 /// Most servers "Ping visible servers" queries at once.
 const PING_VISIBLE_MAX: usize = 60;
@@ -137,12 +141,12 @@ enum Col {
 
 const COLUMNS: [(Col, &str, f32); 10] = [
     (Col::Icon, "", 44.0),
-    (Col::Location, noop("Location"), 80.0),
+    (Col::Location, noop("Location"), 104.0),
     (Col::Name, noop("Name"), 300.0),
     (Col::Ping, noop("Ping"), 46.0),
     (Col::Flux, noop("Flux"), 40.0),
     (Col::Loss, noop("PL"), 38.0),
-    (Col::Players, noop("Players"), 58.0),
+    (Col::Players, noop("Players"), 84.0),
     (Col::GameType, noop("Game"), 120.0),
     (Col::Map, noop("Map"), 120.0),
     (Col::Address, noop("Address"), 150.0),
@@ -187,6 +191,17 @@ pub enum Msg {
     PortFixes(Vec<(ServerRef, ServerRef)>),
     /// Lists saved by an earlier session (`openase::lists`).
     SavedLists(Vec<(String, Vec<Server>)>),
+    /// A levelshot looked up for (game, map); `None` when there is none.
+    MapImage {
+        game: String,
+        map: String,
+        image: Option<([usize; 2], Vec<u8>)>,
+    },
+    /// Answer of an RCON command.
+    Rcon {
+        key: ServerKey,
+        result: Result<String, openase::rcon::RconError>,
+    },
     /// An `openase://` link, from the command line or a second instance.
     Link(String),
     /// Answer of a server with a slot or party alert.
@@ -237,6 +252,7 @@ enum Action {
     WatchSlot(ServerKey),
     /// Party alert threshold for a server; 0 removes it.
     PartyAlert(ServerKey, usize),
+    Rcon(ServerKey),
     Join(ServerKey),
     ToggleFavorite(ServerKey),
     Refresh(ServerKey),
@@ -258,6 +274,10 @@ pub struct OpenAseApp {
     generation: u64,
     pub(crate) status: String,
     friend_seen: HashMap<String, ServerKey>,
+    /// Map images by (game, map): `None` = looked up, none found. A key
+    /// without an entry has not been looked up yet.
+    map_images: HashMap<(String, String), Option<egui::TextureHandle>>,
+    flags: Option<icons::Flags>,
     /// "Alert me when a slot is free" on one full server.
     slot_watch: Option<SlotWatch>,
     party: PartyTracker,
@@ -345,6 +365,8 @@ impl OpenAseApp {
             status: tr("Ready").to_string(),
             friend_seen: HashMap::new(),
             slot_watch: None,
+            map_images: HashMap::new(),
+            flags: icons::Flags::load(&cc.egui_ctx),
             party: PartyTracker::default(),
             watch_in_flight: false,
             last_party_poll: None,
@@ -562,6 +584,167 @@ impl OpenAseApp {
             for (game, servers) in lists {
                 let _ = openase::lists::save(&openase::lists::dir(), &game, &servers);
             }
+        });
+    }
+
+    /// Themes other than Classic follow JASE: taller rows, centered
+    /// headers, no stripes.
+    fn jase_look(&self) -> bool {
+        self.palette.theme != openase::settings::Theme::Classic
+    }
+
+    fn row_height(&self) -> f32 {
+        if self.jase_look() {
+            ROW_HEIGHT_TALL
+        } else {
+            ROW_HEIGHT
+        }
+    }
+
+    /// The filter bar under the tree (JASE's left column): the same
+    /// settings as the tree's Modifiers.
+    fn filter_bar(&mut self, ui: &mut egui::Ui) {
+        let countries = self.country_options();
+        let filters = &mut self.settings.filters;
+        let before = (
+            filters.not_empty,
+            filters.not_full,
+            filters.no_password,
+            filters.hide_offline,
+            filters.max_ping,
+            filters.countries.clone(),
+        );
+        ui.checkbox(&mut filters.not_empty, tr("Hide empty"));
+        ui.checkbox(&mut filters.not_full, tr("Hide full"));
+        ui.checkbox(&mut filters.no_password, tr("Hide passworded"));
+        ui.checkbox(&mut filters.hide_offline, tr("Hide unresponsive"));
+        egui::Grid::new("filter-bar")
+            .num_columns(2)
+            .spacing([6.0, 4.0])
+            .show(ui, |ui| {
+                ui.label(tr("Max ping"));
+                let shown = filters
+                    .max_ping
+                    .map_or_else(|| tr("No limit").to_string(), |p| p.to_string());
+                egui::ComboBox::from_id_salt("max-ping")
+                    .selected_text(shown)
+                    .width(120.0)
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut filters.max_ping, None, tr("No limit"));
+                        for limit in [50, 100, 150, 250] {
+                            ui.selectable_value(
+                                &mut filters.max_ping,
+                                Some(limit),
+                                limit.to_string(),
+                            );
+                        }
+                    });
+                ui.end_row();
+                ui.label(tr("Country"));
+                let shown = match filters.countries.iter().next() {
+                    Some(code) if filters.countries.len() == 1 => country_label(code),
+                    Some(_) => fill(tr("{} countries"), &[&filters.countries.len()]),
+                    None => tr("All countries").to_string(),
+                };
+                egui::ComboBox::from_id_salt("country")
+                    .selected_text(shown)
+                    .width(120.0)
+                    .show_ui(ui, |ui| {
+                        if ui
+                            .selectable_label(filters.countries.is_empty(), tr("All countries"))
+                            .clicked()
+                        {
+                            filters.countries.clear();
+                        }
+                        for (code, label, count) in &countries {
+                            let only =
+                                filters.countries.len() == 1 && filters.countries.contains(code);
+                            if ui
+                                .selectable_label(only, format!("{label} ({count})"))
+                                .clicked()
+                            {
+                                filters.countries = [code.clone()].into();
+                            }
+                        }
+                    });
+                ui.end_row();
+            });
+        let after = (
+            filters.not_empty,
+            filters.not_full,
+            filters.no_password,
+            filters.hide_offline,
+            filters.max_ping,
+            filters.countries.clone(),
+        );
+        if before != after {
+            self.settings_dirty = true;
+        }
+    }
+
+    /// Look up the levelshot of the selected server's map once, off the UI
+    /// thread, in the game's own `.pk3` files (the server's mod first).
+    fn request_map_image(&mut self, ctx: &egui::Context) {
+        let Some(server) = self.selected.as_ref().and_then(|key| self.find(key)) else {
+            return;
+        };
+        let Some(game) = catalog::game(&server.game).filter(|g| !g.levelshots.is_empty()) else {
+            return;
+        };
+        let key = (game.id.clone(), server.map.clone());
+        if server.map.is_empty() || self.map_images.contains_key(&key) {
+            return;
+        }
+        let program = self.settings.game(&game.id).program_location;
+        let Some(root) = Path::new(program.trim())
+            .parent()
+            .filter(|_| !program.trim().is_empty())
+        else {
+            return;
+        };
+        let mut dirs = Vec::new();
+        let mod_dir = game.launch_mod(&server.mod_name);
+        if !mod_dir.is_empty() {
+            dirs.push(root.join(mod_dir));
+        }
+        dirs.push(root.join(&game.levelshots));
+        // Marked as looked up now, so one lookup runs per map.
+        self.map_images.insert(key.clone(), None);
+        let (tx, ctx) = (self.tx.clone(), ctx.clone());
+        std::thread::spawn(move || {
+            let image = openase::maps::find_levelshot(&dirs, &key.1)
+                .and_then(|bytes| openase::maps::decode(&bytes));
+            if image.is_some() {
+                let (game, map) = key;
+                let _ = tx.send(Msg::MapImage { game, map, image });
+                ctx.request_repaint();
+            }
+        });
+    }
+
+    /// Run one RCON command off the UI thread; the answer comes as `Msg::Rcon`.
+    pub(crate) fn send_rcon(
+        &self,
+        ctx: &egui::Context,
+        key: ServerKey,
+        password: String,
+        command: String,
+    ) {
+        let Some(game) = catalog::game(&key.game) else {
+            return;
+        };
+        // RCON goes to the game port (the join address).
+        let address = self
+            .find(&key)
+            .map_or(key.address.clone(), Server::join_address);
+        let (tx, ctx) = (self.tx.clone(), ctx.clone());
+        std::thread::spawn(move || {
+            let result = match parse_address(&address, game.default_port) {
+                Ok((host, port)) => openase::rcon::send(game, &host, port, &password, &command),
+                Err(error) => Err(openase::rcon::RconError::Network(error.0)),
+            };
+            let _ = tx.send(Msg::Rcon { key, result });
+            ctx.request_repaint();
         });
     }
 
@@ -1018,6 +1201,25 @@ impl OpenAseApp {
                     }
                 },
                 Msg::Link(url) => self.open_link(ctx, &url),
+                Msg::MapImage { game, map, image } => {
+                    let texture = image.map(|(size, rgba)| {
+                        let image = egui::ColorImage::from_rgba_unmultiplied(size, &rgba);
+                        ctx.load_texture(format!("map-{game}-{map}"), image, Default::default())
+                    });
+                    self.map_images.insert((game, map), texture);
+                }
+                Msg::Rcon { key, result } => {
+                    if let Some(console) = self.dialogs.rcon.as_mut().filter(|c| c.key == key) {
+                        console.in_flight = false;
+                        match result {
+                            Ok(text) => console.output.push_str(&text),
+                            Err(error) => console.output.push_str(&rcon_error(&error)),
+                        }
+                        if !console.output.ends_with('\n') {
+                            console.output.push('\n');
+                        }
+                    }
+                }
                 Msg::SavedLists(lists) => {
                     // A list scanned meanwhile is newer: keep it.
                     for (game, mut rows) in lists {
@@ -1264,6 +1466,14 @@ impl OpenAseApp {
                 self.settings.add_favorite_to(key.to_ref(), &group);
                 self.settings_dirty = true;
                 self.status = fill(tr("Added to {}"), &[&group_name(&group)]);
+            }
+            Action::Rcon(key) => {
+                self.dialogs.rcon = Some(dialogs::RconConsole {
+                    key,
+                    command: String::new(),
+                    output: String::new(),
+                    in_flight: false,
+                });
             }
             Action::WatchSlot(key) => {
                 let id = key.to_ref().key();
@@ -1595,6 +1805,9 @@ impl OpenAseApp {
 
     fn tree(&mut self, ui: &mut egui::Ui) {
         ui.spacing_mut().item_spacing.y = 0.0;
+        let installed_only = self.settings.filters.installed_only;
+        let ready_games = self.settings.ready_games();
+        let ready: Vec<&str> = ready_games.iter().map(|game| game.id.as_str()).collect();
         let mut new_nav: Option<Nav> = None;
         let mut toggles: Vec<String> = Vec::new();
         let mut filter_clicks: Vec<(String, String)> = Vec::new();
@@ -1734,16 +1947,23 @@ impl OpenAseApp {
         }
 
         for game in catalog::games() {
-            if !self.settings.game(&game.id).visible {
+            if !self.settings.game(&game.id).visible
+                || (installed_only && !ready.contains(&game.id.as_str()))
+            {
                 continue;
             }
             let path = game.id.clone();
+            // Server count of a scanned list, as in JASE: "Call of Duty 2 · 621".
+            let label = match self.store.get(&game.id).map(Vec::len) {
+                Some(count) if count > 0 => format!("{} · {count}", game.name),
+                _ => game.name.clone(),
+            };
             if row(
                 ui,
                 0,
                 Some(&path),
                 TreeIcon::Game(game),
-                &game.name,
+                &label,
                 self.nav == Nav::Game(game.id.clone()),
             ) {
                 new_nav = Some(Nav::Game(game.id.clone()));
@@ -2002,6 +2222,7 @@ impl OpenAseApp {
         let (sort_col, ascending) = self.sort;
         let selected = self.selected.clone();
         let text_color = ui.visuals().text_color();
+        let visuals = ui.visuals().clone();
         let selection = ui.visuals().selection.bg_fill;
         // A "Load more" row ends the list while 333networks lists more servers.
         let more = self
@@ -2024,7 +2245,7 @@ impl OpenAseApp {
             ui.vertical_centered(|ui| {
                 ui.label(
                     RichText::new(tr("<- select a game and click Refresh, or add a server"))
-                        .color(Color32::from_gray(0x70)),
+                        .color(ui.visuals().weak_text_color()),
                 );
             });
             return;
@@ -2037,6 +2258,7 @@ impl OpenAseApp {
             None
         };
 
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         let mut table = TableBuilder::new(ui);
         if let Some(index) = scroll_to {
             table = table.scroll_to_row(index, Some(Align::Center));
@@ -2063,11 +2285,14 @@ impl OpenAseApp {
                     header.col(|ui| {
                         let rect = ui.max_rect();
                         header_cell(ui, rect);
-                        let response = ui.add(
-                            egui::Label::new(RichText::new(tr(label)))
-                                .selectable(false)
-                                .sense(Sense::click()),
-                        );
+                        let label_widget = egui::Label::new(RichText::new(tr(label)))
+                            .selectable(false)
+                            .sense(Sense::click());
+                        let response = if jase_look {
+                            ui.centered_and_justified(|ui| ui.add(label_widget)).inner
+                        } else {
+                            ui.add(label_widget)
+                        };
                         if response.clicked()
                             || ui
                                 .interact(rect, ui.scope_id().with(label), Sense::click())
@@ -2087,7 +2312,7 @@ impl OpenAseApp {
             })
             .body(|body| {
                 let count = rows.len() + usize::from(more.is_some());
-                body.rows(ROW_HEIGHT, count, |mut row| {
+                body.rows(row_height, count, |mut row| {
                     let Some(&server) = rows.get(row.index()) else {
                         // The "Load more" row.
                         let Some((game, shown, total, loading)) = &more else {
@@ -2129,12 +2354,12 @@ impl OpenAseApp {
                     let full = server.is_full();
                     let friend = self.server_has_friend(server);
                     let highlight = if friend {
-                        Some(Color32::from_rgb(0xe0, 0xf5, 0xe0))
+                        Some(friend_fill(&visuals))
                     } else {
                         self.color_filter(server)
                     };
                     let color = if is_selected {
-                        Color32::WHITE
+                        visuals.selection.stroke.color
                     } else if !server.has_info() {
                         Color32::from_gray(0x90)
                     } else {
@@ -2201,7 +2426,42 @@ impl OpenAseApp {
                                         cell(ui, &display_name(server), color);
                                     }
                                 }
-                                Col::Ping | Col::Flux | Col::Loss | Col::Players => {
+                                Col::Location => {
+                                    let flag = server.country.as_deref().zip(self.flags.as_ref());
+                                    if let Some((code, flags)) = flag
+                                        && flags.draw(ui.painter(), ui.max_rect(), code)
+                                    {
+                                        ui.add_space(22.0);
+                                    }
+                                    cell(ui, &cell_text(col, server, game), color);
+                                }
+                                Col::Players => {
+                                    // A small sunken meter at the left, as in JASE.
+                                    if let Some(max) = server.max_players.filter(|&m| m > 0)
+                                        && server.has_info()
+                                    {
+                                        let fraction =
+                                            (server.num_players as f32 / max as f32).min(1.0);
+                                        let fill = rgb(self.palette.theme.occupancy());
+                                        icons::meter(ui, ui.max_rect(), fraction, fill);
+                                    }
+                                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                                        cell(ui, &cell_text(col, server, game), color);
+                                    });
+                                }
+                                Col::Ping => {
+                                    let ping_color = match server.ping {
+                                        Some(ping) if server.online && !is_selected => {
+                                            let level = openase::settings::ping_level(ping);
+                                            rgb(self.palette.theme.ping_colors()[level])
+                                        }
+                                        _ => color,
+                                    };
+                                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                                        cell(ui, &cell_text(col, server, game), ping_color);
+                                    });
+                                }
+                                Col::Flux | Col::Loss => {
                                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                         cell(ui, &cell_text(col, server, game), color);
                                     });
@@ -2281,6 +2541,14 @@ impl OpenAseApp {
                             actions.push(Action::Copy(address.clone()));
                             ui.close();
                         }
+                        let has_rcon = game.and_then(openase::rcon::kind_of).is_some();
+                        if ui
+                            .add_enabled(has_rcon, egui::Button::new(tr("RCON console...")))
+                            .clicked()
+                        {
+                            actions.push(Action::Rcon(key.clone()));
+                            ui.close();
+                        }
                         if ui.button(tr("Copy openase:// link")).clicked() {
                             let link = openase::links::build(&key.game, &key.address);
                             actions.push(Action::Copy(link));
@@ -2324,14 +2592,23 @@ impl OpenAseApp {
     fn friends_pane(&mut self, ui: &mut egui::Ui) {
         let friends = self.settings.friends.clone();
         let text_color = ui.visuals().text_color();
+        let green = online_green(ui.visuals());
         let mut select: Option<ServerKey> = None;
+        // Room for the next column handle: a column widened to the edge stays shrinkable.
+        let cap = (ui.available_width() - 40.0).max(60.0);
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         TableBuilder::new(ui)
             .id_salt("friends-pane")
             .resizable(true)
             .sense(Sense::click())
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
-            .column(Column::initial(118.0).at_least(40.0).clip(true))
+            .column(
+                Column::initial(118.0)
+                    .at_least(40.0)
+                    .at_most(cap)
+                    .clip(true),
+            )
             .column(Column::remainder().clip(true))
             .header(20.0, |mut header| {
                 let online = friends
@@ -2348,12 +2625,12 @@ impl OpenAseApp {
                 ] {
                     header.col(|ui| {
                         header_cell(ui, ui.max_rect());
-                        cell(ui, label, text_color);
+                        header_label(ui, label, text_color, jase_look);
                     });
                 }
             })
             .body(|body| {
-                body.rows(ROW_HEIGHT, friends.len(), |mut row| {
+                body.rows(row_height, friends.len(), |mut row| {
                     let friend = &friends[row.index()];
                     let location = self.friend_location(friend).cloned();
                     let server_name = location
@@ -2362,7 +2639,7 @@ impl OpenAseApp {
                         .map(|server| strip_quake_colors(&server.name))
                         .unwrap_or_default();
                     let color = if location.is_some() {
-                        Color32::from_rgb(0x14, 0x78, 0x1e)
+                        green
                     } else {
                         Color32::from_gray(0x80)
                     };
@@ -2401,26 +2678,34 @@ impl OpenAseApp {
         let mut order: Vec<usize> = (0..players.len()).collect();
         order.sort_by_key(|&index| std::cmp::Reverse(players[index].score));
 
+        // Room for the next column handle: a column widened to the edge stays shrinkable.
+        let cap = (ui.available_width() - 40.0).max(60.0);
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         TableBuilder::new(ui)
             .id_salt("players-pane")
             .resizable(true)
-            .striped(true)
+            .striped(!jase_look)
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
-            .column(Column::initial(170.0).at_least(60.0).clip(true))
-            .column(Column::initial(50.0).at_least(30.0))
-            .column(Column::initial(44.0).at_least(30.0))
+            .column(
+                Column::initial(170.0)
+                    .at_least(60.0)
+                    .at_most(cap)
+                    .clip(true),
+            )
+            .column(Column::initial(50.0).at_least(30.0).at_most(cap))
+            .column(Column::initial(44.0).at_least(30.0).at_most(cap))
             .column(Column::remainder().at_least(40.0))
             .header(20.0, |mut header| {
                 for label in [tr("Player Name"), tr("Score"), tr("Ping"), tr("Time")] {
                     header.col(|ui| {
                         header_cell(ui, ui.max_rect());
-                        cell(ui, label, text_color);
+                        header_label(ui, label, text_color, jase_look);
                     });
                 }
             })
             .body(|body| {
-                body.rows(ROW_HEIGHT, order.len(), |mut row| {
+                body.rows(row_height, order.len(), |mut row| {
                     let player = &players[order[row.index()]];
                     let plain = strip_quake_colors(&player.name);
                     let is_friend = friends
@@ -2431,7 +2716,7 @@ impl OpenAseApp {
                             ui.painter().rect_filled(
                                 ui.max_rect(),
                                 CornerRadius::ZERO,
-                                Color32::from_rgb(0xe0, 0xf5, 0xe0),
+                                friend_fill(ui.visuals()),
                             );
                         }
                         if colored {
@@ -2460,24 +2745,32 @@ impl OpenAseApp {
         let rules: Vec<(&String, &String)> = server
             .map(|server| server.rules.iter().collect())
             .unwrap_or_default();
+        // Room for the next column handle: a column widened to the edge stays shrinkable.
+        let cap = (ui.available_width() - 40.0).max(60.0);
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         TableBuilder::new(ui)
             .id_salt("rules-pane")
             .resizable(true)
-            .striped(true)
+            .striped(!jase_look)
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
-            .column(Column::initial(150.0).at_least(60.0).clip(true))
+            .column(
+                Column::initial(150.0)
+                    .at_least(60.0)
+                    .at_most(cap)
+                    .clip(true),
+            )
             .column(Column::remainder().clip(true))
             .header(20.0, |mut header| {
                 for label in [tr("Key"), tr("Value")] {
                     header.col(|ui| {
                         header_cell(ui, ui.max_rect());
-                        cell(ui, label, text_color);
+                        header_label(ui, label, text_color, jase_look);
                     });
                 }
             })
             .body(|body| {
-                body.rows(ROW_HEIGHT, rules.len(), |mut row| {
+                body.rows(row_height, rules.len(), |mut row| {
                     let (key, value) = rules[row.index()];
                     row.col(|ui| cell(ui, key, text_color));
                     row.col(|ui| cell(ui, &strip_quake_colors(value), text_color));
@@ -2584,6 +2877,7 @@ impl eframe::App for OpenAseApp {
             ctx.request_repaint_after(Duration::from_millis(500));
         }
         self.watch_tick(&ctx);
+        self.request_map_image(&ctx);
         if self.slot_watch.is_some() || !self.settings.party_alerts.is_empty() {
             ctx.request_repaint_after(Duration::from_secs(1));
         }
@@ -2604,7 +2898,7 @@ impl eframe::App for OpenAseApp {
         }
 
         let frame = egui::Frame::NONE
-            .fill(Color32::from_gray(0xf0))
+            .fill(ui.visuals().panel_fill)
             .inner_margin(egui::Margin::symmetric(4, 2));
         egui::Panel::top("menu")
             .frame(frame)
@@ -2618,10 +2912,22 @@ impl eframe::App for OpenAseApp {
             .frame(frame)
             .show(ui, |ui| self.status_bar(ui));
 
+        // A gap of panel color around each box, so the theme's border shows.
         let list_frame = egui::Frame::NONE
+            .outer_margin(egui::Margin::same(2))
             .fill(rgb(self.palette.list_bg))
-            .stroke(Stroke::new(1.0, Color32::from_gray(0xa0)));
+            // With a bevel (GoldSrc) the sunken edges replace the stroke.
+            .stroke(if self.palette.theme.bevel().is_some() {
+                Stroke::NONE
+            } else {
+                ui.visuals().widgets.noninteractive.bg_stroke
+            });
+        let mut boxes: Vec<egui::Rect> = Vec::new();
+        // GoldSrc's sunken boxes and gaps separate the panels; egui's line
+        // would draw a thick dark bar between them.
+        let separators = self.palette.theme.bevel().is_none();
         egui::Panel::bottom("details")
+            .show_separator_line(separators)
             .resizable(true)
             .default_size(200.0)
             .frame(egui::Frame::NONE)
@@ -2630,40 +2936,77 @@ impl eframe::App for OpenAseApp {
                     .selected
                     .clone()
                     .and_then(|key| self.find(&key).cloned());
-                egui::Panel::left("friends-panel")
+                let shown = egui::Panel::left("friends-panel")
+                    .show_separator_line(separators)
                     .resizable(true)
                     .default_size(220.0)
                     .frame(list_frame)
                     .show(ui, |ui| {
                         self.friends_pane(ui);
                     });
-                egui::Panel::left("players-panel")
+                boxes.push(shown.response.rect);
+                let shown = egui::Panel::left("players-panel")
+                    .show_separator_line(separators)
                     .resizable(true)
                     .default_size(380.0)
                     .frame(list_frame)
                     .show(ui, |ui| {
                         self.players_pane(ui, selected.as_ref());
                     });
-                egui::CentralPanel::default()
+                boxes.push(shown.response.rect);
+                let shown = egui::CentralPanel::default()
                     .frame(list_frame)
                     .show(ui, |ui| {
+                        let image = selected.as_ref().and_then(|s| {
+                            self.map_images
+                                .get(&(s.game.clone(), s.map.clone()))?
+                                .as_ref()
+                        });
+                        if let Some(texture) = image {
+                            // Levelshots are 4:3 at most 256 wide; shown small.
+                            ui.add(egui::Image::new(texture).max_size(vec2(160.0, 120.0)));
+                        }
                         self.rules_pane(ui, selected.as_ref());
                     });
+                boxes.push(shown.response.rect);
             });
 
-        egui::Panel::left("tree")
+        let shown = egui::Panel::left("tree")
+            .show_separator_line(separators)
             .resizable(true)
             .default_size(230.0)
             .frame(list_frame.inner_margin(egui::Margin::same(2)))
             .show(ui, |ui| {
+                if ui
+                    .checkbox(
+                        &mut self.settings.filters.installed_only,
+                        tr("Installed games only"),
+                    )
+                    .changed()
+                {
+                    self.settings_dirty = true;
+                }
+                egui::Panel::bottom("tree-filters")
+                    .frame(egui::Frame::NONE.inner_margin(egui::Margin::symmetric(2, 6)))
+                    .show(ui, |ui| self.filter_bar(ui));
                 egui::ScrollArea::both()
                     .auto_shrink(false)
                     .show(ui, |ui| self.tree(ui));
             });
+        boxes.push(shown.response.rect);
 
-        egui::CentralPanel::default()
+        let shown = egui::CentralPanel::default()
             .frame(list_frame)
             .show(ui, |ui| self.server_list(ui));
+        boxes.push(shown.response.rect);
+        // GoldSrc: sunken boxes, as in Half-Life's VGUI.
+        if let Some((light, dark)) = self.palette.theme.bevel() {
+            // Boxes use a softer light edge than the raised headers.
+            let soft = rgb(light).lerp_to_gamma(ui.visuals().panel_fill, 0.6);
+            for rect in boxes {
+                icons::sunken(ui.painter(), rect.shrink(2.0), rgb(dark), soft);
+            }
+        }
 
         self.show_dialogs(&ctx);
         self.show_extra(&ctx);
@@ -2734,32 +3077,46 @@ fn setup_style(ctx: &egui::Context) {
         style.spacing.item_spacing = vec2(6.0, 3.0);
         style.spacing.button_padding = vec2(8.0, 2.0);
         style.spacing.interact_size.y = 18.0;
-        let visuals = &mut style.visuals;
+        // Always-visible scroll bars, as in ASE (egui's float over the content).
+        style.spacing.scroll = egui::style::ScrollStyle::solid();
+    });
+}
+
+/// ASE's flat look on egui's light or dark visuals: square widgets, a small
+/// shadow, and on the light base Windows-like greys.
+fn ase_visuals(dark: bool) -> egui::Visuals {
+    let mut visuals = if dark {
+        egui::Visuals::dark()
+    } else {
+        egui::Visuals::light()
+    };
+    visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
+    visuals.window_corner_radius = CornerRadius::same(2);
+    visuals.menu_corner_radius = CornerRadius::ZERO;
+    visuals.window_shadow = egui::Shadow {
+        offset: [2, 2],
+        blur: 6,
+        spread: 0,
+        color: Color32::from_black_alpha(60),
+    };
+    for widgets in [
+        &mut visuals.widgets.noninteractive,
+        &mut visuals.widgets.inactive,
+        &mut visuals.widgets.hovered,
+        &mut visuals.widgets.active,
+        &mut visuals.widgets.open,
+    ] {
+        widgets.corner_radius = CornerRadius::ZERO;
+    }
+    if !dark {
         visuals.panel_fill = Color32::from_gray(0xf0);
         visuals.window_fill = Color32::from_gray(0xf0);
-        visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
-        visuals.window_corner_radius = CornerRadius::same(2);
-        visuals.menu_corner_radius = CornerRadius::ZERO;
-        visuals.window_shadow = egui::Shadow {
-            offset: [2, 2],
-            blur: 6,
-            spread: 0,
-            color: Color32::from_black_alpha(60),
-        };
-        for widgets in [
-            &mut visuals.widgets.noninteractive,
-            &mut visuals.widgets.inactive,
-            &mut visuals.widgets.hovered,
-            &mut visuals.widgets.active,
-            &mut visuals.widgets.open,
-        ] {
-            widgets.corner_radius = CornerRadius::ZERO;
-        }
         visuals.widgets.inactive.weak_bg_fill = Color32::from_gray(0xe1);
         visuals.widgets.inactive.bg_stroke = Stroke::new(1.0, Color32::from_gray(0xad));
         visuals.widgets.hovered.weak_bg_fill = Color32::from_rgb(0xe5, 0xf1, 0xfb);
         visuals.widgets.hovered.bg_stroke = Stroke::new(1.0, Color32::from_rgb(0x00, 0x78, 0xd7));
-    });
+    }
+    visuals
 }
 
 /// Toolbar texts (French translation pass: keep together).
@@ -2787,13 +3144,77 @@ impl OpenAseApp {
 
 /// Apply the user's list colors to the egui visuals.
 fn apply_palette(ctx: &egui::Context, colors: &ColorSettings) {
-    ctx.all_styles_mut(|style| {
+    let theme = colors.theme;
+    let base = if theme.dark() {
+        egui::Theme::Dark
+    } else {
+        egui::Theme::Light
+    };
+    ctx.set_theme(base);
+    let bevel = theme.bevel().map(|(light, dark)| (rgb(light), rgb(dark)));
+    ctx.data_mut(|data| data.insert_temp(bevel_id(), bevel));
+    // Rebuilt from the base each time, so nothing of a previous theme stays.
+    ctx.style_mut_of(base, |style| {
+        style.visuals = ase_visuals(theme.dark());
         let visuals = &mut style.visuals;
         visuals.extreme_bg_color = rgb(colors.list_bg);
         visuals.faint_bg_color = rgb(colors.alt_row);
         visuals.selection.bg_fill = rgb(colors.selection);
         visuals.widgets.noninteractive.fg_stroke.color = rgb(colors.text);
+        if let Some(panel) = theme.panel() {
+            visuals.panel_fill = rgb(panel);
+            visuals.window_fill = rgb(panel);
+        }
+        if let Some(text) = theme.selection_text() {
+            visuals.selection.stroke.color = rgb(text);
+        }
+        if let Some(border) = theme.border() {
+            visuals.widgets.noninteractive.bg_stroke.color = rgb(border);
+            visuals.window_stroke.color = rgb(border);
+        }
+        if let Some((idle, hovered)) = theme.widgets() {
+            let widgets = &mut visuals.widgets;
+            widgets.inactive.bg_fill = rgb(idle);
+            widgets.inactive.weak_bg_fill = rgb(idle);
+            widgets.hovered.bg_fill = rgb(hovered);
+            widgets.hovered.weak_bg_fill = rgb(hovered);
+            widgets.active.bg_fill = rgb(colors.selection);
+            widgets.active.weak_bg_fill = rgb(colors.selection);
+        }
     });
+}
+
+/// "Online" green, readable on the theme's background.
+pub(crate) fn online_green(visuals: &egui::Visuals) -> Color32 {
+    if visuals.dark_mode {
+        Color32::from_rgb(0x5c, 0xd0, 0x6a)
+    } else {
+        Color32::from_rgb(0x14, 0x78, 0x1e)
+    }
+}
+
+/// Background of rows with a friend on them.
+fn friend_fill(visuals: &egui::Visuals) -> Color32 {
+    if visuals.dark_mode {
+        Color32::from_rgb(0x24, 0x4a, 0x2c)
+    } else {
+        Color32::from_rgb(0xe0, 0xf5, 0xe0)
+    }
+}
+
+/// A server-chosen color made readable on the list: near-white is darkened
+/// on a light theme, dark colors (`^0`, `^4`) are lightened on a dark one.
+fn readable(color: Color32, visuals: &egui::Visuals) -> Color32 {
+    let [r, g, b, _] = color.to_array();
+    if visuals.dark_mode {
+        let luma = (299 * u32::from(r) + 587 * u32::from(g) + 114 * u32::from(b)) / 1000;
+        if luma < 90 {
+            return color.lerp_to_gamma(Color32::WHITE, 0.5);
+        }
+    } else if r > 0xd0 && g > 0xd0 && b > 0xd0 {
+        return Color32::from_gray(0x50);
+    }
+    color
 }
 
 pub(crate) fn rgb([r, g, b]: Rgb) -> Color32 {
@@ -2854,9 +3275,12 @@ fn tree_row(
         Sense::click(),
     );
     let text_color = if selected {
-        Color32::WHITE
+        ui.visuals().selection.stroke.color
     } else if ui.visuals().text_color() == rgb(ColorSettings::default().text) {
         Color32::from_gray(0x10)
+    } else if ui.visuals().dark_mode {
+        // White game names stand out on dark themes, as in JASE.
+        ui.visuals().strong_text_color()
     } else {
         ui.visuals().text_color()
     };
@@ -2870,7 +3294,7 @@ fn tree_row(
         ui.painter().rect_filled(
             label_rect,
             CornerRadius::ZERO,
-            Color32::from_rgb(0xe5, 0xf1, 0xfb),
+            ui.visuals().widgets.hovered.weak_bg_fill,
         );
     }
     ui.painter().galley(
@@ -2885,18 +3309,33 @@ fn tree_row(
     (toggled, response.clicked())
 }
 
+/// Where `apply_palette` keeps the theme's bevel colors for `header_cell`.
+fn bevel_id() -> egui::Id {
+    egui::Id::unique("theme-bevel")
+}
+
 fn header_cell(ui: &egui::Ui, rect: egui::Rect) {
     let rect = rect.expand2(vec2(4.0, 2.0));
-    ui.painter()
-        .rect_filled(rect, CornerRadius::ZERO, Color32::from_gray(0xf0));
-    ui.painter().line_segment(
-        [rect.right_top(), rect.right_bottom()],
-        Stroke::new(1.0, Color32::from_gray(0xc8)),
-    );
-    ui.painter().line_segment(
-        [rect.left_bottom(), rect.right_bottom()],
-        Stroke::new(1.0, Color32::from_gray(0xc8)),
-    );
+    let visuals = ui.visuals();
+    let painter = ui.painter();
+    painter.rect_filled(rect, CornerRadius::ZERO, visuals.panel_fill);
+    let bevel: Option<(Color32, Color32)> = ui.ctx().data(|d| d.get_temp(bevel_id())).flatten();
+    match bevel {
+        // Raised, as in Half-Life's VGUI.
+        Some((light, dark)) => icons::edges(painter, rect, light, dark),
+        None => {
+            let line = visuals.widgets.noninteractive.bg_stroke.color;
+            icons::edges(painter, rect, Color32::TRANSPARENT, line);
+        }
+    }
+}
+
+fn header_label(ui: &mut egui::Ui, text: &str, color: Color32, centered: bool) {
+    if centered {
+        ui.centered_and_justified(|ui| cell(ui, text, color));
+    } else {
+        cell(ui, text, color);
+    }
 }
 
 fn cell(ui: &mut egui::Ui, text: &str, color: Color32) {
@@ -2907,7 +3346,7 @@ fn cell(ui: &mut egui::Ui, text: &str, color: Color32) {
     );
 }
 
-/// Draw Quake-colored text; near-white colors are darkened for the white list.
+/// Draw Quake-colored text, made readable on the theme ([`readable`]).
 fn colored_label(ui: &mut egui::Ui, raw: &str, default_color: Color32) {
     let default_hex = format!(
         "#{:02x}{:02x}{:02x}",
@@ -2919,11 +3358,7 @@ fn colored_label(ui: &mut egui::Ui, raw: &str, default_color: Color32) {
     let mut job = LayoutJob::default();
     for segment in quake_color_segments(raw, &default_hex) {
         let [r, g, b] = parse_hex(&segment.color).unwrap_or([0x20, 0x20, 0x20]);
-        let color = if r > 0xd0 && g > 0xd0 && b > 0xd0 {
-            Color32::from_gray(0x50)
-        } else {
-            Color32::from_rgb(r, g, b)
-        };
+        let color = readable(Color32::from_rgb(r, g, b), ui.visuals());
         job.append(&segment.text, 0.0, TextFormat::simple(font.clone(), color));
     }
     ui.add(egui::Label::new(job).selectable(false).truncate());
@@ -3206,6 +3641,20 @@ pub(crate) fn play_sound(file: Option<&str>) {
             }
         }
     });
+}
+
+fn rcon_error(error: &openase::rcon::RconError) -> String {
+    use openase::rcon::RconError;
+    match error {
+        RconError::Timeout => tr("No answer from the server").to_string(),
+        RconError::BadPassword => tr("Wrong RCON password").to_string(),
+        RconError::NoChallenge => {
+            tr("The server gave no RCON challenge (is RCON enabled?)").to_string()
+        }
+        RconError::Unsupported => tr("This game has no RCON").to_string(),
+        RconError::Invalid => tr("Invalid answer from the server").to_string(),
+        RconError::Network(detail) => fill(tr("Network error: {}"), &[detail]),
+    }
 }
 
 /// Fill the GeoIP country of a server once.

@@ -181,3 +181,37 @@ fn ready_games_have_a_program_or_steam_with_a_key() {
     assert!(with_key.contains(&"q3") && with_key.contains(&"tf2") && with_key.contains(&"css"));
     assert!(!with_key.contains(&"ut99"));
 }
+
+#[test]
+fn themes_are_presets_of_the_color_settings() {
+    use openase::settings::Theme;
+    let luma = |[r, g, b]: [u8; 3]| 299 * r as u32 + 587 * g as u32 + 114 * b as u32;
+    // Classic is today's look, and the default.
+    assert_eq!(Theme::Classic.colors(), ColorSettings::default());
+    for theme in Theme::ALL {
+        let colors = theme.colors();
+        assert_eq!(colors.theme, theme);
+        // Text stands out from the list in every theme.
+        let (text, bg) = (luma(colors.text), luma(colors.list_bg));
+        assert!(text.abs_diff(bg) > 100_000, "{theme:?}");
+        assert_eq!(theme.dark(), text > bg, "{theme:?}");
+    }
+    // Old settings files without a theme load as Classic.
+    let old: ColorSettings = serde_json::from_str(r#"{"list_bg":[255,255,255]}"#).unwrap();
+    assert_eq!(old.theme, Theme::Classic);
+}
+
+#[test]
+fn ping_levels_and_theme_colors() {
+    use openase::settings::{Theme, ping_level};
+    assert_eq!(ping_level(30), 0);
+    assert_eq!(ping_level(80), 0);
+    assert_eq!(ping_level(81), 1);
+    assert_eq!(ping_level(150), 1);
+    assert_eq!(ping_level(151), 2);
+    for theme in Theme::ALL {
+        let [good, mid, bad] = theme.ping_colors();
+        assert!(good != mid && mid != bad && good != bad, "{theme:?}");
+        assert_ne!(theme.occupancy(), theme.colors().list_bg, "{theme:?}");
+    }
+}

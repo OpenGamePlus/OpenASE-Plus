@@ -20,6 +20,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "baseq3",
+    "levelshots": "baseq3",
     "filters": [
       { "name": "Mods", "key": "gamename", "dynamic": true },
       { "name": "Pure", "key": "sv_pure", "options": [ { "label": "Yes", "values": ["1"] }, { "label": "No", "values": ["0"] } ] },
@@ -59,6 +60,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "q3urt43",
+    "levelshots": "q3ut4",
     "filters": [
       { "name": "Auth", "key": "auth_enable", "options": [ { "label": "On", "values": ["1"] }, { "label": "Off", "values": ["0"] } ] },
       { "name": "Version", "key": "g_modversion", "dynamic": true },
@@ -95,6 +97,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "baseoa",
+    "levelshots": "baseoa",
     "filters": [
       { "name": "Mods", "key": "gamename", "dynamic": true },
       { "name": "Maps", "key": "mapname", "dynamic": true }
@@ -139,6 +142,7 @@
     "game_types": [],
     "mod_key": "fs_game",
     "base_mod": "basewsw",
+    "levelshots": "basewsw",
     "filters": [
       { "name": "Mods", "key": "fs_game", "dynamic": true },
       { "name": "Game types", "key": "gametype", "dynamic": true },
@@ -162,6 +166,7 @@
     "game_types": [],
     "mod_key": "fs_game",
     "base_mod": "basewf",
+    "levelshots": "basewf",
     "filters": [
       { "name": "Mods", "key": "fs_game", "dynamic": true },
       { "name": "Game types", "key": "gametype", "dynamic": true },
@@ -185,6 +190,7 @@
     "game_types": [],
     "mod_key": "",
     "base_mod": "",
+    "levelshots": "base",
     "filters": [
       { "name": "Maps", "key": "mapname", "dynamic": true }
     ],
@@ -206,6 +212,7 @@
     "game_types": [],
     "mod_key": "",
     "base_mod": "",
+    "levelshots": "smokinguns",
     "filters": [
       { "name": "Maps", "key": "mapname", "dynamic": true }
     ],
@@ -234,6 +241,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "etmain",
+    "levelshots": "etmain",
     "filters": [
       { "name": "Mods", "key": "gamename", "dynamic": true },
       { "name": "Friendly Fire", "key": "g_friendlyFire", "options": [ { "label": "On", "values": ["1"] }, { "label": "Off", "values": ["0"] } ] },
@@ -378,6 +386,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "basejk",
+    "levelshots": "base",
     "filters": [
       { "name": "Mods", "key": "gamename", "dynamic": true },
       { "name": "Pure", "key": "sv_pure", "options": [ { "label": "Yes", "values": ["1"] }, { "label": "No", "values": ["0"] } ] },
@@ -412,6 +421,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "basejka",
+    "levelshots": "base",
     "filters": [
       { "name": "Mods", "key": "gamename", "dynamic": true },
       { "name": "Pure", "key": "sv_pure", "options": [ { "label": "Yes", "values": ["1"] }, { "label": "No", "values": ["0"] } ] },
@@ -445,6 +455,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "main",
+    "levelshots": "main",
     "filters": [
       { "name": "Mods", "key": "gamename", "dynamic": true },
       { "name": "Pure", "key": "sv_pure", "options": [ { "label": "Yes", "values": ["1"] }, { "label": "No", "values": ["0"] } ] },
@@ -969,6 +980,7 @@
     ],
     "mod_key": "gamename",
     "base_mod": "base",
+    "levelshots": "base",
     "filters": [
       { "name": "Mods", "key": "gamename", "dynamic": true },
       { "name": "Pure", "key": "sv_pure", "options": [ { "label": "Yes", "values": ["1"] }, { "label": "No", "values": ["0"] } ] },
