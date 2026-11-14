@@ -13,7 +13,7 @@
 | Scan / generation | One run of master + queries; messages of an older generation are dropped |
 | Join template | `join` command line with `{placeholders}` and optional `[...]` groups |
 | Auto-Search | Finding installed games: registry, then disk search for `exe_names` |
-| Special lists | ASE's "Special" folder: recently added, recently imported, LAN servers (`Special` in `src/gui/mod.rs`) |
+| Special lists | ASE's "Special" folder: Playing now, recently added, recently imported, LAN servers (`Special` in `src/gui/mod.rs`) |
 | Groups | Favorites1..8 and Friends1..4 (`Nav::FavoriteGroup`, `Nav::FriendGroup`) |
 | My filters / color filters | User rules over servers (`rules.rs`) |
 | 333networks, OpenSpy, dpmaster | Community-run masters reviving dead official ones |

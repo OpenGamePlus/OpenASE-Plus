@@ -528,6 +528,13 @@ pub fn french(text: &str) -> Option<&'static str> {
         }
         "Download it from GitHub Releases" => "Télécharger depuis les versions GitHub",
         "Later" => "Plus tard",
+        "Playing now" => "En jeu maintenant",
+        "No game is set up: set its program in Options > Games" => {
+            "Aucun jeu configuré : indiquez son programme dans Options > Jeux"
+        }
+        "Querying the master servers of {} games..." => {
+            "Interrogation des serveurs maîtres de {} jeux…"
+        }
         // Slot and match alerts.
         "Alert me when a slot is free" => "M’avertir quand une place se libère",
         "Stop watching for a free slot" => "Ne plus guetter une place libre",

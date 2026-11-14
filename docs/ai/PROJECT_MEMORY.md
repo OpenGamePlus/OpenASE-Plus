@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — Playing now
+- New `Special::Playing` tree entry: loaded servers with humans > 0; F5 / first visit scans `Settings::ready_games` with `scan_games` (masters in parallel, one query pass). `scan_game` now goes through it; `scan.total` sums per-game counts.
+- Rejected a separate dialog as in JASE: a tree entry reuses the list, sorting, filters and panes.
+
 ## 2026-11-14 — slot and party alerts
 - Ported JASE's two alerts: decisions in `alerts.rs` (tested), GUI polls watched servers with `watch_tick` and checks every answer in `upsert`. Party alerts fire on crossing up and re-arm at half the threshold; the first answer only sets the baseline.
 - Rejected a confirm-to-join dialog (JASE asks): a notice plus selecting the row fits OpenASE's notices; join is one double click.

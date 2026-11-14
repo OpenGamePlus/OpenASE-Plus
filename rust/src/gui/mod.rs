@@ -90,16 +90,24 @@ pub enum Special {
     Added,
     Imported,
     Lan,
+    /// Busy servers of every game the user can join.
+    Playing,
 }
 
 impl Special {
-    const ALL: [Special; 3] = [Special::Added, Special::Imported, Special::Lan];
+    const ALL: [Special; 4] = [
+        Special::Playing,
+        Special::Added,
+        Special::Imported,
+        Special::Lan,
+    ];
 
     fn label(self) -> &'static str {
         match self {
             Special::Added => tr("recently added"),
             Special::Imported => tr("recently imported"),
             Special::Lan => tr("LAN servers"),
+            Special::Playing => tr("Playing now"),
         }
     }
 }
@@ -564,6 +572,7 @@ impl OpenAseApp {
         }
         match nav {
             Nav::Game(game) | Nav::GameType(game, _) => self.scan_game(ctx, &game),
+            Nav::Special(Special::Playing) => self.scan_ready_games(ctx),
             Nav::Custom(index) => {
                 let game = self
                     .settings
@@ -622,32 +631,66 @@ impl OpenAseApp {
         let Some(game) = catalog::game(game_id) else {
             return;
         };
-        let (generation, stop, done) = self.start_scan(fill(tr("Scanning {}"), &[&game.name]));
         self.status = fill(tr("Querying {} master servers..."), &[&game.name]);
+        self.scan_games(ctx, vec![game], fill(tr("Scanning {}"), &[&game.name]));
+    }
+
+    /// "Playing now": scan every game the user can join.
+    fn scan_ready_games(&mut self, ctx: &egui::Context) {
+        let games = self.settings.ready_games();
+        if games.is_empty() {
+            self.status = tr("No game is set up: set its program in Options > Games").to_string();
+            return;
+        }
+        self.status = fill(
+            tr("Querying the master servers of {} games..."),
+            &[&games.len()],
+        );
+        self.scan_games(ctx, games, tr("Playing now").to_string());
+    }
+
+    /// Fetch the master lists of `games` in parallel, then query their servers.
+    fn scan_games(&mut self, ctx: &egui::Context, games: Vec<&'static Game>, label: String) {
+        let (generation, stop, done) = self.start_scan(label);
         let tx = self.tx.clone();
         let ctx = ctx.clone();
         let network = self.settings.network.clone();
         let steam_key = self.settings.steam_api_key.clone();
         std::thread::spawn(move || {
             let options = network.query_options();
-            let mut list = fetch_all_masters(game, options.timeout, &steam_key, network.scan_limit);
-            list.servers.truncate(network.scan_limit.max(1));
-            // Servers listed with their details (333networks) are shown as
-            // listed and queried only on demand; the others are queried now.
-            let targets = list
-                .servers
-                .iter()
-                .filter(|entry| entry.preview.is_none())
-                .map(|entry| (game.id.clone(), entry.address.clone()))
-                .collect();
-            let _ = tx.send(Msg::MasterList {
-                generation,
-                game: game.id.clone(),
-                servers: list.servers,
-                errors: list.errors,
-                paged_total: list.paged_total,
+            let targets = std::sync::Mutex::new(Vec::new());
+            std::thread::scope(|scope| {
+                for game in games {
+                    let (tx, ctx, targets) = (&tx, &ctx, &targets);
+                    let (network, steam_key, options) = (&network, &steam_key, &options);
+                    scope.spawn(move || {
+                        let mut list =
+                            fetch_all_masters(game, options.timeout, steam_key, network.scan_limit);
+                        list.servers.truncate(network.scan_limit.max(1));
+                        // Servers listed with their details (333networks) are shown
+                        // as listed and queried only on demand; the others now.
+                        targets.lock().unwrap().extend(
+                            list.servers
+                                .iter()
+                                .filter(|entry| entry.preview.is_none())
+                                .map(|entry| (game.id.clone(), entry.address.clone())),
+                        );
+                        let _ = tx.send(Msg::MasterList {
+                            generation,
+                            game: game.id.clone(),
+                            servers: list.servers,
+                            errors: list.errors,
+                            paged_total: list.paged_total,
+                        });
+                        ctx.request_repaint();
+                    });
+                }
             });
-            ctx.request_repaint();
+            if stop.load(Ordering::Relaxed) {
+                let _ = tx.send(Msg::ScanDone { generation });
+                return;
+            }
+            let targets = targets.into_inner().unwrap();
             run_queries(targets, &network, &tx, &ctx, generation, &stop, &done);
         });
     }
@@ -793,8 +836,9 @@ impl OpenAseApp {
                             self.paging.remove(&game);
                         }
                     }
+                    // Summed: a "Playing now" scan lists several games.
                     if let Some(scan) = &mut self.scan {
-                        scan.total = queried;
+                        scan.total += queried;
                     }
                     // The details pane of a selected listed server needs a query.
                     if let Some(key) = self.selected.clone().filter(|key| key.game == game) {
@@ -964,6 +1008,12 @@ impl OpenAseApp {
                 .values()
                 .flatten()
                 .filter(|server| self.server_has_friend(server))
+                .collect(),
+            Nav::Special(Special::Playing) => self
+                .store
+                .values()
+                .flatten()
+                .filter(|server| server.has_info() && alerts::humans(server) > 0)
                 .collect(),
             Nav::FriendGroup(group) => {
                 let keys: Vec<&ServerKey> = self
@@ -1847,9 +1897,19 @@ impl OpenAseApp {
                 }
                 let lan_first_visit =
                     nav == Nav::Special(Special::Lan) && self.lan_servers.is_empty();
+                // First visit: scan the ready games that have no list yet.
+                let playing_first_visit = nav == Nav::Special(Special::Playing)
+                    && self
+                        .settings
+                        .ready_games()
+                        .iter()
+                        .any(|game| !self.store.contains_key(&game.id));
                 self.nav = nav;
                 if lan_first_visit {
                     self.scan_lan(ui.ctx());
+                }
+                if playing_first_visit {
+                    self.scan_ready_games(ui.ctx());
                 }
             }
             self.settings_dirty = true;

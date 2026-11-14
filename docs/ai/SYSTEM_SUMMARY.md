@@ -35,7 +35,7 @@ packaging/           Inno Setup, Scoop, winget generator
 | Queries | All protocols tested offline; Ping / Flux / PL from samples |
 | 333networks | JSON lists, pages of 100, queries on demand ([ADR 0005](../architecture/adr/0005-333networks-light-lists.md)) |
 | Steam | Web API list; needs the user's key; not checked live |
-| GUI | ASE layout, favorites / friends groups, special lists, custom and color filters, wizard, toolbar editor |
+| GUI | ASE layout, favorites / friends groups, special lists (incl. Playing now across games), custom and color filters, wizard, toolbar editor |
 | Join / detection | Templates for every game; registry + disk Auto-Search |
 | Alerts | Free slot on a full server (one watch, 10 s polls, 30 min max); match filling up to N humans (saved thresholds, 60 s polls) |
 | GeoIP | DB-IP country database, monthly download |

@@ -14,7 +14,7 @@ Python browser by the same maintainer. In priority order:
 1. [x] Games on existing protocols: Xonotic, Warsow, Warfork, Tremulous, Smokin' Guns (Quake 3); Team Fortress 2, Left 4 Dead, Left 4 Dead 2, Garry's Mod (Steam). D-Day: Normandy postponed: one live server, needs a Quake 2 `gamedir` filter
 2. [x] Zandronum (its own protocol, Huffman-compressed packets)
 3. [x] Alerts: a slot frees up on a full server, a match is filling up
-4. [ ] "Playing now": one list of busy servers across all games
+4. [x] "Playing now": one list of busy servers across all games
 5. [ ] `openase://connect/<game>/<host>:<port>` links; favorites export and import
 6. [ ] Server lists kept between sessions; command-line tool with JSON output
 7. [ ] RCON, map images, system tray, themes

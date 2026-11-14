@@ -17,6 +17,10 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **Alert when players reach N** (right-click a server): a notice when that many people,
   not bots, are playing. Saved between sessions; the servers are checked every minute.
 
+- **Playing now** (in the Special folder): every server with people on it, across all the
+  games you can join (a program set in Options > Games, or Steam games with your key).
+  F5 there scans those games together.
+
 ### Fixes
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.

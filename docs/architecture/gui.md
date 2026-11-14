@@ -12,7 +12,9 @@ egui immediate mode through eframe; binary only ([B1](boundaries.md)).
 `ServerKey` = game id + address: the identity of a row across scans, favorites
 and friends. `Nav` = what the tree shows: favorites and their groups, recent, friends and
 their groups, `Special` lists (recently added / imported, LAN), a custom
-filter, a game or one of its game types.
+filter, a game or one of its game types. `Special::Playing` ("Playing now")
+shows every loaded server with at least one human; F5 or a first visit scans
+`Settings::ready_games` (program set, or Steam with a key).
 
 ## Frame (`eframe::App::ui`)
 
@@ -26,7 +28,7 @@ filter, a game or one of its game types.
 
 | Work | Started by | Result |
 |---|---|---|
-| Game scan (masters + queries) | `scan_game` | `MasterList`, `Server`*, `ScanDone` |
+| Game scan (masters + queries) | `scan_game`, `scan_ready_games` → `scan_games` (masters of several games in parallel, then one query pass) | `MasterList`*, `Server`*, `ScanDone` |
 | Refresh favorites / visible / list | `start_scan` callers | `Server`*, `ScanDone` |
 | One server | `query_single` | `Single` |
 | Next 333networks page | Load more | `MorePage` |
