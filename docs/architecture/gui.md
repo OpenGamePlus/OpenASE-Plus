@@ -47,12 +47,17 @@ queue and checks the stop flag between servers.
 
 ## List cells
 
-Location draws the server's country flag from `rust/assets/flags.png` (an
-atlas built by `scripts/make_flag_atlas.sh` from flag-icons, MIT; codes in
-`rust/assets/flags.txt`) with `icons::Flags`. Ping is colored by
-`settings::ping_level` and `Theme::ping_colors`; Players has an occupancy bar
-in `Theme::occupancy`. Scroll bars are solid; boxes have a 2 px gap so the
-theme border shows.
+Location draws the server's country flag from `rust/assets/flags.png` (a
+40x30-per-flag atlas drawn at 20x15 with mipmaps, built by
+`scripts/make_flag_atlas.sh` from flag-icons, MIT, which rewrites straight
+stroked lines as rectangles for ImageMagick; codes in `rust/assets/flags.txt`)
+with `icons::Flags`. Ping is colored by `settings::ping_level` and
+`Theme::ping_colors`; Players has a sunken meter (`icons::meter`) in
+`Theme::occupancy`. Scroll bars are solid; boxes have a 2 px gap, and GoldSrc
+draws them sunken (`icons::sunken`). The tree shows server counts and can
+list installed games only (`FilterSettings::installed_only`). Bottom pane
+columns are capped below the pane width, so a resize handle never leaves the
+screen.
 
 ## Alerts
 

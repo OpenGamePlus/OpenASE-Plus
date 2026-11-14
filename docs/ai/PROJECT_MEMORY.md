@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — visual polish after a second JASE comparison
+- Flags: 2x atlas with mipmaps, pixel-aligned; ImageMagick's MSVG drops straight stroked lines (US stripes), so the script rewrites them as rects. Installing resvg was not allowed; the preprocessor avoids it.
+- Sunken occupancy meter and sunken GoldSrc boxes, tree server counts, "Installed games only" (`FilterSettings::installed_only`, uses `ready_games`), bottom pane columns capped at pane width - 40.
+
 ## 2026-11-14 — flags, ping colors, occupancy bars
 - From the user's comparison with JASE: country flags (flag-icons SVG rasterized once by ImageMagick into a 74 KB atlas, `scripts/make_flag_atlas.sh`), ping colors and occupancy bars per theme (JASE tokens), solid scroll bars, 2 px gaps around boxes.
 - Rejected shipping the 2.4 MB of SVGs plus an SVG renderer (resvg); flags-LICENSE.txt ships in the zip, tar.gz, macOS zip and installer (MIT notice).

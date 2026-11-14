@@ -10,12 +10,41 @@ use eframe::egui::{
     Vec2, pos2, vec2,
 };
 
+use eframe::emath::GuiRounding;
 use openase::catalog::Game;
 
 const FLAG_ATLAS: &[u8] = include_bytes!("../../assets/flags.png");
 const FLAG_CODES: &str = include_str!("../../assets/flags.txt");
+/// A flag in the atlas (twice the drawn size, for high-DPI screens).
+const FLAG_CELL: Vec2 = vec2(40.0, 30.0);
+/// Drawn size, in points.
 const FLAG_SIZE: Vec2 = vec2(20.0, 15.0);
 const FLAGS_PER_ROW: usize = 16;
+
+/// A sunken occupancy meter, 28x11 points at the left of `rect`.
+pub fn meter(ui: &egui::Ui, rect: Rect, fraction: f32, fill: Color32) {
+    let visuals = ui.visuals();
+    let painter = ui.painter();
+    let corner = (rect.left_center() + vec2(1.0, -5.5)).round_to_pixels(painter.pixels_per_point());
+    let frame = Rect::from_min_size(corner, vec2(28.0, 11.0));
+    painter.rect_filled(frame, CornerRadius::ZERO, visuals.extreme_bg_color);
+    let mut bar = frame.shrink(2.0);
+    bar.set_width(bar.width() * fraction);
+    if fraction > 0.0 {
+        painter.rect_filled(bar, CornerRadius::ZERO, fill);
+    }
+    let dark = visuals.widgets.noninteractive.bg_stroke.color;
+    sunken(painter, frame, dark, visuals.widgets.inactive.bg_fill);
+}
+
+/// Sunken edges: dark top and left, light bottom and right.
+pub fn sunken(painter: &egui::Painter, rect: Rect, dark: Color32, light: Color32) {
+    let r = rect.shrink(0.5);
+    painter.line_segment([r.left_top(), r.right_top()], Stroke::new(1.0, dark));
+    painter.line_segment([r.left_top(), r.left_bottom()], Stroke::new(1.0, dark));
+    painter.line_segment([r.left_bottom(), r.right_bottom()], Stroke::new(1.0, light));
+    painter.line_segment([r.right_top(), r.right_bottom()], Stroke::new(1.0, light));
+}
 
 /// Country flags: one atlas texture (`rust/assets/flags.png`, from
 /// flag-icons, MIT), loaded once.
@@ -29,15 +58,18 @@ impl Flags {
         let atlas = image::load_from_memory(FLAG_ATLAS).ok()?.into_rgba8();
         let size = [atlas.width() as usize, atlas.height() as usize];
         let image = egui::ColorImage::from_rgba_unmultiplied(size, atlas.as_raw());
-        let texture = ctx.load_texture("flags", image, egui::TextureOptions::LINEAR);
+        // Mipmaps keep the 13 stripes of a 40x30 flag drawn at 20x15 crisp.
+        let options =
+            egui::TextureOptions::LINEAR.with_mipmap_mode(Some(egui::TextureFilter::Linear));
+        let texture = ctx.load_texture("flags", image, options);
         Some(Flags {
             texture,
             codes: FLAG_CODES.lines().collect(),
         })
     }
 
-    /// Draw the flag of an ISO country code at the left of `rect`, 14 px
-    /// high; false when there is none.
+    /// Draw the flag of an ISO country code at the left of `rect`, 20x15
+    /// points on whole pixels; false when there is none.
     pub fn draw(&self, painter: &egui::Painter, rect: Rect, code: &str) -> bool {
         let code = code.to_ascii_lowercase();
         let Some(index) = self.codes.iter().position(|c| *c == code) else {
@@ -45,14 +77,16 @@ impl Flags {
         };
         let atlas = self.texture.size_vec2();
         let cell = pos2(
-            (index % FLAGS_PER_ROW) as f32 * FLAG_SIZE.x,
-            (index / FLAGS_PER_ROW) as f32 * FLAG_SIZE.y,
+            (index % FLAGS_PER_ROW) as f32 * FLAG_CELL.x,
+            (index / FLAGS_PER_ROW) as f32 * FLAG_CELL.y,
         );
         let uv = Rect::from_min_size(
             pos2(cell.x / atlas.x, cell.y / atlas.y),
-            vec2(FLAG_SIZE.x / atlas.x, FLAG_SIZE.y / atlas.y),
+            vec2(FLAG_CELL.x / atlas.x, FLAG_CELL.y / atlas.y),
         );
-        let target = Rect::from_min_size(rect.left_center() + vec2(1.0, -7.0), vec2(18.0, 14.0));
+        let corner = (rect.left_center() + vec2(1.0, -FLAG_SIZE.y / 2.0))
+            .round_to_pixels(painter.pixels_per_point());
+        let target = Rect::from_min_size(corner, FLAG_SIZE);
         painter.image(self.texture.id(), target, uv, Color32::WHITE);
         true
     }

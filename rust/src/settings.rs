@@ -119,6 +119,8 @@ pub struct FilterSettings {
     pub checked: BTreeMap<String, BTreeSet<String>>,
     /// Country codes to show (`??` for unknown); empty shows all.
     pub countries: BTreeSet<String>,
+    /// The tree lists only games the user can join (`Settings::ready_games`).
+    pub installed_only: bool,
 }
 
 /// Toolbar button ids, in the default order.

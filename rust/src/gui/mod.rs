@@ -143,7 +143,7 @@ const COLUMNS: [(Col, &str, f32); 10] = [
     (Col::Ping, noop("Ping"), 46.0),
     (Col::Flux, noop("Flux"), 40.0),
     (Col::Loss, noop("PL"), 38.0),
-    (Col::Players, noop("Players"), 58.0),
+    (Col::Players, noop("Players"), 84.0),
     (Col::GameType, noop("Game"), 120.0),
     (Col::Map, noop("Map"), 120.0),
     (Col::Address, noop("Address"), 150.0),
@@ -1707,6 +1707,9 @@ impl OpenAseApp {
 
     fn tree(&mut self, ui: &mut egui::Ui) {
         ui.spacing_mut().item_spacing.y = 0.0;
+        let installed_only = self.settings.filters.installed_only;
+        let ready_games = self.settings.ready_games();
+        let ready: Vec<&str> = ready_games.iter().map(|game| game.id.as_str()).collect();
         let mut new_nav: Option<Nav> = None;
         let mut toggles: Vec<String> = Vec::new();
         let mut filter_clicks: Vec<(String, String)> = Vec::new();
@@ -1846,16 +1849,23 @@ impl OpenAseApp {
         }
 
         for game in catalog::games() {
-            if !self.settings.game(&game.id).visible {
+            if !self.settings.game(&game.id).visible
+                || (installed_only && !ready.contains(&game.id.as_str()))
+            {
                 continue;
             }
             let path = game.id.clone();
+            // Server count of a scanned list, as in JASE: "Call of Duty 2 · 621".
+            let label = match self.store.get(&game.id).map(Vec::len) {
+                Some(count) if count > 0 => format!("{} · {count}", game.name),
+                _ => game.name.clone(),
+            };
             if row(
                 ui,
                 0,
                 Some(&path),
                 TreeIcon::Game(game),
-                &game.name,
+                &label,
                 self.nav == Nav::Game(game.id.clone()),
             ) {
                 new_nav = Some(Nav::Game(game.id.clone()));
@@ -2324,18 +2334,14 @@ impl OpenAseApp {
                                     cell(ui, &cell_text(col, server, game), color);
                                 }
                                 Col::Players => {
-                                    // Occupancy bar behind the count, as in JASE.
+                                    // A small sunken meter at the left, as in JASE.
                                     if let Some(max) = server.max_players.filter(|&m| m > 0)
                                         && server.has_info()
                                     {
-                                        let rect = ui.max_rect();
                                         let fraction =
                                             (server.num_players as f32 / max as f32).min(1.0);
-                                        let mut bar = rect.shrink2(vec2(0.0, 2.0));
-                                        bar.set_width(rect.width() * fraction);
-                                        let [r, g, b] = self.palette.theme.occupancy();
-                                        let fill = Color32::from_rgba_unmultiplied(r, g, b, 90);
-                                        ui.painter().rect_filled(bar, CornerRadius::ZERO, fill);
+                                        let fill = rgb(self.palette.theme.occupancy());
+                                        icons::meter(ui, ui.max_rect(), fraction, fill);
                                     }
                                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                         cell(ui, &cell_text(col, server, game), color);
@@ -2486,13 +2492,20 @@ impl OpenAseApp {
         let text_color = ui.visuals().text_color();
         let green = online_green(ui.visuals());
         let mut select: Option<ServerKey> = None;
+        // Room for the next column handle: a column widened to the edge stays shrinkable.
+        let cap = (ui.available_width() - 40.0).max(60.0);
         TableBuilder::new(ui)
             .id_salt("friends-pane")
             .resizable(true)
             .sense(Sense::click())
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
-            .column(Column::initial(118.0).at_least(40.0).clip(true))
+            .column(
+                Column::initial(118.0)
+                    .at_least(40.0)
+                    .at_most(cap)
+                    .clip(true),
+            )
             .column(Column::remainder().clip(true))
             .header(20.0, |mut header| {
                 let online = friends
@@ -2562,15 +2575,22 @@ impl OpenAseApp {
         let mut order: Vec<usize> = (0..players.len()).collect();
         order.sort_by_key(|&index| std::cmp::Reverse(players[index].score));
 
+        // Room for the next column handle: a column widened to the edge stays shrinkable.
+        let cap = (ui.available_width() - 40.0).max(60.0);
         TableBuilder::new(ui)
             .id_salt("players-pane")
             .resizable(true)
             .striped(true)
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
-            .column(Column::initial(170.0).at_least(60.0).clip(true))
-            .column(Column::initial(50.0).at_least(30.0))
-            .column(Column::initial(44.0).at_least(30.0))
+            .column(
+                Column::initial(170.0)
+                    .at_least(60.0)
+                    .at_most(cap)
+                    .clip(true),
+            )
+            .column(Column::initial(50.0).at_least(30.0).at_most(cap))
+            .column(Column::initial(44.0).at_least(30.0).at_most(cap))
             .column(Column::remainder().at_least(40.0))
             .header(20.0, |mut header| {
                 for label in [tr("Player Name"), tr("Score"), tr("Ping"), tr("Time")] {
@@ -2621,13 +2641,20 @@ impl OpenAseApp {
         let rules: Vec<(&String, &String)> = server
             .map(|server| server.rules.iter().collect())
             .unwrap_or_default();
+        // Room for the next column handle: a column widened to the edge stays shrinkable.
+        let cap = (ui.available_width() - 40.0).max(60.0);
         TableBuilder::new(ui)
             .id_salt("rules-pane")
             .resizable(true)
             .striped(true)
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
-            .column(Column::initial(150.0).at_least(60.0).clip(true))
+            .column(
+                Column::initial(150.0)
+                    .at_least(60.0)
+                    .at_most(cap)
+                    .clip(true),
+            )
             .column(Column::remainder().clip(true))
             .header(20.0, |mut header| {
                 for label in [tr("Key"), tr("Value")] {
@@ -2785,6 +2812,7 @@ impl eframe::App for OpenAseApp {
             .outer_margin(egui::Margin::same(2))
             .fill(rgb(self.palette.list_bg))
             .stroke(ui.visuals().widgets.noninteractive.bg_stroke);
+        let mut boxes: Vec<egui::Rect> = Vec::new();
         egui::Panel::bottom("details")
             .resizable(true)
             .default_size(200.0)
@@ -2794,21 +2822,23 @@ impl eframe::App for OpenAseApp {
                     .selected
                     .clone()
                     .and_then(|key| self.find(&key).cloned());
-                egui::Panel::left("friends-panel")
+                let shown = egui::Panel::left("friends-panel")
                     .resizable(true)
                     .default_size(220.0)
                     .frame(list_frame)
                     .show(ui, |ui| {
                         self.friends_pane(ui);
                     });
-                egui::Panel::left("players-panel")
+                boxes.push(shown.response.rect);
+                let shown = egui::Panel::left("players-panel")
                     .resizable(true)
                     .default_size(380.0)
                     .frame(list_frame)
                     .show(ui, |ui| {
                         self.players_pane(ui, selected.as_ref());
                     });
-                egui::CentralPanel::default()
+                boxes.push(shown.response.rect);
+                let shown = egui::CentralPanel::default()
                     .frame(list_frame)
                     .show(ui, |ui| {
                         let image = selected.as_ref().and_then(|s| {
@@ -2822,21 +2852,39 @@ impl eframe::App for OpenAseApp {
                         }
                         self.rules_pane(ui, selected.as_ref());
                     });
+                boxes.push(shown.response.rect);
             });
 
-        egui::Panel::left("tree")
+        let shown = egui::Panel::left("tree")
             .resizable(true)
             .default_size(230.0)
             .frame(list_frame.inner_margin(egui::Margin::same(2)))
             .show(ui, |ui| {
+                if ui
+                    .checkbox(
+                        &mut self.settings.filters.installed_only,
+                        tr("Installed games only"),
+                    )
+                    .changed()
+                {
+                    self.settings_dirty = true;
+                }
                 egui::ScrollArea::both()
                     .auto_shrink(false)
                     .show(ui, |ui| self.tree(ui));
             });
+        boxes.push(shown.response.rect);
 
-        egui::CentralPanel::default()
+        let shown = egui::CentralPanel::default()
             .frame(list_frame)
             .show(ui, |ui| self.server_list(ui));
+        boxes.push(shown.response.rect);
+        // GoldSrc: sunken boxes, as in Half-Life's VGUI.
+        if let Some((light, dark)) = self.palette.theme.bevel() {
+            for rect in boxes {
+                icons::sunken(ui.painter(), rect.shrink(2.0), rgb(dark), rgb(light));
+            }
+        }
 
         self.show_dialogs(&ctx);
         self.show_extra(&ctx);

@@ -44,7 +44,12 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **Country flags** in Location, **ping colors** (good, medium, bad), an **occupancy bar**
   in Players, always-visible scroll bars and framed panels. Flags from flag-icons (MIT).
 
+- **Installed games only** at the top of the tree, and server counts next to each game.
+
 ### Fixes
+- Columns of the Friends, Players and Rules panes can no longer be widened past the
+  pane, where their handle could not be reached again.
+- The US flag (and other flags drawn with stroked lines) shows its stripes.
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.
 - **Security:** a player name, password or server address with spaces or quotes can no

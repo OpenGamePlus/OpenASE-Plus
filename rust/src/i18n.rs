@@ -535,6 +535,7 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Querying the master servers of {} games..." => {
             "Interrogation des serveurs maîtres de {} jeux…"
         }
+        "Installed games only" => "Jeux installés uniquement",
         // Themes.
         "Theme" => "Thème",
         "Classic" => "Classique",
