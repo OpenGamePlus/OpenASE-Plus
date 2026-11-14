@@ -200,3 +200,18 @@ fn themes_are_presets_of_the_color_settings() {
     let old: ColorSettings = serde_json::from_str(r#"{"list_bg":[255,255,255]}"#).unwrap();
     assert_eq!(old.theme, Theme::Classic);
 }
+
+#[test]
+fn ping_levels_and_theme_colors() {
+    use openase::settings::{Theme, ping_level};
+    assert_eq!(ping_level(30), 0);
+    assert_eq!(ping_level(80), 0);
+    assert_eq!(ping_level(81), 1);
+    assert_eq!(ping_level(150), 1);
+    assert_eq!(ping_level(151), 2);
+    for theme in Theme::ALL {
+        let [good, mid, bad] = theme.ping_colors();
+        assert!(good != mid && mid != bad && good != bad, "{theme:?}");
+        assert_ne!(theme.occupancy(), theme.colors().list_bg, "{theme:?}");
+    }
+}

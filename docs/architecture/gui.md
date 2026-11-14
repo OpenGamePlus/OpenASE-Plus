@@ -45,6 +45,15 @@ shows every loaded server with at least one human; F5 or a first visit scans
 `run_queries` runs `parallel_queries` (1..128) scoped threads over a shared
 queue and checks the stop flag between servers.
 
+## List cells
+
+Location draws the server's country flag from `rust/assets/flags.png` (an
+atlas built by `scripts/make_flag_atlas.sh` from flag-icons, MIT; codes in
+`rust/assets/flags.txt`) with `icons::Flags`. Ping is colored by
+`settings::ping_level` and `Theme::ping_colors`; Players has an occupancy bar
+in `Theme::occupancy`. Scroll bars are solid; boxes have a 2 px gap so the
+theme border shows.
+
 ## Alerts
 
 Decisions live in `rust/src/alerts.rs` (`has_free_slot`, `PartyTracker`,

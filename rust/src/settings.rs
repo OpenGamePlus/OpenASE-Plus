@@ -221,6 +221,16 @@ pub struct ColorSettings {
     pub theme: Theme,
 }
 
+/// 0 good (up to 80 ms), 1 medium (up to 150 ms), 2 bad: the index into
+/// [`Theme::ping_colors`] (JASE's thresholds).
+pub fn ping_level(ping: u32) -> usize {
+    match ping {
+        0..=80 => 0,
+        81..=150 => 1,
+        _ => 2,
+    }
+}
+
 /// Look presets (from JASE's themes). Classic is the original ASE look.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -284,6 +294,30 @@ impl Theme {
             Theme::Amber => Some([0x5a, 0x3a, 0x00]),
             Theme::Synthwave => Some([0xff, 0x3f, 0xa4]),
             Theme::GoldSrc => Some([0x29, 0x2c, 0x21]),
+        }
+    }
+
+    /// Ping colors (good, medium, bad), see [`ping_level`].
+    pub fn ping_colors(self) -> [Rgb; 3] {
+        match self {
+            Theme::Classic => [[0x15, 0x80, 0x3d], [0xa1, 0x62, 0x07], [0xb9, 0x1c, 0x1c]],
+            Theme::Dark => [[0x3e, 0xcf, 0x6e], [0xe5, 0xb9, 0x3a], [0xef, 0x5a, 0x5a]],
+            Theme::Terminal => [[0x33, 0xff, 0x66], [0xe6, 0xff, 0x4d], [0xff, 0x6a, 0x4a]],
+            Theme::Amber => [[0xb8, 0xe0, 0x60], [0xff, 0xd0, 0x60], [0xff, 0x6a, 0x3a]],
+            Theme::Synthwave => [[0x3f, 0xf7, 0xff], [0xff, 0xe1, 0x4a], [0xff, 0x5c, 0x8a]],
+            Theme::GoldSrc => [[0xa6, 0xd9, 0x6a], [0xe8, 0xc8, 0x60], [0xef, 0x6a, 0x5a]],
+        }
+    }
+
+    /// Fill of the occupancy bar behind the Players column.
+    pub fn occupancy(self) -> Rgb {
+        match self {
+            Theme::Classic => [0x60, 0xa5, 0xfa],
+            Theme::Dark => [0x3b, 0x82, 0xf6],
+            Theme::Terminal => [0x33, 0xff, 0x66],
+            Theme::Amber => [0xff, 0xb0, 0x00],
+            Theme::Synthwave => [0xff, 0x3f, 0xa4],
+            Theme::GoldSrc => [0x95, 0x88, 0x31],
         }
     }
 

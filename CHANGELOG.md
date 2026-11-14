@@ -41,6 +41,9 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **Map images**: the levelshot of the selected server's map, read from your installed
   game's `.pk3` files (Quake 3 engine games). Nothing is downloaded.
 
+- **Country flags** in Location, **ping colors** (good, medium, bad), an **occupancy bar**
+  in Players, always-visible scroll bars and framed panels. Flags from flag-icons (MIT).
+
 ### Fixes
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.

@@ -138,7 +138,7 @@ enum Col {
 
 const COLUMNS: [(Col, &str, f32); 10] = [
     (Col::Icon, "", 44.0),
-    (Col::Location, noop("Location"), 80.0),
+    (Col::Location, noop("Location"), 104.0),
     (Col::Name, noop("Name"), 300.0),
     (Col::Ping, noop("Ping"), 46.0),
     (Col::Flux, noop("Flux"), 40.0),
@@ -274,6 +274,7 @@ pub struct OpenAseApp {
     /// Map images by (game, map): `None` = looked up, none found. A key
     /// without an entry has not been looked up yet.
     map_images: HashMap<(String, String), Option<egui::TextureHandle>>,
+    flags: Option<icons::Flags>,
     /// "Alert me when a slot is free" on one full server.
     slot_watch: Option<SlotWatch>,
     party: PartyTracker,
@@ -362,6 +363,7 @@ impl OpenAseApp {
             friend_seen: HashMap::new(),
             slot_watch: None,
             map_images: HashMap::new(),
+            flags: icons::Flags::load(&cc.egui_ctx),
             party: PartyTracker::default(),
             watch_in_flight: false,
             last_party_poll: None,
@@ -2312,7 +2314,46 @@ impl OpenAseApp {
                                         cell(ui, &display_name(server), color);
                                     }
                                 }
-                                Col::Ping | Col::Flux | Col::Loss | Col::Players => {
+                                Col::Location => {
+                                    let flag = server.country.as_deref().zip(self.flags.as_ref());
+                                    if let Some((code, flags)) = flag
+                                        && flags.draw(ui.painter(), ui.max_rect(), code)
+                                    {
+                                        ui.add_space(22.0);
+                                    }
+                                    cell(ui, &cell_text(col, server, game), color);
+                                }
+                                Col::Players => {
+                                    // Occupancy bar behind the count, as in JASE.
+                                    if let Some(max) = server.max_players.filter(|&m| m > 0)
+                                        && server.has_info()
+                                    {
+                                        let rect = ui.max_rect();
+                                        let fraction =
+                                            (server.num_players as f32 / max as f32).min(1.0);
+                                        let mut bar = rect.shrink2(vec2(0.0, 2.0));
+                                        bar.set_width(rect.width() * fraction);
+                                        let [r, g, b] = self.palette.theme.occupancy();
+                                        let fill = Color32::from_rgba_unmultiplied(r, g, b, 90);
+                                        ui.painter().rect_filled(bar, CornerRadius::ZERO, fill);
+                                    }
+                                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                                        cell(ui, &cell_text(col, server, game), color);
+                                    });
+                                }
+                                Col::Ping => {
+                                    let ping_color = match server.ping {
+                                        Some(ping) if server.online && !is_selected => {
+                                            let level = openase::settings::ping_level(ping);
+                                            rgb(self.palette.theme.ping_colors()[level])
+                                        }
+                                        _ => color,
+                                    };
+                                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                                        cell(ui, &cell_text(col, server, game), ping_color);
+                                    });
+                                }
+                                Col::Flux | Col::Loss => {
                                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                         cell(ui, &cell_text(col, server, game), color);
                                     });
@@ -2739,7 +2780,9 @@ impl eframe::App for OpenAseApp {
             .frame(frame)
             .show(ui, |ui| self.status_bar(ui));
 
+        // A gap of panel color around each box, so the theme's border shows.
         let list_frame = egui::Frame::NONE
+            .outer_margin(egui::Margin::same(2))
             .fill(rgb(self.palette.list_bg))
             .stroke(ui.visuals().widgets.noninteractive.bg_stroke);
         egui::Panel::bottom("details")
@@ -2864,6 +2907,8 @@ fn setup_style(ctx: &egui::Context) {
         style.spacing.item_spacing = vec2(6.0, 3.0);
         style.spacing.button_padding = vec2(8.0, 2.0);
         style.spacing.interact_size.y = 18.0;
+        // Always-visible scroll bars, as in ASE (egui's float over the content).
+        style.spacing.scroll = egui::style::ScrollStyle::solid();
     });
 }
 

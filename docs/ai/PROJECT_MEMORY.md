@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — flags, ping colors, occupancy bars
+- From the user's comparison with JASE: country flags (flag-icons SVG rasterized once by ImageMagick into a 74 KB atlas, `scripts/make_flag_atlas.sh`), ping colors and occupancy bars per theme (JASE tokens), solid scroll bars, 2 px gaps around boxes.
+- Rejected shipping the 2.4 MB of SVGs plus an SVG renderer (resvg); flags-LICENSE.txt ships in the zip, tar.gz, macOS zip and installer (MIT notice).
+
 ## 2026-11-14 — theme colors fixed after a Windows review
 - The user's Windows build showed dark themes with light menu, toolbar, headers and status bar (unreadable): about 15 fixed light colors predated themes. They now come from `ui.visuals()`; Quake colors go through `readable` (dark `^0`/`^4` lightened on dark themes).
 - Built and tested natively on Windows (MSVC, 195 tests) in the user's E: checkout.

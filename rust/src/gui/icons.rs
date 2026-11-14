@@ -12,6 +12,52 @@ use eframe::egui::{
 
 use openase::catalog::Game;
 
+const FLAG_ATLAS: &[u8] = include_bytes!("../../assets/flags.png");
+const FLAG_CODES: &str = include_str!("../../assets/flags.txt");
+const FLAG_SIZE: Vec2 = vec2(20.0, 15.0);
+const FLAGS_PER_ROW: usize = 16;
+
+/// Country flags: one atlas texture (`rust/assets/flags.png`, from
+/// flag-icons, MIT), loaded once.
+pub struct Flags {
+    texture: egui::TextureHandle,
+    codes: Vec<&'static str>,
+}
+
+impl Flags {
+    pub fn load(ctx: &egui::Context) -> Option<Flags> {
+        let atlas = image::load_from_memory(FLAG_ATLAS).ok()?.into_rgba8();
+        let size = [atlas.width() as usize, atlas.height() as usize];
+        let image = egui::ColorImage::from_rgba_unmultiplied(size, atlas.as_raw());
+        let texture = ctx.load_texture("flags", image, egui::TextureOptions::LINEAR);
+        Some(Flags {
+            texture,
+            codes: FLAG_CODES.lines().collect(),
+        })
+    }
+
+    /// Draw the flag of an ISO country code at the left of `rect`, 14 px
+    /// high; false when there is none.
+    pub fn draw(&self, painter: &egui::Painter, rect: Rect, code: &str) -> bool {
+        let code = code.to_ascii_lowercase();
+        let Some(index) = self.codes.iter().position(|c| *c == code) else {
+            return false;
+        };
+        let atlas = self.texture.size_vec2();
+        let cell = pos2(
+            (index % FLAGS_PER_ROW) as f32 * FLAG_SIZE.x,
+            (index / FLAGS_PER_ROW) as f32 * FLAG_SIZE.y,
+        );
+        let uv = Rect::from_min_size(
+            pos2(cell.x / atlas.x, cell.y / atlas.y),
+            vec2(FLAG_SIZE.x / atlas.x, FLAG_SIZE.y / atlas.y),
+        );
+        let target = Rect::from_min_size(rect.left_center() + vec2(1.0, -7.0), vec2(18.0, 14.0));
+        painter.image(self.texture.id(), target, uv, Color32::WHITE);
+        true
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Tool {
     Refresh,

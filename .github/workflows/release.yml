@@ -48,7 +48,7 @@ jobs:
           New-Item -ItemType Directory $name | Out-Null
           Copy-Item rust/target/release/openase.exe "$name/OpenASE.exe"
           Copy-Item rust/target/release/openase-cli.exe "$name/openase-cli.exe"
-          Copy-Item LICENSE, README.md $name
+          Copy-Item LICENSE, README.md, rust/assets/flags-LICENSE.txt $name
           Compress-Archive -Path $name -DestinationPath "$name.zip"
       - name: Build installer (Inno Setup)
         shell: pwsh
@@ -95,7 +95,7 @@ jobs:
           cp rust/target/release/openase "$name/openase"
           cp rust/target/release/openase-cli "$name/openase-cli"
           cp rust/assets/icon.png "$name/openase.png"
-          cp LICENSE README.md "$name/"
+          cp LICENSE README.md rust/assets/flags-LICENSE.txt "$name/"
           cat > "$name/openase.desktop" <<'EOF'
           [Desktop Entry]
           Type=Application
@@ -199,7 +199,7 @@ jobs:
           name="OpenASE-$TAG-macos-universal"
           mkdir "$name"
           mv "$app" "$name/"
-          cp LICENSE README.md "$name/"
+          cp LICENSE README.md rust/assets/flags-LICENSE.txt "$name/"
           ditto -c -k --keepParent "$name" "$name.zip"
       - uses: actions/upload-artifact@v7
         with:
