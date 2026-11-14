@@ -2,7 +2,7 @@
 //! Add Server, Find Player, Friends, password prompt, notices and About.
 
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
@@ -85,6 +85,9 @@ pub struct SearchState {
     found: Vec<String>,
     selected: Option<usize>,
     done: bool,
+    /// Still choosing where to search: drives and folders, checked or not.
+    choosing: bool,
+    roots: Vec<(PathBuf, bool)>,
 }
 
 /// The RCON console of one server.
@@ -746,23 +749,56 @@ impl OpenAseApp {
         }
     }
 
-    fn start_auto_search(&mut self, ctx: &egui::Context, game_id: &str) {
+    /// Open Auto-Search on its first step: where to look. The registry
+    /// lookup and the disk search start with "Search".
+    fn start_auto_search(&mut self, _ctx: &egui::Context, game_id: &str) {
         let Some(game) = catalog::game(game_id) else {
             return;
         };
         if let Some(search) = &self.dialogs.search {
             search.stop.store(true, Ordering::Relaxed);
         }
-        let stop = Arc::new(AtomicBool::new(false));
+        // The usual places plus folders added last time; last choice checked.
+        let saved = &self.settings.search_roots;
+        let mut roots: Vec<PathBuf> = detect::search_roots();
+        for folder in saved.iter().map(PathBuf::from) {
+            if !roots.contains(&folder) && folder.is_dir() {
+                roots.push(folder);
+            }
+        }
+        let checked = |root: &PathBuf| {
+            saved.is_empty() || saved.iter().any(|s| Path::new(s) == root.as_path())
+        };
         self.dialogs.search = Some(SearchState {
             game: game.id.clone(),
             exe: game.exe_names.join(", "),
-            stop: stop.clone(),
+            stop: Arc::new(AtomicBool::new(false)),
             current: String::new(),
             found: Vec::new(),
             selected: None,
             done: false,
+            choosing: true,
+            roots: roots
+                .into_iter()
+                .map(|r| {
+                    let on = checked(&r);
+                    (r, on)
+                })
+                .collect(),
         });
+    }
+
+    /// Run the registry lookup and the disk search over `roots`.
+    fn run_auto_search(
+        &self,
+        ctx: &egui::Context,
+        game_id: &str,
+        roots: Vec<PathBuf>,
+        stop: Arc<AtomicBool>,
+    ) {
+        let Some(game) = catalog::game(game_id) else {
+            return;
+        };
         let tx = self.tx.clone();
         let ctx = ctx.clone();
         std::thread::spawn(move || {
@@ -771,7 +807,7 @@ impl OpenAseApp {
             }
             let mut last = Instant::now();
             detect::search(
-                &detect::search_roots(),
+                &roots,
                 &game.exe_names,
                 &stop,
                 &mut |dir: &Path| {
@@ -791,10 +827,96 @@ impl OpenAseApp {
         });
     }
 
+    /// First step of Auto-Search: tick the drives and folders to look in.
+    /// Returns the chosen roots when "Search" is clicked, `None` to keep
+    /// choosing; sets `cancel` when the window is closed.
+    fn search_places(
+        ctx: &egui::Context,
+        search: &mut SearchState,
+        cancel: &mut bool,
+    ) -> Option<Vec<PathBuf>> {
+        let mut start = false;
+        egui::Window::new(fill(tr("Searching for {}"), &[&search.exe]))
+            .id(egui::Id::unique("auto-search"))
+            .collapsible(false)
+            .resizable(false)
+            .anchor(Align2::CENTER_CENTER, [0.0, 40.0])
+            .show(ctx, |ui| {
+                ui.set_width(460.0);
+                ui.label(tr(
+                    "Where should Auto-Search look? Fewer places search faster.",
+                ));
+                ui.add_space(4.0);
+                egui::Frame::NONE
+                    .fill(ui.visuals().extreme_bg_color)
+                    .stroke(ui.visuals().widgets.noninteractive.bg_stroke)
+                    .inner_margin(4)
+                    .show(ui, |ui| {
+                        ui.set_min_size(vec2(448.0, 110.0));
+                        egui::ScrollArea::vertical()
+                            .max_height(200.0)
+                            .show(ui, |ui| {
+                                for (root, on) in &mut search.roots {
+                                    ui.checkbox(on, root.display().to_string());
+                                }
+                            });
+                    });
+                ui.horizontal(|ui| {
+                    if ui.button(tr("Add folder...")).clicked()
+                        && let Some(folder) = rfd::FileDialog::new()
+                            .set_title(tr("Add folder..."))
+                            .pick_folder()
+                    {
+                        if let Some(existing) = search.roots.iter_mut().find(|(r, _)| *r == folder)
+                        {
+                            existing.1 = true;
+                        } else {
+                            search.roots.push((folder, true));
+                        }
+                    }
+                    if ui.button(tr("All")).clicked() {
+                        search.roots.iter_mut().for_each(|(_, on)| *on = true);
+                    }
+                    if ui.button(tr("None")).clicked() {
+                        search.roots.iter_mut().for_each(|(_, on)| *on = false);
+                    }
+                });
+                buttons_right(ui, |ui| {
+                    *cancel = ui.button(tr("Cancel")).clicked();
+                    let any = search.roots.iter().any(|(_, on)| *on);
+                    start = ui
+                        .add_enabled(any, egui::Button::new(tr("Search")))
+                        .clicked();
+                });
+            });
+        start.then(|| {
+            search
+                .roots
+                .iter()
+                .filter(|(_, on)| *on)
+                .map(|(r, _)| r.clone())
+                .collect()
+        })
+    }
+
     fn search_window(&mut self, ctx: &egui::Context) {
         let Some(search) = &mut self.dialogs.search else {
             return;
         };
+        if search.choosing {
+            let mut cancel = false;
+            if let Some(roots) = Self::search_places(ctx, search, &mut cancel) {
+                search.choosing = false;
+                let (game, stop) = (search.game.clone(), search.stop.clone());
+                self.settings.search_roots =
+                    roots.iter().map(|r| r.display().to_string()).collect();
+                self.mark_dirty();
+                self.run_auto_search(ctx, &game, roots, stop);
+            } else if cancel {
+                self.dialogs.search = None;
+            }
+            return;
+        }
         let mut accept: Option<String> = None;
         let mut close = false;
         if !search.done {

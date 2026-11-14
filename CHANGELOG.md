@@ -15,6 +15,10 @@ versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases
 - Update check, links, packages and the 333networks User-Agent point at
   github.com/OpenGamePlus/OpenASE-Plus.
 
+### Auto-Search
+- Auto-Search first asks where to look: tick drives and usual folders, or add a folder;
+  the choice is remembered. Searching one drive instead of all of them is much faster.
+
 ### Languages
 - **Spanish, Portuguese (Brazil), Italian, German and Russian** join English and French.
   Options > General > Language; "System" follows the operating system. Translations

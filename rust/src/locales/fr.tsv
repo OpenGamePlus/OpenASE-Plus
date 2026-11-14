@@ -345,3 +345,8 @@ No alert	Aucune alerte
 A match is on at {}: {} players	Une partie a lieu sur {} : {} joueurs
 I will alert you when {} has {} players	Vous serez averti quand {} aura {} joueurs
 No more match alerts for {}	Plus d’alerte de partie pour {}
+Where should Auto-Search look? Fewer places search faster.	Où chercher ? Moins d’emplacements, recherche plus rapide.
+Add folder...	Ajouter un dossier…
+All	Tout
+None	Aucun
+Search	Rechercher

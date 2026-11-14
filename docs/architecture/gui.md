@@ -32,7 +32,7 @@ shows every loaded server with at least one human; F5 or a first visit scans
 | Refresh favorites / visible / list | `start_scan` callers | `Server`*, `ScanDone` |
 | One server | `query_single` | `Single` |
 | Next 333networks page | Load more | `MorePage` |
-| LAN, GeoIP, update check, Auto-Search | menus, first frame | `Lan`, `GeoIp`, `Update`, `Search*` |
+| LAN, GeoIP, update check, Auto-Search | menus, first frame (Auto-Search after its "where to look" step, `search_places`; choice in `Settings::search_roots`) | `Lan`, `GeoIp`, `Update`, `Search*` |
 | Saved Unreal servers moved to their query port | startup (`extra.rs`) | `PortFixes` |
 | Add server / Import list query-port check | `resolve_in_background` | `Resolved` |
 | Slot watch (every 10 s, 30 min max) and party alerts (every 60 s) | `watch_tick`, each frame | `Watched`*, `WatchDone` |

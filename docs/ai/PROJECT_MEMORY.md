@@ -3,6 +3,9 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — Auto-Search asks where to look
+- User request: Auto-Search started on C: and crawled every drive. It now opens on a checklist of `detect::search_roots()` plus added folders (rfd), remembered in `Settings::search_roots`; registry lookup and disk walk start with "Search".
+
 ## 2026-11-14 — five more languages
 - i18n moved from a French `match` to one TSV table per language (`rust/src/locales/`, embedded, parsed once); fr migrated by script, es/pt/it/de/ru translated by five parallel agents with shared rules; Spanish uses "cupo" (as in JASE). Tests now require every source text in every table, same `{}` and shortcuts.
 - System language detection covers the six languages (Windows LANGID, LC_*/LANG). egui's Ubuntu font has Cyrillic.

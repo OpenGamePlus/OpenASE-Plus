@@ -345,3 +345,8 @@ No alert	Без оповещения
 A match is on at {}: {} players	Идёт матч на {}, игроков: {}
 I will alert you when {} has {} players	Вы получите оповещение, когда на {} будет игроков: {}
 No more match alerts for {}	Оповещения о матчах для {} отключены
+Where should Auto-Search look? Fewer places search faster.	Где искать? Чем меньше мест, тем быстрее поиск.
+Add folder...	Добавить папку…
+All	Все
+None	Ничего
+Search	Искать

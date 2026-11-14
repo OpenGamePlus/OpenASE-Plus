@@ -453,6 +453,8 @@ pub struct Settings {
     pub unreal_ports_checked: bool,
     /// "Alert when players reach": humans threshold, keyed by [`ServerRef::key`].
     pub party_alerts: BTreeMap<String, usize>,
+    /// Places Auto-Search looked in last time (drives, folders); empty = all.
+    pub search_roots: Vec<String>,
 }
 
 pub const RECENT_LIMIT: usize = 20;
