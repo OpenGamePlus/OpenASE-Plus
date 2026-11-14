@@ -624,46 +624,49 @@ impl OpenAseApp {
     /// The filter bar under the tree (JASE's left column): the same
     /// settings as the tree's Modifiers.
     fn filter_bar(&mut self, ui: &mut egui::Ui) {
-        let countries = self.country_options();
-        let filters = &mut self.settings.filters;
+        // Edited as locals, so the country list can be built inside its combo
+        // (only while it is open) with `&self`.
+        let f = &self.settings.filters;
         let before = (
-            filters.not_empty,
-            filters.not_full,
-            filters.no_password,
-            filters.hide_offline,
-            filters.max_ping,
-            filters.countries.clone(),
+            f.not_empty,
+            f.not_full,
+            f.no_password,
+            f.hide_offline,
+            f.max_ping,
+            f.countries.clone(),
         );
-        ui.checkbox(&mut filters.not_empty, tr("Hide empty"));
-        ui.checkbox(&mut filters.not_full, tr("Hide full"));
-        ui.checkbox(&mut filters.no_password, tr("Hide passworded"));
-        ui.checkbox(&mut filters.hide_offline, tr("Hide unresponsive"));
+        let (
+            mut not_empty,
+            mut not_full,
+            mut no_password,
+            mut hide_offline,
+            mut max_ping,
+            mut countries,
+        ) = before.clone();
+        ui.checkbox(&mut not_empty, tr("Hide empty"));
+        ui.checkbox(&mut not_full, tr("Hide full"));
+        ui.checkbox(&mut no_password, tr("Hide passworded"));
+        ui.checkbox(&mut hide_offline, tr("Hide unresponsive"));
         egui::Grid::new("filter-bar")
             .num_columns(2)
             .spacing([6.0, 4.0])
             .show(ui, |ui| {
                 ui.label(tr("Max ping"));
-                let shown = filters
-                    .max_ping
-                    .map_or_else(|| tr("No limit").to_string(), |p| p.to_string());
+                let shown = max_ping.map_or_else(|| tr("No limit").to_string(), |p| p.to_string());
                 egui::ComboBox::from_id_salt("max-ping")
                     .selected_text(shown)
                     .width(120.0)
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut filters.max_ping, None, tr("No limit"));
+                        ui.selectable_value(&mut max_ping, None, tr("No limit"));
                         for limit in [50, 100, 150, 250] {
-                            ui.selectable_value(
-                                &mut filters.max_ping,
-                                Some(limit),
-                                limit.to_string(),
-                            );
+                            ui.selectable_value(&mut max_ping, Some(limit), limit.to_string());
                         }
                     });
                 ui.end_row();
                 ui.label(tr("Country"));
-                let shown = match filters.countries.iter().next() {
-                    Some(code) if filters.countries.len() == 1 => country_label(code),
-                    Some(_) => fill(tr("{} countries"), &[&filters.countries.len()]),
+                let shown = match countries.iter().next() {
+                    Some(code) if countries.len() == 1 => country_label(code),
+                    Some(_) => fill(tr("{} countries"), &[&countries.len()]),
                     None => tr("All countries").to_string(),
                 };
                 egui::ComboBox::from_id_salt("country")
@@ -671,33 +674,41 @@ impl OpenAseApp {
                     .width(120.0)
                     .show_ui(ui, |ui| {
                         if ui
-                            .selectable_label(filters.countries.is_empty(), tr("All countries"))
+                            .selectable_label(countries.is_empty(), tr("All countries"))
                             .clicked()
                         {
-                            filters.countries.clear();
+                            countries.clear();
                         }
-                        for (code, label, count) in &countries {
-                            let only =
-                                filters.countries.len() == 1 && filters.countries.contains(code);
+                        for (code, label, count) in self.country_options() {
+                            let only = countries.len() == 1 && countries.contains(&code);
                             if ui
                                 .selectable_label(only, format!("{label} ({count})"))
                                 .clicked()
                             {
-                                filters.countries = [code.clone()].into();
+                                countries = [code].into();
                             }
                         }
                     });
                 ui.end_row();
             });
         let after = (
-            filters.not_empty,
-            filters.not_full,
-            filters.no_password,
-            filters.hide_offline,
-            filters.max_ping,
-            filters.countries.clone(),
+            not_empty,
+            not_full,
+            no_password,
+            hide_offline,
+            max_ping,
+            countries,
         );
         if before != after {
+            let f = &mut self.settings.filters;
+            (
+                f.not_empty,
+                f.not_full,
+                f.no_password,
+                f.hide_offline,
+                f.max_ping,
+                f.countries,
+            ) = after;
             self.settings_dirty = true;
         }
     }
