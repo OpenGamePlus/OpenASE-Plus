@@ -99,9 +99,10 @@ jobs:
           Type=Application
           Name=OpenASE
           Comment=Game server browser in the spirit of The All-Seeing Eye
-          Exec=openase
+          Exec=openase %u
           Icon=openase
           Categories=Game;Network;
+          MimeType=x-scheme-handler/openase;
           EOF
           sed -i 's/^ *//' "$name/openase.desktop"
           tar czf "$name.tar.gz" "$name"
@@ -122,9 +123,10 @@ jobs:
           Type=Application
           Name=OpenASE
           Comment=Game server browser in the spirit of The All-Seeing Eye
-          Exec=openase
+          Exec=openase %u
           Icon=openase
           Categories=Game;Network;
+          MimeType=x-scheme-handler/openase;
           EOF
           sed -i 's/^ *//' "$appdir/openase.desktop"
           ln -s usr/bin/openase "$appdir/AppRun"

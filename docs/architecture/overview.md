@@ -12,6 +12,7 @@ main.rs ──► gui/  (binary only: egui, threads, channels)
                │
                ▼
    services:  settings · rules · launch · detect · lan · geoip · update · i18n · alerts
+              links · instance
                │
                ▼
    dispatch:  query  ◄── catalog (games.json)
@@ -51,6 +52,8 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/lan.rs` | service | LAN discovery by UDP broadcast, every protocol that supports it |
 | `rust/src/geoip.rs` | service | DB-IP country database: monthly download, lookup |
 | `rust/src/location.rs` | leaf | Country / region of a server for the Location column |
+| `rust/src/links.rs` | service | `openase://connect/<game>/<host>:<port>`: `build`, strict `parse` |
+| `rust/src/instance.rs` | service | One running instance: a second one hands its link over localhost TCP |
 | `rust/src/alerts.rs` | service | Slot and party alert decisions (no GUI) |
 | `rust/src/update.rs` | service | Update check against GitHub Releases |
 | `rust/src/i18n.rs` | service | English and French texts: `tr`, `fill`, `noop` |
@@ -73,5 +76,7 @@ queried only on demand ([ADR 0005](adr/0005-333networks-light-lists.md)).
 | Settings, favorites, friends | `settings.json` in the config folder (`settings::config_dir`: `%APPDATA%\OpenASE`, `~/Library/Application Support/OpenASE`, `$XDG_CONFIG_HOME/OpenASE`, else `~/.config/OpenASE`) |
 | Window, panel and column sizes | eframe persistence |
 | GeoIP database | config folder, downloaded monthly from DB-IP |
+| Running instance | `instance.port` in the config folder; listener on `127.0.0.1`, random port |
+| `openase://` scheme | Windows installer (`HKA\Software\Classes\openase`), Linux `.desktop` (`x-scheme-handler/openase`) |
 | Network | UDP/TCP to masters and servers, HTTP(S) (`ureq`) to Steam, 333networks, list APIs, DB-IP, GitHub |
 | Processes | the game (join), the system URL opener, sound players |

@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — openase:// links
+- `links.rs` (strict parse: catalog id, IPv4/host name, port), `instance.rs` (localhost TCP, port in `instance.port`, one line `OPENASE1 <url>` answered `OK`), confirm dialog before joining; scheme registered by Inno (HKA) and the Linux `.desktop` files. Checked end to end with two real processes.
+- Rejected a token on the instance port: any local process can already start OpenASE with a link, and links still need the user's yes.
+- Open: macOS (Apple Events not exposed by eframe), portable zip on Windows, no manual Windows test.
+
 ## 2026-11-14 — Playing now
 - New `Special::Playing` tree entry: loaded servers with humans > 0; F5 / first visit scans `Settings::ready_games` with `scan_games` (masters in parallel, one query pass). `scan_game` now goes through it; `scan.total` sums per-game counts.
 - Rejected a separate dialog as in JASE: a tree entry reuses the list, sorting, filters and panes.

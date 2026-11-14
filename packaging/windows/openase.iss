@@ -60,6 +60,13 @@ Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "OpenASE.exe"; Flags: ignore
 Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
+[Registry]
+; openase://connect/<game>/<host>:<port> links (see rust/src/links.rs).
+Root: HKA; Subkey: "Software\Classes\openase"; ValueType: string; ValueName: ""; ValueData: "URL:OpenASE link"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\openase"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\openase\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\OpenASE.exe,0"
+Root: HKA; Subkey: "Software\Classes\openase\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\OpenASE.exe"" ""%1"""
+
 [Icons]
 Name: "{autoprograms}\OpenASE"; Filename: "{app}\OpenASE.exe"
 Name: "{autodesktop}\OpenASE"; Filename: "{app}\OpenASE.exe"; Tasks: desktopicon

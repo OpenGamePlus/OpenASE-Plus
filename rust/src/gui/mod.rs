@@ -185,6 +185,8 @@ pub enum Msg {
     },
     /// Saved servers to move from a game port to their query port.
     PortFixes(Vec<(ServerRef, ServerRef)>),
+    /// An `openase://` link, from the command line or a second instance.
+    Link(String),
     /// Answer of a server with a slot or party alert.
     Watched(Server),
     /// The query of watched servers is over.
@@ -283,9 +285,19 @@ pub struct OpenAseApp {
 }
 
 impl OpenAseApp {
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    /// `link`: an `openase://` link from the command line.
+    pub fn new(cc: &eframe::CreationContext<'_>, link: Option<String>) -> Self {
         setup_style(&cc.egui_ctx);
         let (tx, rx) = channel();
+        // Become the instance that later `openase://` links are handed to.
+        let (link_tx, link_ctx) = (tx.clone(), cc.egui_ctx.clone());
+        let _ = openase::instance::listen(&openase::instance::port_file(), move |url| {
+            let _ = link_tx.send(Msg::Link(url));
+            link_ctx.request_repaint();
+        });
+        if let Some(url) = link {
+            let _ = tx.send(Msg::Link(url));
+        }
         let mut settings = Settings::load();
         i18n::set_language(settings.language);
         apply_palette(&cc.egui_ctx, &settings.colors);
@@ -524,6 +536,22 @@ impl OpenAseApp {
             let _ = tx.send(Msg::WatchDone);
             ctx.request_repaint();
         });
+    }
+
+    /// Show the server of an `openase://` link and ask before joining.
+    fn open_link(&mut self, ctx: &egui::Context, url: &str) {
+        let Some((game, address)) = openase::links::parse(url) else {
+            return;
+        };
+        let key = ServerKey { game, address };
+        self.ensure_placeholder(&key);
+        self.nav = Nav::Game(key.game.clone());
+        self.selected = Some(key.clone());
+        self.scroll_to_selected = true;
+        self.query_single(ctx, &key);
+        self.dialogs.link = Some(key);
+        ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(false));
+        ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
     }
 
     pub(crate) fn friend_location(&self, friend: &str) -> Option<&ServerKey> {
@@ -954,6 +982,7 @@ impl OpenAseApp {
                         self.dialogs.error = Some(fill(tr("LAN search failed: {}"), &[&error]))
                     }
                 },
+                Msg::Link(url) => self.open_link(ctx, &url),
                 Msg::Watched(server) => self.upsert(server),
                 Msg::WatchDone => self.watch_in_flight = false,
                 Msg::Resolved {
@@ -2203,6 +2232,11 @@ impl OpenAseApp {
                         ui.separator();
                         if ui.button(tr("Copy address")).clicked() {
                             actions.push(Action::Copy(address.clone()));
+                            ui.close();
+                        }
+                        if ui.button(tr("Copy openase:// link")).clicked() {
+                            let link = openase::links::build(&key.game, &key.address);
+                            actions.push(Action::Copy(link));
                             ui.close();
                         }
                     });

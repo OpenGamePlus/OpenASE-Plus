@@ -535,6 +535,11 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Querying the master servers of {} games..." => {
             "Interrogation des serveurs maîtres de {} jeux…"
         }
+        // openase:// links.
+        "Open link" => "Ouvrir le lien",
+        "Join this server?" => "Rejoindre ce serveur ?",
+        "Copy openase:// link" => "Copier le lien openase://",
+        "Querying..." => "Interrogation…",
         // Slot and match alerts.
         "Alert me when a slot is free" => "M’avertir quand une place se libère",
         "Stop watching for a free slot" => "Ne plus guetter une place libre",

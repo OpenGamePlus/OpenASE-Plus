@@ -22,7 +22,7 @@ Fix together, before the first OpenASE-Plus release ([ADR 0006](../architecture/
 | winget / Scoop ids and URLs | `packaging/make-manifests.mjs`, `packaging/scoop/openase.json` |
 | Config folder `OpenASE` shared with an upstream install | `settings::config_dir` |
 | `docs/CNAME` = `openase.org` (GitHub Pages of the fork would claim it), site `docs/index.html` | `docs/` |
-| `origin` remote points at upstream | local git config |
+| Fork repo is `OpenGamePlus/OpenASE-Plus` (`origin`); update URLs above to it | local git config |
 | README, website texts, issue templates | `README.md`, `docs/index.html`, `.github/ISSUE_TEMPLATE/add_game.yml` |
 
 ## Accepted debt
@@ -39,5 +39,6 @@ Fix together, before the first OpenASE-Plus release ([ADR 0006](../architecture/
 - Steam list never checked with a real API key (unit-tested only).
 - Join commands of many newer games not tested with the game installed (upstream issue #1).
 - No code signing; IPv6 addresses not supported (`parse_address`).
+- `openase://` links do nothing on macOS (delivered as Apple Events, which eframe does not expose; the scheme is not registered there) and need the installer on Windows (not the portable zip). Untested by hand on Windows.
 - Only English and French; no themes (light theme forced in `setup_style`).
 - Docs checker does not check bare file names without `/` (`quake3.rs`, `ROADMAP.md`), skip fenced code for paths, check memory date order, or cover `ROADMAP.md` / `CHANGELOG.md`.

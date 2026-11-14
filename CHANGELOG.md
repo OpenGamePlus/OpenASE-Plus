@@ -21,6 +21,11 @@ All notable changes to OpenASE. Downloads for every version are on the
   games you can join (a program set in Options > Games, or Steam games with your key).
   F5 there scans those games together.
 
+- **`openase://connect/<game>/<host>:<port>` links**: right-click a server to copy one.
+  Opening a link shows the server and asks before joining; if OpenASE is already open,
+  the link goes to that window. The Windows installer and the Linux `.desktop` file
+  register the scheme (not macOS yet).
+
 ### Fixes
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.

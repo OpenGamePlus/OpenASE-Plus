@@ -3,6 +3,16 @@
 mod gui;
 
 fn main() -> eframe::Result {
+    // An `openase://` link (from the browser) goes to the running instance
+    // if there is one; otherwise this instance opens it.
+    let link = std::env::args()
+        .skip(1)
+        .find(|arg| openase::links::parse(arg).is_some());
+    if let Some(url) = &link
+        && openase::instance::forward(&openase::instance::port_file(), url)
+    {
+        return Ok(());
+    }
     let mut viewport = eframe::egui::ViewportBuilder::default();
     if let Ok(icon) = eframe::icon_data::from_png_bytes(include_bytes!("../assets/icon.png")) {
         viewport = viewport.with_icon(icon);
@@ -17,6 +27,6 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "OpenASE",
         options,
-        Box::new(|cc| Ok(Box::new(gui::OpenAseApp::new(cc)))),
+        Box::new(|cc| Ok(Box::new(gui::OpenAseApp::new(cc, link)))),
     )
 }
