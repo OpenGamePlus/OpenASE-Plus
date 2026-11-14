@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — RCON
+- `rcon.rs` ported from JASE (Quake UDP, GoldSrc UDP with challenge, Source TCP with an empty marker packet after the command), tested against fake servers on localhost; non-modal console window, answers through `Msg::Rcon`.
+- Dialect from the protocol; A2S games with a Steam app id below 200 are GoldSrc. Passwords only in memory (`Dialogs::rcon_passwords`), never in settings.
+- Not checked against a live server with a real password.
+
 ## 2026-11-14 — saved lists and openase-cli
 - `lists.rs` saves each completed game scan (`lists/<id>.json`, atomic, off the UI thread) and loads them at start as `listed` + `saved` rows (no ping); `saved` keeps them out of alerts and Playing now. `model::Server` is now serde: one form for the lists and the CLI JSON.
 - `openase-cli` (`src/bin/`, `default-run = "openase"` keeps `cargo run` on the GUI): games / scan / query, schema 1, exit codes 0/1/2; tested against a fake Zandronum server. 333networks rows are not queried.

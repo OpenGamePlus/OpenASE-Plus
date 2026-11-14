@@ -31,6 +31,9 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **`openase-cli`**: `games`, `scan` and `query` without the GUI, with `--json` output
   (schema 1, see `docs/cli.md`). In the Windows zip and the Linux tar.gz.
 
+- **RCON console** (right-click a server): send admin commands to Quake 3, Call of Duty,
+  Quake 2, Half-Life and Source servers. The password is kept for the session only.
+
 ### Fixes
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.

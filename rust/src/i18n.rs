@@ -535,6 +535,20 @@ pub fn french(text: &str) -> Option<&'static str> {
         "Querying the master servers of {} games..." => {
             "Interrogation des serveurs maîtres de {} jeux…"
         }
+        // RCON.
+        "RCON console..." => "Console RCON…",
+        "Password" => "Mot de passe",
+        "RCON: {}" => "RCON : {}",
+        "Command, e.g. status" => "Commande, par ex. status",
+        "Send" => "Envoyer",
+        "No answer from the server" => "Le serveur ne répond pas",
+        "Wrong RCON password" => "Mot de passe RCON incorrect",
+        "The server gave no RCON challenge (is RCON enabled?)" => {
+            "Le serveur n’a pas donné de challenge RCON (RCON est-il activé ?)"
+        }
+        "This game has no RCON" => "Ce jeu n’a pas de RCON",
+        "Invalid answer from the server" => "Réponse invalide du serveur",
+        "Network error: {}" => "Erreur réseau : {}",
         // openase:// links.
         "Open link" => "Ouvrir le lien",
         "Join this server?" => "Rejoindre ce serveur ?",

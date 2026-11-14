@@ -27,6 +27,7 @@ pub mod quake2;
 pub mod quake3;
 pub mod query;
 pub mod ravenshield;
+pub mod rcon;
 pub mod rules;
 pub mod savage;
 pub mod settings;

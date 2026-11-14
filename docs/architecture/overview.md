@@ -12,7 +12,7 @@ main.rs ──► gui/  (binary only: egui, threads, channels)
                │
                ▼
    services:  settings · rules · launch · detect · lan · geoip · update · i18n · alerts
-              links · instance · lists
+              links · instance · lists · rcon
                │
                ▼
    dispatch:  query  ◄── catalog (games.json)
@@ -52,6 +52,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/lan.rs` | service | LAN discovery by UDP broadcast, every protocol that supports it |
 | `rust/src/geoip.rs` | service | DB-IP country database: monthly download, lookup |
 | `rust/src/location.rs` | leaf | Country / region of a server for the Location column |
+| `rust/src/rcon.rs` | service | RCON: Quake (UDP), GoldSrc (UDP + challenge), Source (TCP) |
 | `rust/src/lists.rs` | service | Server lists kept between sessions, one JSON file per game |
 | `rust/src/links.rs` | service | `openase://connect/<game>/<host>:<port>`: `build`, strict `parse` |
 | `rust/src/instance.rs` | service | One running instance: a second one hands its link over localhost TCP |

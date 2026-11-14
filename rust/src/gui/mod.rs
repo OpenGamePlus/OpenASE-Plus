@@ -187,6 +187,11 @@ pub enum Msg {
     PortFixes(Vec<(ServerRef, ServerRef)>),
     /// Lists saved by an earlier session (`openase::lists`).
     SavedLists(Vec<(String, Vec<Server>)>),
+    /// Answer of an RCON command.
+    Rcon {
+        key: ServerKey,
+        result: Result<String, openase::rcon::RconError>,
+    },
     /// An `openase://` link, from the command line or a second instance.
     Link(String),
     /// Answer of a server with a slot or party alert.
@@ -237,6 +242,7 @@ enum Action {
     WatchSlot(ServerKey),
     /// Party alert threshold for a server; 0 removes it.
     PartyAlert(ServerKey, usize),
+    Rcon(ServerKey),
     Join(ServerKey),
     ToggleFavorite(ServerKey),
     Refresh(ServerKey),
@@ -562,6 +568,32 @@ impl OpenAseApp {
             for (game, servers) in lists {
                 let _ = openase::lists::save(&openase::lists::dir(), &game, &servers);
             }
+        });
+    }
+
+    /// Run one RCON command off the UI thread; the answer comes as `Msg::Rcon`.
+    pub(crate) fn send_rcon(
+        &self,
+        ctx: &egui::Context,
+        key: ServerKey,
+        password: String,
+        command: String,
+    ) {
+        let Some(game) = catalog::game(&key.game) else {
+            return;
+        };
+        // RCON goes to the game port (the join address).
+        let address = self
+            .find(&key)
+            .map_or(key.address.clone(), Server::join_address);
+        let (tx, ctx) = (self.tx.clone(), ctx.clone());
+        std::thread::spawn(move || {
+            let result = match parse_address(&address, game.default_port) {
+                Ok((host, port)) => openase::rcon::send(game, &host, port, &password, &command),
+                Err(error) => Err(openase::rcon::RconError::Network(error.0)),
+            };
+            let _ = tx.send(Msg::Rcon { key, result });
+            ctx.request_repaint();
         });
     }
 
@@ -1018,6 +1050,18 @@ impl OpenAseApp {
                     }
                 },
                 Msg::Link(url) => self.open_link(ctx, &url),
+                Msg::Rcon { key, result } => {
+                    if let Some(console) = self.dialogs.rcon.as_mut().filter(|c| c.key == key) {
+                        console.in_flight = false;
+                        match result {
+                            Ok(text) => console.output.push_str(&text),
+                            Err(error) => console.output.push_str(&rcon_error(&error)),
+                        }
+                        if !console.output.ends_with('\n') {
+                            console.output.push('\n');
+                        }
+                    }
+                }
                 Msg::SavedLists(lists) => {
                     // A list scanned meanwhile is newer: keep it.
                     for (game, mut rows) in lists {
@@ -1264,6 +1308,14 @@ impl OpenAseApp {
                 self.settings.add_favorite_to(key.to_ref(), &group);
                 self.settings_dirty = true;
                 self.status = fill(tr("Added to {}"), &[&group_name(&group)]);
+            }
+            Action::Rcon(key) => {
+                self.dialogs.rcon = Some(dialogs::RconConsole {
+                    key,
+                    command: String::new(),
+                    output: String::new(),
+                    in_flight: false,
+                });
             }
             Action::WatchSlot(key) => {
                 let id = key.to_ref().key();
@@ -2281,6 +2333,14 @@ impl OpenAseApp {
                             actions.push(Action::Copy(address.clone()));
                             ui.close();
                         }
+                        let has_rcon = game.and_then(openase::rcon::kind_of).is_some();
+                        if ui
+                            .add_enabled(has_rcon, egui::Button::new(tr("RCON console...")))
+                            .clicked()
+                        {
+                            actions.push(Action::Rcon(key.clone()));
+                            ui.close();
+                        }
                         if ui.button(tr("Copy openase:// link")).clicked() {
                             let link = openase::links::build(&key.game, &key.address);
                             actions.push(Action::Copy(link));
@@ -3206,6 +3266,20 @@ pub(crate) fn play_sound(file: Option<&str>) {
             }
         }
     });
+}
+
+fn rcon_error(error: &openase::rcon::RconError) -> String {
+    use openase::rcon::RconError;
+    match error {
+        RconError::Timeout => tr("No answer from the server").to_string(),
+        RconError::BadPassword => tr("Wrong RCON password").to_string(),
+        RconError::NoChallenge => {
+            tr("The server gave no RCON challenge (is RCON enabled?)").to_string()
+        }
+        RconError::Unsupported => tr("This game has no RCON").to_string(),
+        RconError::Invalid => tr("Invalid answer from the server").to_string(),
+        RconError::Network(detail) => fill(tr("Network error: {}"), &[detail]),
+    }
 }
 
 /// Fill the GeoIP country of a server once.

@@ -1,6 +1,7 @@
 //! Dialog windows: Options (General, Network, Events, Games), Auto-Search,
 //! Add Server, Find Player, Friends, password prompt, notices and About.
 
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -84,6 +85,14 @@ pub struct SearchState {
     done: bool,
 }
 
+/// The RCON console of one server.
+pub struct RconConsole {
+    pub key: ServerKey,
+    pub command: String,
+    pub output: String,
+    pub in_flight: bool,
+}
+
 #[derive(Default)]
 pub struct Dialogs {
     pub error: Option<String>,
@@ -94,6 +103,9 @@ pub struct Dialogs {
     pub password: Option<(ServerKey, String)>,
     /// Server of an `openase://` link, waiting for the user's yes.
     pub link: Option<ServerKey>,
+    pub rcon: Option<RconConsole>,
+    /// RCON passwords typed this session, by server address; never saved.
+    pub rcon_passwords: HashMap<String, String>,
     pub options: Option<OptionsDraft>,
     pub search: Option<SearchState>,
     notices: Vec<(Instant, String)>,
@@ -200,6 +212,7 @@ impl OpenAseApp {
         self.friends_window(ctx);
         self.password_window(ctx);
         self.link_window(ctx);
+        self.rcon_window(ctx);
         self.about_window(ctx);
         self.notices(ctx);
         self.error_window(ctx);
@@ -386,6 +399,75 @@ impl OpenAseApp {
             self.join(&key);
         } else if cancel {
             self.dialogs.link = None;
+        }
+    }
+
+    fn rcon_window(&mut self, ctx: &egui::Context) {
+        let Some(console) = self.dialogs.rcon.as_mut() else {
+            return;
+        };
+        let address = console.key.address.clone();
+        let title = self
+            .store
+            .get(&console.key.game)
+            .and_then(|list| list.iter().find(|s| s.address() == address))
+            .map_or(address.clone(), |s| strip_quake_colors(&s.name));
+        let password = self
+            .dialogs
+            .rcon_passwords
+            .entry(address.clone())
+            .or_default();
+        let mut open = true;
+        let mut send = false;
+        egui::Window::new(fill(tr("RCON: {}"), &[&title]))
+            .id(egui::Id::unique("rcon"))
+            .open(&mut open)
+            .default_size([520.0, 320.0])
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(tr("Password"));
+                    ui.add(
+                        egui::TextEdit::singleline(password)
+                            .password(true)
+                            .desired_width(160.0),
+                    );
+                });
+                ui.horizontal(|ui| {
+                    let input = ui.add(
+                        egui::TextEdit::singleline(&mut console.command)
+                            .hint_text(tr("Command, e.g. status"))
+                            .desired_width(360.0),
+                    );
+                    send = input.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    send |= ui
+                        .add_enabled(!console.in_flight, egui::Button::new(tr("Send")))
+                        .clicked();
+                    if send {
+                        input.request_focus();
+                    }
+                });
+                // Plain text: the answer comes from the server.
+                egui::ScrollArea::vertical()
+                    .stick_to_bottom(true)
+                    .show(ui, |ui| {
+                        ui.add(
+                            egui::TextEdit::multiline(&mut console.output.as_str())
+                                .font(egui::TextStyle::Monospace)
+                                .desired_width(f32::INFINITY),
+                        );
+                    });
+            });
+        if !open {
+            self.dialogs.rcon = None;
+            return;
+        }
+        if send && !console.in_flight && !console.command.trim().is_empty() {
+            let command = std::mem::take(&mut console.command);
+            console.output.push_str(&format!("> {command}\n"));
+            console.in_flight = true;
+            let key = console.key.clone();
+            let password = password.clone();
+            self.send_rcon(ctx, key, password, command);
         }
     }
 
