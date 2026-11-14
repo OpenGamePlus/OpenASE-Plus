@@ -74,10 +74,6 @@ impl Language {
             other => other,
         }
     }
-
-    pub fn is_french(self) -> bool {
-        self.resolved() == Language::French
-    }
 }
 
 /// The language of an ISO code or locale name (`es`, `pt_BR.UTF-8`, `de-AT`).
@@ -131,11 +127,6 @@ pub fn translate(language: Language, text: &str) -> Option<&'static str> {
     tables().get(&language.resolved())?.get(text).copied()
 }
 
-/// The French table, kept for callers and tests.
-pub fn french(text: &str) -> Option<&'static str> {
-    translate(Language::French, text)
-}
-
 static CURRENT: AtomicU8 = AtomicU8::new(Language::English as u8);
 
 /// Make [`tr`] follow `language` from now on.
@@ -150,11 +141,6 @@ pub fn current() -> Language {
         .into_iter()
         .find(|l| *l as u8 == index)
         .unwrap_or(Language::English)
-}
-
-/// Is the interface currently in French?
-pub fn is_french() -> bool {
-    current() == Language::French
 }
 
 /// Translate an English interface text (identity in English or when missing).
@@ -197,11 +183,6 @@ pub fn group_name(group: &str) -> String {
         }
     }
     group.to_string()
-}
-
-/// Is the operating system interface in French?
-pub fn system_is_french() -> bool {
-    system_language().is_some_and(|code| from_code(&code) == Some(Language::French))
 }
 
 #[cfg(windows)]

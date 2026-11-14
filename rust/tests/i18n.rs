@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use openase::i18n::{self, Language, fill, french, from_code, group_name, tr, translate};
+use openase::i18n::{self, Language, fill, from_code, group_name, tr, translate};
 
 /// The language is a process-wide switch: tests that change it run one at a time.
 static LANGUAGE: Mutex<()> = Mutex::new(());
@@ -61,10 +61,10 @@ fn group_names_follow_the_language() {
 
 #[test]
 fn language_setting_resolves() {
-    assert!(Language::French.is_french());
-    assert!(!Language::English.is_french());
+    assert_eq!(Language::French.resolved(), Language::French);
+    assert_eq!(Language::English.resolved(), Language::English);
     // System follows the OS; either answer is valid, it must just not panic.
-    let _ = Language::System.is_french();
+    assert_ne!(Language::System.resolved(), Language::System);
 }
 
 fn rust_files(dir: &Path, out: &mut Vec<PathBuf>) {
@@ -201,7 +201,7 @@ fn locale_codes_pick_their_language() {
     assert_eq!(from_code("fr_CA"), Some(Language::French));
     assert_eq!(from_code("en_US"), Some(Language::English));
     assert_eq!(from_code("ja_JP"), None);
-    assert_eq!(french("Refresh"), Some("Actualiser"));
+    assert_eq!(translate(Language::French, "Refresh"), Some("Actualiser"));
 }
 
 #[test]
