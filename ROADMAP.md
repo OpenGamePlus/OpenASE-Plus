@@ -6,6 +6,23 @@ players, with the look and feel of The All-Seeing Eye.
 OpenASE is written in Rust (`rust/`). The first Python prototype was retired
 in v0.6; it remains in the git history.
 
+## OpenASE-Plus
+
+OpenASE-Plus forks OpenASE 0.9.6 and brings in features of JASE, an earlier
+Python browser by the same maintainer. In priority order:
+
+1. [ ] Games on existing protocols: Xonotic, Warsow, Warfork, Tremulous, Smokin' Guns, D-Day: Normandy (Quake 3 / Quake 2); Team Fortress 2, Left 4 Dead, Left 4 Dead 2, Garry's Mod (Steam)
+2. [ ] Zandronum (its own protocol, Huffman-compressed packets)
+3. [ ] Alerts: a slot frees up on a full server, a match is filling up
+4. [ ] "Playing now": one list of busy servers across all games
+5. [ ] `openase://connect/<game>/<host>:<port>` links; favorites export and import
+6. [ ] Server lists kept between sessions; command-line tool with JSON output
+7. [ ] RCON, map images, system tray, themes
+
+Later, to be decided: integration with the other OpenGamePlus projects
+(launching their clients), self-update and remote master lists (would change
+[ADR 0002](docs/architecture/adr/0002-catalog-as-data.md)).
+
 ## v0.1 — Quake 3 browsing (done)
 
 - Quake 3 master discovery and `getstatus` queries
