@@ -3,6 +3,9 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — new app icon
+- The user chose a neon cyan Eye of Providence (eye, inscribed triangle, circle) on JASE's dark background, from a stock reference redrawn from scratch (generic symbol, no copying). Drawn with ImageMagick primitives in `scripts/make_icon.sh` (its SVG renderer is unreliable); 16 and 24 px use a bolder variant without the circle.
+
 ## 2026-11-14 — game icons
 - `exe_icon.rs`: bounds-checked PE resource reader (RT_GROUP_ICON -> best RT_ICON -> one-image .ico, decoded by `image` with the `ico` feature); tested on a synthetic PE and checked on real CoD2, OpenCoD2-Plus, notepad and explorer executables.
 - Not-installed games: JASE badges, new unique two-letter `badge` field for all 80 games (JASE's letters where ids match). The old rectangular `short` badge is gone.

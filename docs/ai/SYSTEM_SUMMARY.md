@@ -12,7 +12,7 @@ rust/                Cargo package `openase` (lib + bin)
 ├── src/games.json   game catalog
 ├── examples/        scan.rs, query.rs (CLI, no GUI)
 ├── tests/           offline integration tests + docs checker (docs.rs)
-├── assets/          icon.png, icon.ico, flags.png + flags.txt (flag-icons atlas, MIT)
+├── assets/          icon.png, icon.ico (scripts/make_icon.sh), flags.png + flags.txt (flag-icons atlas, MIT)
 └── build.rs         Windows icon and product name resource
 docs/                website (index.html, CNAME) + technical docs (*.md)
 packaging/           Inno Setup, Scoop, winget generator
