@@ -151,9 +151,10 @@ pub fn server_from_fields(
 }
 
 /// Receive until an answer to our request arrives, ignoring stray packets.
-fn receive(socket: &UdpSocket) -> io::Result<Vec<u8>> {
+fn receive(socket: &UdpSocket, started: Instant, timeout: Duration) -> io::Result<Vec<u8>> {
     let mut buffer = [0u8; 4096];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if is_answer(&buffer[..size]) {
             return Ok(buffer[..size].to_vec());
@@ -171,7 +172,7 @@ pub fn status(
     let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&REQUEST_PLAYERS)?;
-    let packet = receive(&socket)?;
+    let packet = receive(&socket, started, timeout)?;
     let rtt = started.elapsed();
     let fields = parse_fields(&packet)?;
     Ok((server_from_fields(game, host, port, fields), rtt))
@@ -182,7 +183,7 @@ pub fn ping(host: &str, port: u16, timeout: Duration) -> io::Result<Duration> {
     let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&REQUEST_INFO)?;
-    receive(&socket)?;
+    receive(&socket, started, timeout)?;
     Ok(started.elapsed())
 }
 

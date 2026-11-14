@@ -227,6 +227,7 @@ pub fn status(
     socket.send(&info_request(CHALLENGE))?;
     let mut buffer = [0u8; 16384];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         let rtt = started.elapsed();
         let response = parse_info_response(&buffer[..size])?;

@@ -167,9 +167,23 @@ pub fn query(
     let mut buffer = [0u8; 4096];
     let mut pairs = Vec::new();
     let mut rtt = None;
+    let mut packets = 0;
     loop {
+        // Cut off with what came: a server that never sends `\final\`.
+        if crate::quake3::give_up(started, timeout).is_err()
+            || packets >= crate::quake3::MAX_PACKETS
+        {
+            if rtt.is_none() {
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "no valid answer in time",
+                ));
+            }
+            break;
+        }
         match socket.recv(&mut buffer) {
             Ok(size) => {
+                packets += 1;
                 rtt.get_or_insert_with(|| started.elapsed());
                 let text = crate::quake3::latin1(&buffer[..size]);
                 let finished = text.contains("\\final\\");

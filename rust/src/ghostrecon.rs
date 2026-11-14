@@ -288,6 +288,7 @@ fn exchange(host: &str, port: u16, timeout: Duration) -> io::Result<(Status, Dur
     socket.send(&REQUEST)?;
     let mut buffer = [0u8; 8192];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if is_answer(&buffer[..size]) {
             let rtt = started.elapsed();

@@ -308,6 +308,18 @@ pub fn status(
     let mut packets = Vec::new();
     let mut rtt = None;
     loop {
+        // Cut off with what came: a server that never stops sending.
+        if crate::quake3::give_up(started, timeout).is_err()
+            || packets.len() >= crate::quake3::MAX_PACKETS
+        {
+            if packets.is_empty() {
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "no valid answer in time",
+                ));
+            }
+            break;
+        }
         match socket.recv(&mut buffer) {
             Ok(size) => {
                 let packet = buffer[..size].to_vec();
@@ -335,6 +347,7 @@ pub fn ping(host: &str, port: u16, timeout: Duration) -> io::Result<Duration> {
     socket.send(&request(0))?;
     let mut buffer = [0u8; 4096];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if is_answer(&buffer[..size]) && buffer[4] == 0 {
             return Ok(started.elapsed());
