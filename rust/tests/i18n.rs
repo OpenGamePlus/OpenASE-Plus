@@ -106,8 +106,10 @@ fn count_placeholders(text: &str) -> usize {
 /// `COLORS_*` constants.
 fn source_texts() -> Vec<(String, String)> {
     let literal = r#""((?:[^"\\]|\\.)*)""#;
-    let calls =
-        regex::Regex::new(&format!(r"\b(?:tr|noop|dialog|window)\(\s*{literal}\s*,?\s*\)")).unwrap();
+    let calls = regex::Regex::new(&format!(
+        r"\b(?:tr|noop|dialog|window)\(\s*{literal}\s*,?\s*\)"
+    ))
+    .unwrap();
     let consts = regex::Regex::new(&format!(
         r"(?m)^\s*const (?:SOUND|TOOLBAR|COLORS)_[A-Z_]+: &str =\s*{literal};"
     ))
