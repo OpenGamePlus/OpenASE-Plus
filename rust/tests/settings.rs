@@ -257,8 +257,10 @@ fn upstream_settings_are_imported_once() {
 fn settings_round_trip_through_a_file() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("settings.json");
-    let mut settings = Settings::default();
-    settings.friends = vec!["Visor".into()];
+    let settings = Settings {
+        friends: vec!["Visor".into()],
+        ..Settings::default()
+    };
     settings.export_to(&path).unwrap();
     assert_eq!(Settings::load_from(&path).friends, ["Visor"]);
     assert!(!dir.path().join("settings.json.partial").exists());
