@@ -2923,7 +2923,11 @@ impl eframe::App for OpenAseApp {
                 ui.visuals().widgets.noninteractive.bg_stroke
             });
         let mut boxes: Vec<egui::Rect> = Vec::new();
+        // GoldSrc's sunken boxes and gaps separate the panels; egui's line
+        // would draw a thick dark bar between them.
+        let separators = self.palette.theme.bevel().is_none();
         egui::Panel::bottom("details")
+            .show_separator_line(separators)
             .resizable(true)
             .default_size(200.0)
             .frame(egui::Frame::NONE)
@@ -2933,6 +2937,7 @@ impl eframe::App for OpenAseApp {
                     .clone()
                     .and_then(|key| self.find(&key).cloned());
                 let shown = egui::Panel::left("friends-panel")
+                    .show_separator_line(separators)
                     .resizable(true)
                     .default_size(220.0)
                     .frame(list_frame)
@@ -2941,6 +2946,7 @@ impl eframe::App for OpenAseApp {
                     });
                 boxes.push(shown.response.rect);
                 let shown = egui::Panel::left("players-panel")
+                    .show_separator_line(separators)
                     .resizable(true)
                     .default_size(380.0)
                     .frame(list_frame)
@@ -2966,6 +2972,7 @@ impl eframe::App for OpenAseApp {
             });
 
         let shown = egui::Panel::left("tree")
+            .show_separator_line(separators)
             .resizable(true)
             .default_size(230.0)
             .frame(list_frame.inner_margin(egui::Margin::same(2)))
@@ -3271,6 +3278,9 @@ fn tree_row(
         ui.visuals().selection.stroke.color
     } else if ui.visuals().text_color() == rgb(ColorSettings::default().text) {
         Color32::from_gray(0x10)
+    } else if ui.visuals().dark_mode {
+        // White game names stand out on dark themes, as in JASE.
+        ui.visuals().strong_text_color()
     } else {
         ui.visuals().text_color()
     };
