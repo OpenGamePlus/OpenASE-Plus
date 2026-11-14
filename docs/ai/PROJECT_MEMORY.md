@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — slot and party alerts
+- Ported JASE's two alerts: decisions in `alerts.rs` (tested), GUI polls watched servers with `watch_tick` and checks every answer in `upsert`. Party alerts fire on crossing up and re-arm at half the threshold; the first answer only sets the baseline.
+- Rejected a confirm-to-join dialog (JASE asks): a notice plus selecting the row fits OpenASE's notices; join is one double click.
+- Open: no tray, so alerts are only seen while the window is visible (roadmap item 7).
+
 ## 2026-11-14 — Zandronum
 - New protocol module `zandronum.rs` (Huffman tree from Zandronum, MIT notice kept in the module), ported from JASE with its captures in `rust/tests/fixtures/`; live: 786 servers listed.
 - A server ignores a second query for ~10 s: `query_server` takes one sample for this protocol, and an "ignoring" answer waits 10.5 s and asks once more.

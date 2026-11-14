@@ -33,10 +33,19 @@ filter, a game or one of its game types.
 | LAN, GeoIP, update check, Auto-Search | menus, first frame | `Lan`, `GeoIp`, `Update`, `Search*` |
 | Saved Unreal servers moved to their query port | startup (`extra.rs`) | `PortFixes` |
 | Add server / Import list query-port check | `resolve_in_background` | `Resolved` |
+| Slot watch (every 10 s, 30 min max) and party alerts (every 60 s) | `watch_tick`, each frame | `Watched`*, `WatchDone` |
 | Friend sound | friend found | none (waits for the player process) |
 
 `run_queries` runs `parallel_queries` (1..128) scoped threads over a shared
 queue and checks the stop flag between servers.
+
+## Alerts
+
+Decisions live in `rust/src/alerts.rs` (`has_free_slot`, `PartyTracker`,
+`SlotWatch`); `check_alerts` runs on every answer in `upsert`, next to
+`check_friends`. One slot watch at a time, in memory; party thresholds are
+saved in `Settings::party_alerts`. Both are set from the server row's
+context menu.
 
 ## Files
 

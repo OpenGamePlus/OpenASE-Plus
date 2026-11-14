@@ -17,6 +17,7 @@ use eframe::egui::{
 };
 use egui_extras::{Column, TableBuilder};
 
+use openase::alerts::{self, PartyTracker, SlotWatch};
 use openase::catalog::{self, Game, Protocol};
 use openase::colors::{parse_hex, quake_color_segments, strip_quake_colors};
 use openase::countries::country_name;
@@ -176,6 +177,10 @@ pub enum Msg {
     },
     /// Saved servers to move from a game port to their query port.
     PortFixes(Vec<(ServerRef, ServerRef)>),
+    /// Answer of a server with a slot or party alert.
+    Watched(Server),
+    /// The query of watched servers is over.
+    WatchDone,
     /// Addresses from Add server (`group` None) or Import list, moved to
     /// their query port off the UI thread.
     Resolved {
@@ -214,6 +219,10 @@ impl Paging {
 /// Row actions collected while drawing, applied afterwards.
 enum Action {
     Select(ServerKey),
+    /// Start or stop watching a full server for a free slot.
+    WatchSlot(ServerKey),
+    /// Party alert threshold for a server; 0 removes it.
+    PartyAlert(ServerKey, usize),
     Join(ServerKey),
     ToggleFavorite(ServerKey),
     Refresh(ServerKey),
@@ -235,6 +244,12 @@ pub struct OpenAseApp {
     generation: u64,
     pub(crate) status: String,
     friend_seen: HashMap<String, ServerKey>,
+    /// "Alert me when a slot is free" on one full server.
+    slot_watch: Option<SlotWatch>,
+    party: PartyTracker,
+    /// A query of watched servers (slot or party alerts) is running.
+    watch_in_flight: bool,
+    last_party_poll: Option<Instant>,
     single_in_flight: bool,
     last_auto_refresh: Instant,
     show_toolbar: bool,
@@ -299,6 +314,10 @@ impl OpenAseApp {
             generation: 0,
             status: tr("Ready").to_string(),
             friend_seen: HashMap::new(),
+            slot_watch: None,
+            party: PartyTracker::default(),
+            watch_in_flight: false,
+            last_party_poll: None,
             single_in_flight: false,
             last_auto_refresh: Instant::now(),
             show_toolbar: true,
@@ -339,6 +358,7 @@ impl OpenAseApp {
         }
         annotate(self.geoip.as_deref(), &mut server);
         self.check_friends(&server);
+        self.check_alerts(&server);
         let list = self.store.entry(server.game.clone()).or_default();
         match list
             .iter_mut()
@@ -408,6 +428,94 @@ impl OpenAseApp {
                 self.friend_seen.remove(&needle);
             }
         }
+    }
+
+    fn check_alerts(&mut self, server: &Server) {
+        let key = ServerKey::of(server);
+        let id = key.to_ref().key();
+        let name = strip_quake_colors(&server.name);
+        if self
+            .slot_watch
+            .as_ref()
+            .is_some_and(|watch| watch.key == id)
+            && alerts::has_free_slot(server)
+        {
+            self.slot_watch = None;
+            self.dialogs.notify(fill(
+                tr("A slot is free on {} ({}/{})"),
+                &[&name, &server.num_players, &server.max_players.unwrap_or(0)],
+            ));
+            self.selected = Some(key);
+            self.scroll_to_selected = true;
+        }
+        if let Some(&threshold) = self.settings.party_alerts.get(&id)
+            && self.party.update(&id, server, threshold)
+        {
+            self.dialogs.notify(fill(
+                tr("A match is on at {}: {} players"),
+                &[&name, &alerts::humans(server)],
+            ));
+        }
+    }
+
+    /// Query the servers with a slot watch (every 10 s) or a party alert
+    /// (every minute), one batch at a time.
+    fn watch_tick(&mut self, ctx: &egui::Context) {
+        let now = Instant::now();
+        if let Some(watch) = &self.slot_watch
+            && watch.expired(now)
+        {
+            let address = watch.key.split_once('|').map_or("", |(_, a)| a).to_string();
+            self.slot_watch = None;
+            self.status = fill(
+                tr("Stopped watching {}: no free slot in 30 minutes"),
+                &[&address],
+            );
+        }
+        if self.watch_in_flight {
+            return;
+        }
+        let mut targets: Vec<String> = Vec::new();
+        if let Some(watch) = &mut self.slot_watch
+            && watch.due(now)
+        {
+            watch.queried(now);
+            targets.push(watch.key.clone());
+        }
+        if !self.settings.party_alerts.is_empty()
+            && self
+                .last_party_poll
+                .is_none_or(|last| now >= last + alerts::PARTY_INTERVAL)
+        {
+            self.last_party_poll = Some(now);
+            for id in self.settings.party_alerts.keys() {
+                if !targets.contains(id) {
+                    targets.push(id.clone());
+                }
+            }
+        }
+        if targets.is_empty() {
+            return;
+        }
+        self.watch_in_flight = true;
+        let tx = self.tx.clone();
+        let ctx = ctx.clone();
+        let options = self.settings.network.query_options();
+        std::thread::spawn(move || {
+            for id in targets {
+                let Some((game, address)) = id.split_once('|') else {
+                    continue;
+                };
+                let Some(game) = catalog::game(game) else {
+                    continue;
+                };
+                if let Ok((host, port)) = parse_address(address, game.default_port) {
+                    let _ = tx.send(Msg::Watched(query_server(game, &host, port, &options)));
+                }
+            }
+            let _ = tx.send(Msg::WatchDone);
+            ctx.request_repaint();
+        });
     }
 
     pub(crate) fn friend_location(&self, friend: &str) -> Option<&ServerKey> {
@@ -802,6 +910,8 @@ impl OpenAseApp {
                         self.dialogs.error = Some(fill(tr("LAN search failed: {}"), &[&error]))
                     }
                 },
+                Msg::Watched(server) => self.upsert(server),
+                Msg::WatchDone => self.watch_in_flight = false,
                 Msg::Resolved {
                     game,
                     addresses,
@@ -1029,6 +1139,35 @@ impl OpenAseApp {
                 self.settings.add_favorite_to(key.to_ref(), &group);
                 self.settings_dirty = true;
                 self.status = fill(tr("Added to {}"), &[&group_name(&group)]);
+            }
+            Action::WatchSlot(key) => {
+                let id = key.to_ref().key();
+                if self
+                    .slot_watch
+                    .as_ref()
+                    .is_some_and(|watch| watch.key == id)
+                {
+                    self.slot_watch = None;
+                } else {
+                    self.slot_watch = Some(SlotWatch::new(id, Instant::now()));
+                    self.status = fill(tr("Watching {} for a free slot..."), &[&key.address]);
+                }
+            }
+            Action::PartyAlert(key, threshold) => {
+                let id = key.to_ref().key();
+                self.party.reset(&id);
+                if threshold == 0 {
+                    self.settings.party_alerts.remove(&id);
+                    self.status = fill(tr("No more match alerts for {}"), &[&key.address]);
+                } else {
+                    self.settings.party_alerts.insert(id, threshold);
+                    self.last_party_poll = None;
+                    self.status = fill(
+                        tr("I will alert you when {} has {} players"),
+                        &[&key.address, &threshold],
+                    );
+                }
+                self.settings_dirty = true;
             }
             Action::Copy(text) => {
                 ctx.copy_text(text.clone());
@@ -1845,6 +1984,13 @@ impl OpenAseApp {
                     row.set_selected(is_selected);
                     let game = catalog::game(&server.game);
                     let favorite = self.settings.is_favorite(&key.to_ref());
+                    let alert_id = key.to_ref().key();
+                    let watching = self
+                        .slot_watch
+                        .as_ref()
+                        .is_some_and(|watch| watch.key == alert_id);
+                    let threshold = self.settings.party_alerts.get(&alert_id).copied();
+                    let full = server.is_full();
                     let friend = self.server_has_friend(server);
                     let highlight = if friend {
                         Some(Color32::from_rgb(0xe0, 0xf5, 0xe0))
@@ -1965,6 +2111,36 @@ impl OpenAseApp {
                                 }
                             }
                         });
+                        ui.separator();
+                        if watching {
+                            if ui.button(tr("Stop watching for a free slot")).clicked() {
+                                actions.push(Action::WatchSlot(key.clone()));
+                                ui.close();
+                            }
+                        } else if ui
+                            .add_enabled(
+                                full,
+                                egui::Button::new(tr("Alert me when a slot is free")),
+                            )
+                            .clicked()
+                        {
+                            actions.push(Action::WatchSlot(key.clone()));
+                            ui.close();
+                        }
+                        ui.menu_button(tr("Alert when players reach"), |ui| {
+                            for n in [2, alerts::DEFAULT_THRESHOLD, 6, 8, 12, 16, 24, 32] {
+                                let label = fill(tr("At {} players"), &[&n]);
+                                if ui.radio(threshold == Some(n), label).clicked() {
+                                    actions.push(Action::PartyAlert(key.clone(), n));
+                                    ui.close();
+                                }
+                            }
+                            if ui.radio(threshold.is_none(), tr("No alert")).clicked() {
+                                actions.push(Action::PartyAlert(key.clone(), 0));
+                                ui.close();
+                            }
+                        });
+                        ui.separator();
                         if ui.button(tr("Copy address")).clicked() {
                             actions.push(Action::Copy(address.clone()));
                             ui.close();
@@ -2265,6 +2441,10 @@ impl eframe::App for OpenAseApp {
             || self.dialogs.has_notices()
         {
             ctx.request_repaint_after(Duration::from_millis(500));
+        }
+        self.watch_tick(&ctx);
+        if self.slot_watch.is_some() || !self.settings.party_alerts.is_empty() {
+            ctx.request_repaint_after(Duration::from_secs(1));
         }
 
         let no_dialog = !self.dialogs.any_modal();

@@ -11,6 +11,12 @@ All notable changes to OpenASE. Downloads for every version are on the
 - Zandronum (multiplayer Doom), with its own protocol and master. The server's IWAD is
   passed to the game with `-iwad`.
 
+### New
+- **Alert me when a slot is free** (right-click a full server): OpenASE checks it every
+  10 seconds for up to 30 minutes, then selects it and shows a notice.
+- **Alert when players reach N** (right-click a server): a notice when that many people,
+  not bots, are playing. Saved between sessions; the servers are checked every minute.
+
 ### Fixes
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.

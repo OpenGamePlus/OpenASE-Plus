@@ -37,6 +37,7 @@ packaging/           Inno Setup, Scoop, winget generator
 | Steam | Web API list; needs the user's key; not checked live |
 | GUI | ASE layout, favorites / friends groups, special lists, custom and color filters, wizard, toolbar editor |
 | Join / detection | Templates for every game; registry + disk Auto-Search |
+| Alerts | Free slot on a full server (one watch, 10 s polls, 30 min max); match filling up to N humans (saved thresholds, 60 s polls) |
 | GeoIP | DB-IP country database, monthly download |
 | i18n | English, French |
 | Update check | Points at upstream releases (debt R2) |

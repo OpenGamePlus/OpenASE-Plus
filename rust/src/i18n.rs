@@ -528,6 +528,20 @@ pub fn french(text: &str) -> Option<&'static str> {
         }
         "Download it from GitHub Releases" => "Télécharger depuis les versions GitHub",
         "Later" => "Plus tard",
+        // Slot and match alerts.
+        "Alert me when a slot is free" => "M’avertir quand une place se libère",
+        "Stop watching for a free slot" => "Ne plus guetter une place libre",
+        "Watching {} for a free slot..." => "Guet d’une place libre sur {}…",
+        "A slot is free on {} ({}/{})" => "Une place est libre sur {} ({}/{})",
+        "Stopped watching {}: no free slot in 30 minutes" => {
+            "Guet arrêté sur {} : aucune place libre en 30 minutes"
+        }
+        "Alert when players reach" => "M’avertir à partir de",
+        "At {} players" => "{} joueurs",
+        "No alert" => "Aucune alerte",
+        "A match is on at {}: {} players" => "Une partie a lieu sur {} : {} joueurs",
+        "I will alert you when {} has {} players" => "Vous serez averti quand {} aura {} joueurs",
+        "No more match alerts for {}" => "Plus d’alerte de partie pour {}",
         _ => return None,
     })
 }

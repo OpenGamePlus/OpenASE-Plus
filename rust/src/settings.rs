@@ -273,6 +273,8 @@ pub struct Settings {
     /// Favorites of Unreal engine games saved with their game port have been
     /// moved to the query port once (see `query::resolve_query_port`).
     pub unreal_ports_checked: bool,
+    /// "Alert when players reach": humans threshold, keyed by [`ServerRef::key`].
+    pub party_alerts: BTreeMap<String, usize>,
 }
 
 pub const RECENT_LIMIT: usize = 20;

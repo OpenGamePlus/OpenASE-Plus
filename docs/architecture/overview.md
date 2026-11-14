@@ -11,7 +11,7 @@ library only.
 main.rs ──► gui/  (binary only: egui, threads, channels)
                │
                ▼
-   services:  settings · rules · launch · detect · lan · geoip · update · i18n
+   services:  settings · rules · launch · detect · lan · geoip · update · i18n · alerts
                │
                ▼
    dispatch:  query  ◄── catalog (games.json)
@@ -51,6 +51,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/lan.rs` | service | LAN discovery by UDP broadcast, every protocol that supports it |
 | `rust/src/geoip.rs` | service | DB-IP country database: monthly download, lookup |
 | `rust/src/location.rs` | leaf | Country / region of a server for the Location column |
+| `rust/src/alerts.rs` | service | Slot and party alert decisions (no GUI) |
 | `rust/src/update.rs` | service | Update check against GitHub Releases |
 | `rust/src/i18n.rs` | service | English and French texts: `tr`, `fill`, `noop` |
 
