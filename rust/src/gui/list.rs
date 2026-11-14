@@ -243,13 +243,20 @@ impl OpenAseApp {
                     header.col(|ui| {
                         let rect = ui.max_rect();
                         header_cell(ui, rect);
-                        let label_widget = egui::Label::new(RichText::new(tr(label)))
+                        // The flag column is too narrow for its name: shown on hover.
+                        let text = if col == Col::Location { "" } else { tr(label) };
+                        let label_widget = egui::Label::new(RichText::new(text))
                             .selectable(false)
                             .sense(Sense::click());
                         let response = if jase_look {
                             ui.centered_and_justified(|ui| ui.add(label_widget)).inner
                         } else {
                             ui.add(label_widget)
+                        };
+                        let response = if col == Col::Location {
+                            response.on_hover_text(tr(label))
+                        } else {
+                            response
                         };
                         if response.clicked()
                             || ui
@@ -382,7 +389,7 @@ impl OpenAseApp {
                                             .game_ref(&server.game)
                                             .draw_player_names_with_game_font;
                                     if colored {
-                                        colored_label(ui, &server.name, color);
+                                        colored_label(ui, server.name.trim_start(), color);
                                     } else {
                                         cell(ui, &display_name(server), color);
                                     }
@@ -562,7 +569,7 @@ impl OpenAseApp {
 
 fn display_name(server: &Server) -> String {
     if server.has_info() {
-        strip_quake_colors(&server.name)
+        strip_quake_colors(&server.name).trim().to_string()
     } else if server.error.is_some() {
         tr("(no response)").to_string()
     } else {

@@ -1244,6 +1244,12 @@ impl OpenAseApp {
 }
 
 impl eframe::App for OpenAseApp {
+    /// The gaps between the boxes show the clear color: eframe's default is
+    /// near-black, which read as thick dark borders.
+    fn clear_color(&self, visuals: &egui::Visuals) -> [f32; 4] {
+        visuals.panel_fill.to_normalized_gamma_f32()
+    }
+
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
         i18n::set_language(
@@ -1327,19 +1333,12 @@ impl eframe::App for OpenAseApp {
         // A gap of panel color around each box, so the theme's border shows.
         let list_frame = egui::Frame::NONE
             .outer_margin(egui::Margin::same(2))
-            .fill(rgb(self.palette.list_bg))
-            // With a bevel (GoldSrc) the sunken edges replace the stroke.
-            .stroke(if self.palette.theme.bevel().is_some() {
-                Stroke::NONE
-            } else {
-                ui.visuals().widgets.noninteractive.bg_stroke
-            });
+            .fill(rgb(self.palette.list_bg));
         let mut boxes: Vec<egui::Rect> = Vec::new();
-        // GoldSrc's sunken boxes and gaps separate the panels; egui's line
-        // would draw a thick dark bar between them.
-        let separators = self.palette.theme.bevel().is_none();
+        // The boxes' own edges and the gaps between them separate the panels;
+        // egui's line next to an edge reads as a thick dark bar.
         egui::Panel::bottom("details")
-            .show_separator_line(separators)
+            .show_separator_line(false)
             .resizable(true)
             .default_size(200.0)
             .frame(egui::Frame::NONE)
@@ -1349,7 +1348,7 @@ impl eframe::App for OpenAseApp {
                     .clone()
                     .and_then(|key| self.find(&key).cloned());
                 let shown = egui::Panel::left("friends-panel")
-                    .show_separator_line(separators)
+                    .show_separator_line(false)
                     .resizable(true)
                     .default_size(220.0)
                     .frame(list_frame)
@@ -1358,7 +1357,7 @@ impl eframe::App for OpenAseApp {
                     });
                 boxes.push(shown.response.rect);
                 let shown = egui::Panel::left("players-panel")
-                    .show_separator_line(separators)
+                    .show_separator_line(false)
                     .resizable(true)
                     .default_size(380.0)
                     .frame(list_frame)
@@ -1384,7 +1383,7 @@ impl eframe::App for OpenAseApp {
             });
 
         let shown = egui::Panel::left("tree")
-            .show_separator_line(separators)
+            .show_separator_line(false)
             .resizable(true)
             .default_size(230.0)
             .frame(list_frame.inner_margin(egui::Margin::same(2)))
@@ -1411,13 +1410,21 @@ impl eframe::App for OpenAseApp {
             .frame(list_frame)
             .show(ui, |ui| self.server_list(ui));
         boxes.push(shown.response.rect);
-        // GoldSrc: sunken boxes, as in Half-Life's VGUI.
-        if let Some((light, dark)) = self.palette.theme.bevel() {
+        // Box edges on whole pixels (a frame stroke lands between pixels and
+        // shows two dark ones). GoldSrc: sunken boxes, as in Half-Life's VGUI.
+        let (top_left, bottom_right) = match self.palette.theme.bevel() {
             // Boxes use a softer light edge than the raised headers.
-            let soft = rgb(light).lerp_to_gamma(ui.visuals().panel_fill, 0.6);
-            for rect in boxes {
-                icons::sunken(ui.painter(), rect.shrink(2.0), rgb(dark), soft);
+            Some((light, dark)) => (
+                rgb(dark),
+                rgb(light).lerp_to_gamma(ui.visuals().panel_fill, 0.6),
+            ),
+            None => {
+                let line = ui.visuals().widgets.noninteractive.bg_stroke.color;
+                (line, line)
             }
+        };
+        for rect in boxes {
+            icons::sunken(ui.painter(), rect.shrink(2.0), top_left, bottom_right);
         }
 
         self.show_dialogs(&ctx);
@@ -1577,17 +1584,20 @@ fn friend_fill(visuals: &egui::Visuals) -> Color32 {
     }
 }
 
-/// A server-chosen color made readable on the list: near-white is darkened
-/// on a light theme, dark colors (`^0`, `^4`) are lightened on a dark one.
+/// A server-chosen color made readable on the list: near-white and light
+/// colors (`^3` yellow, `^5` cyan) are darkened on a light theme, dark colors
+/// (`^0`, `^4`) are lightened on a dark one.
 fn readable(color: Color32, visuals: &egui::Visuals) -> Color32 {
     let [r, g, b, _] = color.to_array();
+    let luma = (299 * u32::from(r) + 587 * u32::from(g) + 114 * u32::from(b)) / 1000;
     if visuals.dark_mode {
-        let luma = (299 * u32::from(r) + 587 * u32::from(g) + 114 * u32::from(b)) / 1000;
         if luma < 90 {
             return color.lerp_to_gamma(Color32::WHITE, 0.5);
         }
     } else if r > 0xd0 && g > 0xd0 && b > 0xd0 {
         return Color32::from_gray(0x50);
+    } else if luma > 160 {
+        return color.lerp_to_gamma(Color32::BLACK, 0.45);
     }
     color
 }
