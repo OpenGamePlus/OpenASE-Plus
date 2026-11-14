@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — audit fixes
+- Ponytail audit: settings saved atomically with unreadable files kept as `.bad`; `quake3::give_up` (2 × timeout) and `MAX_PACKETS` on 11 receive loops; imported hosts validated by `links::valid_host` (keeping the dot-and-letter rule for scanned text); `ready_games` needs the program file; one `quake3::udp_connect`; French-only i18n helpers and per-frame clones removed.
+- Rulings: gamespy2 already had deadlines (11 loops, not 14); gamespy2 now picks IPv4 like the rest.
+- Open: nothing from the audit; system tray and macOS links remain as before.
+
 ## 2026-11-14 — readable tree, flag-only Location
 - The tree text stayed dark on dark themes because `tree_row` laid labels out in a fixed black, so the painter's color was ignored; now `Color32::PLACEHOLDER`, white (`strong_text_color`) on dark themes.
 - Location shows the flag only with a hover tooltip (40 px column); the lock now comes before the game icon.
