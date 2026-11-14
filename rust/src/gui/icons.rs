@@ -72,7 +72,9 @@ pub fn edges(painter: &egui::Painter, rect: Rect, top_left: Color32, bottom_righ
 /// flag-icons, MIT), loaded once.
 pub struct Flags {
     texture: egui::TextureHandle,
-    codes: Vec<&'static str>,
+    /// Atlas cell of each code, in lower and upper case (server countries
+    /// are usually upper case), so a lookup needs no allocation.
+    index: std::collections::HashMap<String, usize>,
 }
 
 impl Flags {
@@ -86,15 +88,20 @@ impl Flags {
         let texture = ctx.load_texture("flags", image, options);
         Some(Flags {
             texture,
-            codes: FLAG_CODES.lines().collect(),
+            index: FLAG_CODES
+                .lines()
+                .enumerate()
+                .flat_map(|(i, code)| [(code.to_string(), i), (code.to_ascii_uppercase(), i)])
+                .collect(),
         })
     }
 
     /// Draw the flag of an ISO country code at the left of `rect`, 20x15
     /// points on whole pixels; false when there is none.
     pub fn draw(&self, painter: &egui::Painter, rect: Rect, code: &str) -> bool {
-        let code = code.to_ascii_lowercase();
-        let Some(index) = self.codes.iter().position(|c| *c == code) else {
+        let found = self.index.get(code).copied();
+        let Some(index) = found.or_else(|| self.index.get(&code.to_ascii_lowercase()).copied())
+        else {
             return false;
         };
         let atlas = self.texture.size_vec2();

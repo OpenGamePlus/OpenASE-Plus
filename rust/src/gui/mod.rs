@@ -708,16 +708,19 @@ impl OpenAseApp {
     fn request_exe_icons(&mut self, ctx: &egui::Context) {
         let mut wanted = Vec::new();
         for game in catalog::games() {
+            // By reference: this runs every frame for every game.
             let program = self
                 .settings
-                .game(&game.id)
-                .program_location
-                .trim()
-                .to_string();
+                .games
+                .get(&game.id)
+                .map_or("", |g| g.program_location.trim());
             let known = self.exe_icons.get(&game.id).map(|(path, _)| path.as_str());
             if program.is_empty() {
-                self.exe_icons.remove(&game.id);
-            } else if known != Some(program.as_str()) {
+                if known.is_some() {
+                    self.exe_icons.remove(&game.id);
+                }
+            } else if known != Some(program) {
+                let program = program.to_string();
                 self.exe_icons
                     .insert(game.id.clone(), (program.clone(), None));
                 wanted.push((game.id.clone(), program));
