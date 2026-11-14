@@ -39,11 +39,33 @@ pub fn meter(ui: &egui::Ui, rect: Rect, fraction: f32, fill: Color32) {
 
 /// Sunken edges: dark top and left, light bottom and right.
 pub fn sunken(painter: &egui::Painter, rect: Rect, dark: Color32, light: Color32) {
-    let r = rect.shrink(0.5);
-    painter.line_segment([r.left_top(), r.right_top()], Stroke::new(1.0, dark));
-    painter.line_segment([r.left_top(), r.left_bottom()], Stroke::new(1.0, dark));
-    painter.line_segment([r.left_bottom(), r.right_bottom()], Stroke::new(1.0, light));
-    painter.line_segment([r.right_top(), r.right_bottom()], Stroke::new(1.0, light));
+    edges(painter, rect, dark, light);
+}
+
+/// One-pixel edges on whole pixels: `top_left` on the top and left sides,
+/// `bottom_right` on the others (sunken: dark then light; raised: the
+/// reverse).
+pub fn edges(painter: &egui::Painter, rect: Rect, top_left: Color32, bottom_right: Color32) {
+    let ppp = painter.pixels_per_point();
+    let r = rect.round_to_pixels(ppp);
+    let px = 1.0 / ppp;
+    let fill = |area: Rect, color: Color32| painter.rect_filled(area, CornerRadius::ZERO, color);
+    fill(
+        Rect::from_min_size(r.left_top(), vec2(r.width(), px)),
+        top_left,
+    );
+    fill(
+        Rect::from_min_size(r.left_top(), vec2(px, r.height())),
+        top_left,
+    );
+    fill(
+        Rect::from_min_size(pos2(r.left(), r.bottom() - px), vec2(r.width(), px)),
+        bottom_right,
+    );
+    fill(
+        Rect::from_min_size(pos2(r.right() - px, r.top()), vec2(px, r.height())),
+        bottom_right,
+    );
 }
 
 /// Country flags: one atlas texture (`rust/assets/flags.png`, from

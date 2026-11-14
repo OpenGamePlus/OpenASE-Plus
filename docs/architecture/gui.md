@@ -54,7 +54,12 @@ stroked lines as rectangles for ImageMagick; codes in `rust/assets/flags.txt`)
 with `icons::Flags`. Ping is colored by `settings::ping_level` and
 `Theme::ping_colors`; Players has a sunken meter (`icons::meter`) in
 `Theme::occupancy`. Scroll bars are solid; boxes have a 2 px gap, and GoldSrc
-draws them sunken (`icons::sunken`). The tree shows server counts and can
+draws them sunken (`icons::sunken`, one-pixel `icons::edges` on whole pixels,
+no frame stroke). Classic keeps ASE's compact rows, left headers and striped
+panes; the other themes follow JASE (`jase_look`: 24 px rows, centered
+headers, no stripes). A filter bar under the tree (`filter_bar`: hide empty,
+full, passworded, unresponsive; max ping; country) edits the same settings
+as the Modifiers branch. The tree shows server counts and can
 list installed games only (`FilterSettings::installed_only`). Bottom pane
 columns are capped below the pane width, so a resize handle never leaves the
 screen.

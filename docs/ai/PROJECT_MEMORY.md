@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — JASE look for non-Classic themes, filter bar
+- Rule agreed with the user: Classic keeps ASE's look; other themes follow JASE (24 px rows, centered headers, no stripes). Filter bar under the tree reuses `FilterSettings`.
+- Thick GoldSrc frames came from the frame stroke doubling the bevel and from half-pixel lines; bevels are now one-pixel rects on whole pixels (`icons::edges`), no stroke when a bevel exists, softer light edge on boxes.
+
 ## 2026-11-14 — visual polish after a second JASE comparison
 - Flags: 2x atlas with mipmaps, pixel-aligned; ImageMagick's MSVG drops straight stroked lines (US stripes), so the script rewrites them as rects. Installing resvg was not allowed; the preprocessor avoids it.
 - Sunken occupancy meter and sunken GoldSrc boxes, tree server counts, "Installed games only" (`FilterSettings::installed_only`, uses `ready_games`), bottom pane columns capped at pane width - 40.

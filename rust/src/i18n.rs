@@ -536,6 +536,13 @@ pub fn french(text: &str) -> Option<&'static str> {
             "Interrogation des serveurs maîtres de {} jeux…"
         }
         "Installed games only" => "Jeux installés uniquement",
+        "Hide empty" => "Masquer les vides",
+        "Hide full" => "Masquer les pleins",
+        "Hide passworded" => "Masquer ceux avec mot de passe",
+        "Max ping" => "Ping max.",
+        "No limit" => "Sans limite",
+        "All countries" => "Tous les pays",
+        "{} countries" => "{} pays",
         // Themes.
         "Theme" => "Thème",
         "Classic" => "Classique",

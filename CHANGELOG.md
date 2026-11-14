@@ -44,7 +44,11 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **Country flags** in Location, **ping colors** (good, medium, bad), an **occupancy bar**
   in Players, always-visible scroll bars and framed panels. Flags from flag-icons (MIT).
 
-- **Installed games only** at the top of the tree, and server counts next to each game.
+- **Installed games only** at the top of the tree, server counts next to each game, and a
+  filter bar under it (hide empty, full, passworded or unresponsive servers; max ping;
+  country).
+- Themes other than Classic get taller rows, centered headers and no stripes; GoldSrc
+  draws thin, pixel-exact sunken frames.
 
 ### Fixes
 - Columns of the Friends, Players and Rules panes can no longer be widened past the

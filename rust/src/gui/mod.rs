@@ -36,7 +36,10 @@ use openase::settings::{
 use dialogs::Dialogs;
 use icons::{Tool, TreeIcon};
 
+/// Row height of the lists: ASE's compact rows in Classic, JASE's taller
+/// ones in the other themes.
 const ROW_HEIGHT: f32 = 18.0;
+const ROW_HEIGHT_TALL: f32 = 24.0;
 const PING_LIMITS: [u32; 4] = [50, 100, 150, 250];
 /// Most servers "Ping visible servers" queries at once.
 const PING_VISIBLE_MAX: usize = 60;
@@ -582,6 +585,101 @@ impl OpenAseApp {
                 let _ = openase::lists::save(&openase::lists::dir(), &game, &servers);
             }
         });
+    }
+
+    /// Themes other than Classic follow JASE: taller rows, centered
+    /// headers, no stripes.
+    fn jase_look(&self) -> bool {
+        self.palette.theme != openase::settings::Theme::Classic
+    }
+
+    fn row_height(&self) -> f32 {
+        if self.jase_look() {
+            ROW_HEIGHT_TALL
+        } else {
+            ROW_HEIGHT
+        }
+    }
+
+    /// The filter bar under the tree (JASE's left column): the same
+    /// settings as the tree's Modifiers.
+    fn filter_bar(&mut self, ui: &mut egui::Ui) {
+        let countries = self.country_options();
+        let filters = &mut self.settings.filters;
+        let before = (
+            filters.not_empty,
+            filters.not_full,
+            filters.no_password,
+            filters.hide_offline,
+            filters.max_ping,
+            filters.countries.clone(),
+        );
+        ui.checkbox(&mut filters.not_empty, tr("Hide empty"));
+        ui.checkbox(&mut filters.not_full, tr("Hide full"));
+        ui.checkbox(&mut filters.no_password, tr("Hide passworded"));
+        ui.checkbox(&mut filters.hide_offline, tr("Hide unresponsive"));
+        egui::Grid::new("filter-bar")
+            .num_columns(2)
+            .spacing([6.0, 4.0])
+            .show(ui, |ui| {
+                ui.label(tr("Max ping"));
+                let shown = filters
+                    .max_ping
+                    .map_or_else(|| tr("No limit").to_string(), |p| p.to_string());
+                egui::ComboBox::from_id_salt("max-ping")
+                    .selected_text(shown)
+                    .width(120.0)
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut filters.max_ping, None, tr("No limit"));
+                        for limit in [50, 100, 150, 250] {
+                            ui.selectable_value(
+                                &mut filters.max_ping,
+                                Some(limit),
+                                limit.to_string(),
+                            );
+                        }
+                    });
+                ui.end_row();
+                ui.label(tr("Country"));
+                let shown = match filters.countries.iter().next() {
+                    Some(code) if filters.countries.len() == 1 => country_label(code),
+                    Some(_) => fill(tr("{} countries"), &[&filters.countries.len()]),
+                    None => tr("All countries").to_string(),
+                };
+                egui::ComboBox::from_id_salt("country")
+                    .selected_text(shown)
+                    .width(120.0)
+                    .show_ui(ui, |ui| {
+                        if ui
+                            .selectable_label(filters.countries.is_empty(), tr("All countries"))
+                            .clicked()
+                        {
+                            filters.countries.clear();
+                        }
+                        for (code, label, count) in &countries {
+                            let only =
+                                filters.countries.len() == 1 && filters.countries.contains(code);
+                            if ui
+                                .selectable_label(only, format!("{label} ({count})"))
+                                .clicked()
+                            {
+                                filters.countries = [code.clone()].into();
+                            }
+                        }
+                    });
+                ui.end_row();
+            });
+        let after = (
+            filters.not_empty,
+            filters.not_full,
+            filters.no_password,
+            filters.hide_offline,
+            filters.max_ping,
+            filters.countries.clone(),
+        );
+        if before != after {
+            self.settings_dirty = true;
+        }
     }
 
     /// Look up the levelshot of the selected server's map once, off the UI
@@ -2160,6 +2258,7 @@ impl OpenAseApp {
             None
         };
 
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         let mut table = TableBuilder::new(ui);
         if let Some(index) = scroll_to {
             table = table.scroll_to_row(index, Some(Align::Center));
@@ -2186,11 +2285,14 @@ impl OpenAseApp {
                     header.col(|ui| {
                         let rect = ui.max_rect();
                         header_cell(ui, rect);
-                        let response = ui.add(
-                            egui::Label::new(RichText::new(tr(label)))
-                                .selectable(false)
-                                .sense(Sense::click()),
-                        );
+                        let label_widget = egui::Label::new(RichText::new(tr(label)))
+                            .selectable(false)
+                            .sense(Sense::click());
+                        let response = if jase_look {
+                            ui.centered_and_justified(|ui| ui.add(label_widget)).inner
+                        } else {
+                            ui.add(label_widget)
+                        };
                         if response.clicked()
                             || ui
                                 .interact(rect, ui.scope_id().with(label), Sense::click())
@@ -2210,7 +2312,7 @@ impl OpenAseApp {
             })
             .body(|body| {
                 let count = rows.len() + usize::from(more.is_some());
-                body.rows(ROW_HEIGHT, count, |mut row| {
+                body.rows(row_height, count, |mut row| {
                     let Some(&server) = rows.get(row.index()) else {
                         // The "Load more" row.
                         let Some((game, shown, total, loading)) = &more else {
@@ -2494,6 +2596,7 @@ impl OpenAseApp {
         let mut select: Option<ServerKey> = None;
         // Room for the next column handle: a column widened to the edge stays shrinkable.
         let cap = (ui.available_width() - 40.0).max(60.0);
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         TableBuilder::new(ui)
             .id_salt("friends-pane")
             .resizable(true)
@@ -2522,12 +2625,12 @@ impl OpenAseApp {
                 ] {
                     header.col(|ui| {
                         header_cell(ui, ui.max_rect());
-                        cell(ui, label, text_color);
+                        header_label(ui, label, text_color, jase_look);
                     });
                 }
             })
             .body(|body| {
-                body.rows(ROW_HEIGHT, friends.len(), |mut row| {
+                body.rows(row_height, friends.len(), |mut row| {
                     let friend = &friends[row.index()];
                     let location = self.friend_location(friend).cloned();
                     let server_name = location
@@ -2577,10 +2680,11 @@ impl OpenAseApp {
 
         // Room for the next column handle: a column widened to the edge stays shrinkable.
         let cap = (ui.available_width() - 40.0).max(60.0);
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         TableBuilder::new(ui)
             .id_salt("players-pane")
             .resizable(true)
-            .striped(true)
+            .striped(!jase_look)
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
             .column(
@@ -2596,12 +2700,12 @@ impl OpenAseApp {
                 for label in [tr("Player Name"), tr("Score"), tr("Ping"), tr("Time")] {
                     header.col(|ui| {
                         header_cell(ui, ui.max_rect());
-                        cell(ui, label, text_color);
+                        header_label(ui, label, text_color, jase_look);
                     });
                 }
             })
             .body(|body| {
-                body.rows(ROW_HEIGHT, order.len(), |mut row| {
+                body.rows(row_height, order.len(), |mut row| {
                     let player = &players[order[row.index()]];
                     let plain = strip_quake_colors(&player.name);
                     let is_friend = friends
@@ -2643,10 +2747,11 @@ impl OpenAseApp {
             .unwrap_or_default();
         // Room for the next column handle: a column widened to the edge stays shrinkable.
         let cap = (ui.available_width() - 40.0).max(60.0);
+        let (row_height, jase_look) = (self.row_height(), self.jase_look());
         TableBuilder::new(ui)
             .id_salt("rules-pane")
             .resizable(true)
-            .striped(true)
+            .striped(!jase_look)
             .cell_layout(Layout::left_to_right(Align::Center))
             .auto_shrink(false)
             .column(
@@ -2660,12 +2765,12 @@ impl OpenAseApp {
                 for label in [tr("Key"), tr("Value")] {
                     header.col(|ui| {
                         header_cell(ui, ui.max_rect());
-                        cell(ui, label, text_color);
+                        header_label(ui, label, text_color, jase_look);
                     });
                 }
             })
             .body(|body| {
-                body.rows(ROW_HEIGHT, rules.len(), |mut row| {
+                body.rows(row_height, rules.len(), |mut row| {
                     let (key, value) = rules[row.index()];
                     row.col(|ui| cell(ui, key, text_color));
                     row.col(|ui| cell(ui, &strip_quake_colors(value), text_color));
@@ -2811,7 +2916,12 @@ impl eframe::App for OpenAseApp {
         let list_frame = egui::Frame::NONE
             .outer_margin(egui::Margin::same(2))
             .fill(rgb(self.palette.list_bg))
-            .stroke(ui.visuals().widgets.noninteractive.bg_stroke);
+            // With a bevel (GoldSrc) the sunken edges replace the stroke.
+            .stroke(if self.palette.theme.bevel().is_some() {
+                Stroke::NONE
+            } else {
+                ui.visuals().widgets.noninteractive.bg_stroke
+            });
         let mut boxes: Vec<egui::Rect> = Vec::new();
         egui::Panel::bottom("details")
             .resizable(true)
@@ -2869,6 +2979,9 @@ impl eframe::App for OpenAseApp {
                 {
                     self.settings_dirty = true;
                 }
+                egui::Panel::bottom("tree-filters")
+                    .frame(egui::Frame::NONE.inner_margin(egui::Margin::symmetric(2, 6)))
+                    .show(ui, |ui| self.filter_bar(ui));
                 egui::ScrollArea::both()
                     .auto_shrink(false)
                     .show(ui, |ui| self.tree(ui));
@@ -2881,8 +2994,10 @@ impl eframe::App for OpenAseApp {
         boxes.push(shown.response.rect);
         // GoldSrc: sunken boxes, as in Half-Life's VGUI.
         if let Some((light, dark)) = self.palette.theme.bevel() {
+            // Boxes use a softer light edge than the raised headers.
+            let soft = rgb(light).lerp_to_gamma(ui.visuals().panel_fill, 0.6);
             for rect in boxes {
-                icons::sunken(ui.painter(), rect.shrink(2.0), rgb(dark), rgb(light));
+                icons::sunken(ui.painter(), rect.shrink(2.0), rgb(dark), soft);
             }
         }
 
@@ -3195,28 +3310,22 @@ fn header_cell(ui: &egui::Ui, rect: egui::Rect) {
     let painter = ui.painter();
     painter.rect_filled(rect, CornerRadius::ZERO, visuals.panel_fill);
     let bevel: Option<(Color32, Color32)> = ui.ctx().data(|d| d.get_temp(bevel_id())).flatten();
-    let (light, dark) = bevel.unwrap_or_else(|| {
-        let line = visuals.widgets.noninteractive.bg_stroke.color;
-        (Color32::TRANSPARENT, line)
-    });
-    // Raised: light top and left edges, dark bottom and right ones.
-    let (inner, outer) = (rect.shrink(0.5), rect);
-    painter.line_segment(
-        [inner.left_top(), inner.right_top()],
-        Stroke::new(1.0, light),
-    );
-    painter.line_segment(
-        [inner.left_top(), inner.left_bottom()],
-        Stroke::new(1.0, light),
-    );
-    painter.line_segment(
-        [outer.right_top(), outer.right_bottom()],
-        Stroke::new(1.0, dark),
-    );
-    painter.line_segment(
-        [outer.left_bottom(), outer.right_bottom()],
-        Stroke::new(1.0, dark),
-    );
+    match bevel {
+        // Raised, as in Half-Life's VGUI.
+        Some((light, dark)) => icons::edges(painter, rect, light, dark),
+        None => {
+            let line = visuals.widgets.noninteractive.bg_stroke.color;
+            icons::edges(painter, rect, Color32::TRANSPARENT, line);
+        }
+    }
+}
+
+fn header_label(ui: &mut egui::Ui, text: &str, color: Color32, centered: bool) {
+    if centered {
+        ui.centered_and_justified(|ui| cell(ui, text, color));
+    } else {
+        cell(ui, text, color);
+    }
 }
 
 fn cell(ui: &mut egui::Ui, text: &str, color: Color32) {
