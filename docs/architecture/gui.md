@@ -48,7 +48,9 @@ queue and checks the stop flag between servers.
 
 ## List cells
 
-Location draws the server's country flag from `rust/assets/flags.png` (a
+Location draws only the server's country flag (country or location as a
+hover tooltip; text when there is no flag). The icon column shows the lock,
+then the game icon, then the favorite star. Location draws the server's country flag from `rust/assets/flags.png` (a
 40x30-per-flag atlas drawn at 20x15 with mipmaps, built by
 `scripts/make_flag_atlas.sh` from flag-icons, MIT, which rewrites straight
 stroked lines as rectangles for ImageMagick; codes in `rust/assets/flags.txt`)

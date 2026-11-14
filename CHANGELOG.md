@@ -67,7 +67,7 @@ versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases
 - **Map images**: the levelshot of the selected server's map, read from your installed
   game's `.pk3` files (Quake 3 engine games). Nothing is downloaded.
 
-- **Country flags** in Location, **ping colors** (good, medium, bad), an **occupancy bar**
+- **Country flags** in Location (the country shows on hover), **ping colors** (good, medium, bad), an **occupancy bar**
   in Players, always-visible scroll bars and framed panels. Flags from flag-icons (MIT).
 
 - **Installed games only** at the top of the tree, server counts next to each game, and a

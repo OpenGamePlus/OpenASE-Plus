@@ -143,7 +143,7 @@ enum Col {
 
 const COLUMNS: [(Col, &str, f32); 10] = [
     (Col::Icon, "", 44.0),
-    (Col::Location, noop("Location"), 104.0),
+    (Col::Location, noop("Location"), 40.0),
     (Col::Name, noop("Name"), 300.0),
     (Col::Ping, noop("Ping"), 46.0),
     (Col::Flux, noop("Flux"), 40.0),
@@ -2454,7 +2454,7 @@ impl OpenAseApp {
                                     let rect = ui.max_rect();
                                     if let Some(game) = game {
                                         let icon = egui::Rect::from_min_size(
-                                            rect.left_center() + vec2(2.0, -7.0),
+                                            rect.left_center() + vec2(13.0, -7.0),
                                             vec2(14.0, 14.0),
                                         )
                                         .round_to_pixels(ui.pixels_per_point());
@@ -2468,13 +2468,13 @@ impl OpenAseApp {
                                     if server.password {
                                         icons::lock(
                                             ui.painter(),
-                                            rect.left_center() + vec2(24.0, 0.0),
+                                            rect.left_center() + vec2(5.0, 0.0),
                                         );
                                     }
                                     if favorite {
                                         icons::star(
                                             ui.painter(),
-                                            rect.left_center() + vec2(34.0, 0.0),
+                                            rect.left_center() + vec2(35.0, 0.0),
                                             5.0,
                                             Color32::from_rgb(0xf0, 0xc0, 0x1e),
                                             Color32::from_rgb(0x96, 0x6e, 0x00),
@@ -2498,13 +2498,24 @@ impl OpenAseApp {
                                     }
                                 }
                                 Col::Location => {
+                                    // The flag alone; the country or location shows on hover.
+                                    let text = cell_text(col, server, game);
+                                    let rect = ui.max_rect();
                                     let flag = server.country.as_deref().zip(self.flags.as_ref());
                                     if let Some((code, flags)) = flag
-                                        && flags.draw(ui.painter(), ui.max_rect(), code)
+                                        && flags.draw(ui.painter(), rect, code)
                                     {
-                                        ui.add_space(22.0);
+                                        if !text.is_empty() {
+                                            ui.interact(
+                                                rect,
+                                                ui.scope_id().with("flag"),
+                                                Sense::hover(),
+                                            )
+                                            .on_hover_text(text);
+                                        }
+                                    } else {
+                                        cell(ui, &text, color);
                                     }
-                                    cell(ui, &cell_text(col, server, game), color);
                                 }
                                 Col::Players => {
                                     // A small sunken meter at the left, as in JASE.
@@ -3308,7 +3319,8 @@ fn tree_row(
     let font = TextStyle::Body.resolve(ui.style());
     let galley = ui
         .painter()
-        .layout_no_wrap(label.to_string(), font, Color32::BLACK);
+        // PLACEHOLDER: the color is chosen when painting (selection, theme).
+        .layout_no_wrap(label.to_string(), font, Color32::PLACEHOLDER);
     let width = indent + 14.0 + 20.0 + galley.size().x + 8.0;
     let (rect, _) = ui.allocate_exact_size(
         vec2(width.max(ui.available_width()), height),
@@ -3348,11 +3360,11 @@ fn tree_row(
     );
     let text_color = if selected {
         ui.visuals().selection.stroke.color
+    } else if ui.visuals().dark_mode {
+        // White names stand out on dark themes, as in JASE.
+        ui.visuals().strong_text_color()
     } else if ui.visuals().text_color() == rgb(ColorSettings::default().text) {
         Color32::from_gray(0x10)
-    } else if ui.visuals().dark_mode {
-        // White game names stand out on dark themes, as in JASE.
-        ui.visuals().strong_text_color()
     } else {
         ui.visuals().text_color()
     };
