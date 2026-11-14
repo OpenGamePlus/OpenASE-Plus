@@ -40,6 +40,7 @@ Copy an entry of the same protocol. Quake 3, shortened:
 | `game_type_key`, `game_types` | no | Rule with the game type; raw value → name (unknown shown raw) |
 | `mod_key`, `base_mod` | no | Rule with the mod (`gamename` in Quake 3, `folder` in CS 1.6); the base mod is not passed as `{mod}` |
 | `filters` | no | Tree checkboxes: `"dynamic": true` builds options from scanned values; otherwise `options`, each a `label` and the raw `values` it matches |
+| `levelshots` | no | Folder under the install folder whose `.pk3` files hold `levelshots/<map>.{jpg,tga,png}` (Quake 3 engine games: `baseq3`, `etmain`...) |
 | `registry`, `exe_names` | no | Install detection: full registry `key`, the `value` holding the folder, `exe` relative to that folder; names for disk search (add Linux and macOS names) |
 | `query_port_offset`, `game_port_query_offset` | no | See Ports in [protocols.md](../architecture/protocols.md) |
 | `ping_request` | no | GameSpy v1 ping request, `\info\` when empty (SWAT 4: `\status\`) |

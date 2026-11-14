@@ -11,6 +11,7 @@ old one only gets its Status changed to `Superseded by NNNN`.
 | [0004](0004-no-proprietary-ase-files.md) | Nothing from the proprietary ASE | Accepted |
 | [0005](0005-333networks-light-lists.md) | 333networks lists from the JSON, queries on demand | Accepted |
 | [0006](0006-independent-fork.md) | OpenASE-Plus is an independent fork | Accepted |
+| [0007](0007-map-images-from-local-files.md) | Map images only from the user's game files | Accepted |
 
 ## Template
 

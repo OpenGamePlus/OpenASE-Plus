@@ -38,6 +38,9 @@ All notable changes to OpenASE. Downloads for every version are on the
   GoldSrc (the olive and gold of Counter-Strike 1.6).
   The colors stay editable on top of the theme.
 
+- **Map images**: the levelshot of the selected server's map, read from your installed
+  game's `.pk3` files (Quake 3 engine games). Nothing is downloaded.
+
 ### Fixes
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.

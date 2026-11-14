@@ -41,6 +41,7 @@ packaging/           Inno Setup, Scoop, winget generator
 | Alerts | Free slot on a full server (one watch, 10 s polls, 30 min max); match filling up to N humans (saved thresholds, 60 s polls) |
 | Links | `openase://connect/<game>/<host>:<port>`: confirm before joining, handed to the running instance; registered by the Windows installer and the Linux `.desktop`; not on macOS |
 | Themes | Classic (default), Dark, Terminal, Amber terminal, Synthwave, GoldSrc (CS 1.6 olive and gold) in Options > Colors |
+| Map images | Levelshots from the installed game's `.pk3` files, shown above the Rules pane (12 Quake 3 engine games) |
 | RCON | Console per server for Quake 3 / CoD / Quake 2 families, Half-Life 1 and Source games; password kept for the session only |
 | Saved lists | Last completed scan per game, shown at start as listed rows (no ping, `saved`), queried on demand |
 | GeoIP | DB-IP country database, monthly download |

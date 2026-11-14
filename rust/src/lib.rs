@@ -21,6 +21,7 @@ pub mod launch;
 pub mod links;
 pub mod lists;
 pub mod location;
+pub mod maps;
 pub mod model;
 pub mod networks333;
 pub mod quake2;

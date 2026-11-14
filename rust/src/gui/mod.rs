@@ -6,6 +6,7 @@ mod extra;
 mod icons;
 
 use std::collections::{BTreeMap, HashMap, VecDeque};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex};
@@ -187,6 +188,12 @@ pub enum Msg {
     PortFixes(Vec<(ServerRef, ServerRef)>),
     /// Lists saved by an earlier session (`openase::lists`).
     SavedLists(Vec<(String, Vec<Server>)>),
+    /// A levelshot looked up for (game, map); `None` when there is none.
+    MapImage {
+        game: String,
+        map: String,
+        image: Option<([usize; 2], Vec<u8>)>,
+    },
     /// Answer of an RCON command.
     Rcon {
         key: ServerKey,
@@ -264,6 +271,9 @@ pub struct OpenAseApp {
     generation: u64,
     pub(crate) status: String,
     friend_seen: HashMap<String, ServerKey>,
+    /// Map images by (game, map): `None` = looked up, none found. A key
+    /// without an entry has not been looked up yet.
+    map_images: HashMap<(String, String), Option<egui::TextureHandle>>,
     /// "Alert me when a slot is free" on one full server.
     slot_watch: Option<SlotWatch>,
     party: PartyTracker,
@@ -351,6 +361,7 @@ impl OpenAseApp {
             status: tr("Ready").to_string(),
             friend_seen: HashMap::new(),
             slot_watch: None,
+            map_images: HashMap::new(),
             party: PartyTracker::default(),
             watch_in_flight: false,
             last_party_poll: None,
@@ -567,6 +578,46 @@ impl OpenAseApp {
         std::thread::spawn(move || {
             for (game, servers) in lists {
                 let _ = openase::lists::save(&openase::lists::dir(), &game, &servers);
+            }
+        });
+    }
+
+    /// Look up the levelshot of the selected server's map once, off the UI
+    /// thread, in the game's own `.pk3` files (the server's mod first).
+    fn request_map_image(&mut self, ctx: &egui::Context) {
+        let Some(server) = self.selected.as_ref().and_then(|key| self.find(key)) else {
+            return;
+        };
+        let Some(game) = catalog::game(&server.game).filter(|g| !g.levelshots.is_empty()) else {
+            return;
+        };
+        let key = (game.id.clone(), server.map.clone());
+        if server.map.is_empty() || self.map_images.contains_key(&key) {
+            return;
+        }
+        let program = self.settings.game(&game.id).program_location;
+        let Some(root) = Path::new(program.trim())
+            .parent()
+            .filter(|_| !program.trim().is_empty())
+        else {
+            return;
+        };
+        let mut dirs = Vec::new();
+        let mod_dir = game.launch_mod(&server.mod_name);
+        if !mod_dir.is_empty() {
+            dirs.push(root.join(mod_dir));
+        }
+        dirs.push(root.join(&game.levelshots));
+        // Marked as looked up now, so one lookup runs per map.
+        self.map_images.insert(key.clone(), None);
+        let (tx, ctx) = (self.tx.clone(), ctx.clone());
+        std::thread::spawn(move || {
+            let image = openase::maps::find_levelshot(&dirs, &key.1)
+                .and_then(|bytes| openase::maps::decode(&bytes));
+            if image.is_some() {
+                let (game, map) = key;
+                let _ = tx.send(Msg::MapImage { game, map, image });
+                ctx.request_repaint();
             }
         });
     }
@@ -1050,6 +1101,13 @@ impl OpenAseApp {
                     }
                 },
                 Msg::Link(url) => self.open_link(ctx, &url),
+                Msg::MapImage { game, map, image } => {
+                    let texture = image.map(|(size, rgba)| {
+                        let image = egui::ColorImage::from_rgba_unmultiplied(size, &rgba);
+                        ctx.load_texture(format!("map-{game}-{map}"), image, Default::default())
+                    });
+                    self.map_images.insert((game, map), texture);
+                }
                 Msg::Rcon { key, result } => {
                     if let Some(console) = self.dialogs.rcon.as_mut().filter(|c| c.key == key) {
                         console.in_flight = false;
@@ -2644,6 +2702,7 @@ impl eframe::App for OpenAseApp {
             ctx.request_repaint_after(Duration::from_millis(500));
         }
         self.watch_tick(&ctx);
+        self.request_map_image(&ctx);
         if self.slot_watch.is_some() || !self.settings.party_alerts.is_empty() {
             ctx.request_repaint_after(Duration::from_secs(1));
         }
@@ -2707,6 +2766,15 @@ impl eframe::App for OpenAseApp {
                 egui::CentralPanel::default()
                     .frame(list_frame)
                     .show(ui, |ui| {
+                        let image = selected.as_ref().and_then(|s| {
+                            self.map_images
+                                .get(&(s.game.clone(), s.map.clone()))?
+                                .as_ref()
+                        });
+                        if let Some(texture) = image {
+                            // Levelshots are 4:3 at most 256 wide; shown small.
+                            ui.add(egui::Image::new(texture).max_size(vec2(160.0, 120.0)));
+                        }
                         self.rules_pane(ui, selected.as_ref());
                     });
             });

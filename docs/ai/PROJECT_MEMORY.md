@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — map images, phase 7 closed
+- `maps.rs`: `levelshots/<map>` from the `.pk3` files named by the new `levelshots` catalog field (values from JASE), mod folder first, last pk3 in load order wins; decoded with `image` (TGA tried when no magic bytes match). ADR 0007: local files only, no GameTracker.
+- New dependencies `zip` (no default features, deflate via flate2) and `image` (jpeg, tga, png). The system tray was postponed with the user's agreement.
+- Open: CoD IWI and Unreal readers; not checked with a real install.
+
 ## 2026-11-14 — GoldSrc theme
 - Added `Theme::GoldSrc` (JASE's olive/gold tokens, olive widgets via `Theme::widgets`).
 - Fixed a theme leak: `setup_style` used to paint ASE's light greys on both egui bases, so dark themes had light buttons; `ase_visuals(dark)` now rebuilds the active base on every `apply_palette`.
