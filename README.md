@@ -61,7 +61,7 @@ the original All-Seeing Eye that are not in the catalog yet are listed in
 The Join command of many of the newer games has not been tested with the game
 installed, see [issue #1](https://github.com/tsautier/OpenASE/issues/1).
 
-Missing a game? See [CONTRIBUTING.md](CONTRIBUTING.md#adding-a-game): most
+Missing a game? See [adding a game](docs/development/adding-a-game.md): most
 games are a single entry in the catalog.
 
 Games are described in [`rust/src/games.json`](rust/src/games.json): masters,

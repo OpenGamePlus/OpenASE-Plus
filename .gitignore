@@ -9,3 +9,6 @@ countries.txt
 
 # Rust build output
 target/
+
+# Local notes (plans, specs): never committed
+docs/superpowers/
