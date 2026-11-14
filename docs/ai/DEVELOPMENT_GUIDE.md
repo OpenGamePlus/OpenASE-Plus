@@ -22,6 +22,7 @@ the why when not obvious. Docs changes go in the same commit as the code they de
 | Settings file, config folder, outside resource | overview "Persistence", SYSTEM_SUMMARY contracts |
 | Commands, toolchain, CI | [building.md](../development/building.md) |
 | Release workflow or packaging | [releasing.md](../development/releasing.md), `packaging/README.md` |
+| `model::Server` fields, `openase-cli` output | [cli.md](../cli.md) (schema 1: add only; raise the schema otherwise) |
 | Debt fixed or found | [debt.md](../roadmap/debt.md) |
 | Decision that a rule must change | new ADR, then boundaries and [ARCHITECTURE_NOTES](ARCHITECTURE_NOTES.md) |
 

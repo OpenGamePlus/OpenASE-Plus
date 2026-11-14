@@ -2,14 +2,14 @@
 
 use std::sync::LazyLock;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const GAMES_JSON: &str = include_str!("games.json");
 
 static CATALOG: LazyLock<Vec<Game>> =
     LazyLock::new(|| serde_json::from_str(GAMES_JSON).expect("games.json is valid"));
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Protocol {
     Quake3,

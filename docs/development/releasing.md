@@ -11,8 +11,8 @@ Packages per release:
 
 | OS | Files |
 |---|---|
-| Windows | `OpenASE-<tag>-windows-x64.zip`, `OpenASE-<tag>-windows-x64-setup.exe` (Inno Setup, `packaging/windows/openase.iss`) |
-| Linux (built on Ubuntu 22.04 for an old glibc) | `OpenASE-<tag>-linux-x64.tar.gz` with a `.desktop` file, `OpenASE-<tag>-linux-x86_64.AppImage` |
+| Windows | `OpenASE-<tag>-windows-x64.zip` (with `openase-cli.exe`), `OpenASE-<tag>-windows-x64-setup.exe` (Inno Setup, `packaging/windows/openase.iss`) |
+| Linux (built on Ubuntu 22.04 for an old glibc) | `OpenASE-<tag>-linux-x64.tar.gz` with a `.desktop` file and `openase-cli`, `OpenASE-<tag>-linux-x86_64.AppImage` |
 | macOS | `OpenASE-<tag>-macos-universal.zip` with `OpenASE.app` (Apple Silicon + Intel) |
 | All | `SHA256SUMS.txt` with the checksum of every package |
 

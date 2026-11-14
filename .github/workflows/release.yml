@@ -47,6 +47,7 @@ jobs:
           $name = "OpenASE-$env:TAG-windows-x64"
           New-Item -ItemType Directory $name | Out-Null
           Copy-Item rust/target/release/openase.exe "$name/OpenASE.exe"
+          Copy-Item rust/target/release/openase-cli.exe "$name/openase-cli.exe"
           Copy-Item LICENSE, README.md $name
           Compress-Archive -Path $name -DestinationPath "$name.zip"
       - name: Build installer (Inno Setup)
@@ -92,6 +93,7 @@ jobs:
           name="OpenASE-$TAG-linux-x64"
           mkdir "$name"
           cp rust/target/release/openase "$name/openase"
+          cp rust/target/release/openase-cli "$name/openase-cli"
           cp rust/assets/icon.png "$name/openase.png"
           cp LICENSE README.md "$name/"
           cat > "$name/openase.desktop" <<'EOF'

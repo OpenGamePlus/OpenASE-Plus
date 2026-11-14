@@ -19,6 +19,7 @@ pub mod instance;
 pub mod lan;
 pub mod launch;
 pub mod links;
+pub mod lists;
 pub mod location;
 pub mod model;
 pub mod networks333;

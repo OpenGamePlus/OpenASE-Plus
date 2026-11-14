@@ -37,6 +37,7 @@ shows every loaded server with at least one human; F5 or a first visit scans
 | Add server / Import list query-port check | `resolve_in_background` | `Resolved` |
 | Slot watch (every 10 s, 30 min max) and party alerts (every 60 s) | `watch_tick`, each frame | `Watched`*, `WatchDone` |
 | Friend sound | friend found | none (waits for the player process) |
+| Saved lists: load at start, save after a completed game scan | `OpenAseApp::new`, `save_lists` | `SavedLists` |
 | `openase://` links from a second instance | `instance::listen` in `OpenAseApp::new` | `Link` (also sent once for a link on the command line) |
 
 `run_queries` runs `parallel_queries` (1..128) scoped threads over a shared

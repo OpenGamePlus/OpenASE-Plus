@@ -2,8 +2,8 @@
 
 One Cargo package in `rust/`: a library crate (`openase`, `src/lib.rs`) with
 everything except the interface, and a binary (`src/main.rs`) that adds the
-egui GUI (`src/gui/`). The command-line tools in `rust/examples/` use the
-library only.
+egui GUI (`src/gui/`). `src/bin/openase-cli.rs` ([cli.md](../cli.md)) and
+the developer tools in `rust/examples/` use the library only.
 
 ## Layers
 
@@ -12,7 +12,7 @@ main.rs ──► gui/  (binary only: egui, threads, channels)
                │
                ▼
    services:  settings · rules · launch · detect · lan · geoip · update · i18n · alerts
-              links · instance
+              links · instance · lists
                │
                ▼
    dispatch:  query  ◄── catalog (games.json)
@@ -52,6 +52,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/lan.rs` | service | LAN discovery by UDP broadcast, every protocol that supports it |
 | `rust/src/geoip.rs` | service | DB-IP country database: monthly download, lookup |
 | `rust/src/location.rs` | leaf | Country / region of a server for the Location column |
+| `rust/src/lists.rs` | service | Server lists kept between sessions, one JSON file per game |
 | `rust/src/links.rs` | service | `openase://connect/<game>/<host>:<port>`: `build`, strict `parse` |
 | `rust/src/instance.rs` | service | One running instance: a second one hands its link over localhost TCP |
 | `rust/src/alerts.rs` | service | Slot and party alert decisions (no GUI) |
@@ -75,6 +76,7 @@ queried only on demand ([ADR 0005](adr/0005-333networks-light-lists.md)).
 |---|---|
 | Settings, favorites, friends | `settings.json` in the config folder (`settings::config_dir`: `%APPDATA%\OpenASE`, `~/Library/Application Support/OpenASE`, `$XDG_CONFIG_HOME/OpenASE`, else `~/.config/OpenASE`) |
 | Window, panel and column sizes | eframe persistence |
+| Last list of each game | `lists/<id>.json` in the config folder (written after a completed scan, loaded at start) |
 | GeoIP database | config folder, downloaded monthly from DB-IP |
 | Running instance | `instance.port` in the config folder; listener on `127.0.0.1`, random port |
 | `openase://` scheme | Windows installer (`HKA\Software\Classes\openase`), Linux `.desktop` (`x-scheme-handler/openase`) |

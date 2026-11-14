@@ -26,6 +26,11 @@ All notable changes to OpenASE. Downloads for every version are on the
   the link goes to that window. The Windows installer and the Linux `.desktop` file
   register the scheme (not macOS yet).
 
+- **Lists kept between sessions**: the last complete scan of each game shows at start
+  (ping "—" until a server is selected or the list is refreshed).
+- **`openase-cli`**: `games`, `scan` and `query` without the GUI, with `--json` output
+  (schema 1, see `docs/cli.md`). In the Windows zip and the Linux tar.gz.
+
 ### Fixes
 - A mod name sent by a server that starts with `-` or `.` is no longer passed to the game.
 - The Tremulous master list is read: its packets end with a lone `\` instead of `\EOT`.

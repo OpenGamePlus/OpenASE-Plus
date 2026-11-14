@@ -16,7 +16,7 @@ Python browser by the same maintainer. In priority order:
 3. [x] Alerts: a slot frees up on a full server, a match is filling up
 4. [x] "Playing now": one list of busy servers across all games
 5. [x] `openase://connect/<game>/<host>:<port>` links, handed to the running instance (Windows, Linux); favorites export and import were already there (File > Export user profile, Save server list)
-6. [ ] Server lists kept between sessions; command-line tool with JSON output
+6. [x] Server lists kept between sessions; command-line tool with JSON output (`openase-cli`)
 7. [ ] RCON, map images, system tray, themes
 
 Later, to be decided: integration with the other OpenGamePlus projects

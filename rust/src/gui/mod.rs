@@ -185,6 +185,8 @@ pub enum Msg {
     },
     /// Saved servers to move from a game port to their query port.
     PortFixes(Vec<(ServerRef, ServerRef)>),
+    /// Lists saved by an earlier session (`openase::lists`).
+    SavedLists(Vec<(String, Vec<Server>)>),
     /// An `openase://` link, from the command line or a second instance.
     Link(String),
     /// Answer of a server with a slot or party alert.
@@ -206,6 +208,8 @@ struct Scan {
     done: Arc<AtomicUsize>,
     total: usize,
     label: String,
+    /// Games whose whole list this scan fetched: saved when it completes.
+    games: Vec<String>,
 }
 
 /// Pages loaded of a game's 333networks list.
@@ -298,6 +302,12 @@ impl OpenAseApp {
         if let Some(url) = link {
             let _ = tx.send(Msg::Link(url));
         }
+        let (lists_tx, lists_ctx) = (tx.clone(), cc.egui_ctx.clone());
+        std::thread::spawn(move || {
+            let lists = openase::lists::load_all(&openase::lists::dir());
+            let _ = lists_tx.send(Msg::SavedLists(lists));
+            lists_ctx.request_repaint();
+        });
         let mut settings = Settings::load();
         i18n::set_language(settings.language);
         apply_palette(&cc.egui_ctx, &settings.colors);
@@ -538,6 +548,23 @@ impl OpenAseApp {
         });
     }
 
+    /// Keep the lists of a completed scan for the next session (off the UI
+    /// thread: a Steam list is megabytes).
+    fn save_lists(&self, games: Vec<String>) {
+        let lists: Vec<(String, Vec<Server>)> = games
+            .into_iter()
+            .filter_map(|game| Some((game.clone(), self.store.get(&game)?.clone())))
+            .collect();
+        if lists.is_empty() {
+            return;
+        }
+        std::thread::spawn(move || {
+            for (game, servers) in lists {
+                let _ = openase::lists::save(&openase::lists::dir(), &game, &servers);
+            }
+        });
+    }
+
     /// Show the server of an `openase://` link and ask before joining.
     fn open_link(&mut self, ctx: &egui::Context, url: &str) {
         let Some((game, address)) = openase::links::parse(url) else {
@@ -651,6 +678,7 @@ impl OpenAseApp {
             done: done.clone(),
             total: 0,
             label,
+            games: Vec::new(),
         });
         (self.generation, stop, done)
     }
@@ -680,6 +708,9 @@ impl OpenAseApp {
     /// Fetch the master lists of `games` in parallel, then query their servers.
     fn scan_games(&mut self, ctx: &egui::Context, games: Vec<&'static Game>, label: String) {
         let (generation, stop, done) = self.start_scan(label);
+        if let Some(scan) = &mut self.scan {
+            scan.games = games.iter().map(|game| game.id.clone()).collect();
+        }
         let tx = self.tx.clone();
         let ctx = ctx.clone();
         let network = self.settings.network.clone();
@@ -930,7 +961,11 @@ impl OpenAseApp {
                         .scan
                         .as_ref()
                         .is_some_and(|scan| scan.stop.load(Ordering::Relaxed));
-                    self.scan = None;
+                    if let Some(scan) = self.scan.take()
+                        && !stopped
+                    {
+                        self.save_lists(scan.games);
+                    }
                     self.status = if stopped {
                         tr("Scan stopped").to_string()
                     } else {
@@ -983,6 +1018,17 @@ impl OpenAseApp {
                     }
                 },
                 Msg::Link(url) => self.open_link(ctx, &url),
+                Msg::SavedLists(lists) => {
+                    // A list scanned meanwhile is newer: keep it.
+                    for (game, mut rows) in lists {
+                        if !self.store.contains_key(&game) {
+                            for server in &mut rows {
+                                annotate(self.geoip.as_deref(), server);
+                            }
+                            self.store.insert(game, rows);
+                        }
+                    }
+                }
                 Msg::Watched(server) => self.upsert(server),
                 Msg::WatchDone => self.watch_in_flight = false,
                 Msg::Resolved {
@@ -1042,7 +1088,7 @@ impl OpenAseApp {
                 .store
                 .values()
                 .flatten()
-                .filter(|server| server.has_info() && alerts::humans(server) > 0)
+                .filter(|server| server.has_info() && !server.saved && alerts::humans(server) > 0)
                 .collect(),
             Nav::FriendGroup(group) => {
                 let keys: Vec<&ServerKey> = self
@@ -1928,11 +1974,12 @@ impl OpenAseApp {
                     nav == Nav::Special(Special::Lan) && self.lan_servers.is_empty();
                 // First visit: scan the ready games that have no list yet.
                 let playing_first_visit = nav == Nav::Special(Special::Playing)
-                    && self
-                        .settings
-                        .ready_games()
-                        .iter()
-                        .any(|game| !self.store.contains_key(&game.id));
+                    && self.settings.ready_games().iter().any(|game| {
+                        !self
+                            .store
+                            .get(&game.id)
+                            .is_some_and(|list| list.iter().any(|s| !s.saved))
+                    });
                 self.nav = nav;
                 if lan_first_visit {
                     self.scan_lan(ui.ctx());

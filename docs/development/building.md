@@ -22,6 +22,7 @@ All from `rust/`:
 | List game ids | `cargo run --example scan -- list` |
 | Scan one game live | `cargo run --example scan -- <id> 20` |
 | Query one server live | `cargo run --example query -- <id> host:port` |
+| Command-line tool | `cargo run --bin openase-cli -- games` ([cli.md](../cli.md)) |
 
 Steam games need `STEAM_API_KEY` in the environment for the examples.
 

@@ -23,7 +23,8 @@ packaging/           Inno Setup, Scoop, winget generator
 
 | Binary | Source | Use |
 |---|---|---|
-| `openase` | `rust/src/main.rs` | The GUI |
+| `openase` | `rust/src/main.rs` | The GUI (`default-run`) |
+| `openase-cli` | `rust/src/bin/openase-cli.rs` | `games`, `scan`, `query`, `--json` ([cli.md](../cli.md)) |
 | `scan` example | `rust/examples/scan.rs` | Masters + queries of one game, printed |
 | `query` example | `rust/examples/query.rs` | One server, everything printed |
 
@@ -39,6 +40,7 @@ packaging/           Inno Setup, Scoop, winget generator
 | Join / detection | Templates for every game; registry + disk Auto-Search |
 | Alerts | Free slot on a full server (one watch, 10 s polls, 30 min max); match filling up to N humans (saved thresholds, 60 s polls) |
 | Links | `openase://connect/<game>/<host>:<port>`: confirm before joining, handed to the running instance; registered by the Windows installer and the Linux `.desktop`; not on macOS |
+| Saved lists | Last completed scan per game, shown at start as listed rows (no ping, `saved`), queried on demand |
 | GeoIP | DB-IP country database, monthly download |
 | i18n | English, French |
 | Update check | Points at upstream releases (debt R2) |
@@ -56,4 +58,5 @@ packaging/           Inno Setup, Scoop, winget generator
 | `games.json` `id` | Stored in user settings: never renamed |
 | `settings.json` | Serde with `#[serde(default)]`: new fields need defaults; old files must load |
 | `openase://` link | `connect/<game id>/<IPv4 or host name>:<port>`; game ids are stable, so links stay valid |
+| `openase-cli` JSON, saved lists | schema 1; a server is the serde form of `model::Server` ([cli.md](../cli.md)) |
 | Library API | Used by the GUI and the examples only; no stability promise outside the repo |

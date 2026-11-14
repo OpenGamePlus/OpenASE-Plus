@@ -2,8 +2,11 @@
 
 use std::collections::BTreeMap;
 
+use serde::{Deserialize, Serialize};
+
 /// One player on a server.
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Player {
     pub name: String,
     pub score: i32,
@@ -12,8 +15,10 @@ pub struct Player {
     pub time_secs: Option<u32>,
 }
 
-/// One game server, normalized across protocols.
-#[derive(Debug, Clone, Default)]
+/// One game server, normalized across protocols. Its JSON form is the
+/// `openase-cli` contract and the saved-list format (docs/cli.md).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Server {
     /// Catalog id of the game (`q3`, `cod2`, `ut99`...).
     pub game: String,
@@ -29,6 +34,10 @@ pub struct Server {
     /// player counts and country come from the list, ping is unknown.
     /// Such a server is queried only on demand.
     pub listed: bool,
+    /// Loaded from the saved list of an earlier session: the details are old,
+    /// so the row is never taken as live (alerts, Playing now).
+    #[serde(skip)]
+    pub saved: bool,
     pub error: Option<String>,
 
     /// Raw server name, possibly with Quake color codes.
