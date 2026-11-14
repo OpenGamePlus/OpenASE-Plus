@@ -1,20 +1,24 @@
 [package]
 name = "openase"
-version = "0.9.6"
-authors = ["Thomas Sautier"]
+version = "1.0.0"
+authors = ["Thomas Sautier", "OpenGamePlus contributors"]
 edition = "2024"
 rust-version = "1.88"
-description = "Open-source game server browser inspired by The All-Seeing Eye"
+description = "OpenASE-Plus: open-source game server browser inspired by The All-Seeing Eye (fork of OpenASE)"
 license = "GPL-3.0-or-later"
-repository = "https://github.com/tsautier/OpenASE"
-# The GUI; `cargo run --bin openase-cli` runs the command-line tool.
-default-run = "openase"
+repository = "https://github.com/OpenGamePlus/OpenASE-Plus"
+# The GUI (OpenASEplus.exe); `cargo run --bin openase-cli` runs the command-line tool.
+default-run = "OpenASEplus"
+
+[[bin]]
+name = "OpenASEplus"
+path = "src/main.rs"
 
 [dependencies]
 eframe = { version = "0.37.0", features = ["persistence"] }
 egui_extras = "0.37.0"
 flate2 = "1.1.11"
-image = { version = "0.25", default-features = false, features = ["jpeg", "tga", "png"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "tga", "png", "ico"] }
 regex = "1.13.1"
 rfd = "0.17.2"
 serde = { version = "1.0.229", features = ["derive"] }

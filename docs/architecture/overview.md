@@ -12,7 +12,7 @@ main.rs ──► gui/  (binary only: egui, threads, channels)
                │
                ▼
    services:  settings · rules · launch · detect · lan · geoip · update · i18n · alerts
-              links · instance · lists · rcon · maps
+              links · instance · lists · rcon · maps · exe_icon
                │
                ▼
    dispatch:  query  ◄── catalog (games.json)
@@ -32,7 +32,11 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | Module | Layer | Role |
 |---|---|---|
 | `rust/src/main.rs` | binary | Window options, starts `gui::OpenAseApp` |
-| `rust/src/gui/mod.rs` | binary | App state, main window (tree, list, panes), worker threads, `Msg` channel |
+| `rust/src/gui/mod.rs` | binary | App state, `Msg` channel, actions, menus and toolbar, style and palette |
+| `rust/src/gui/scan.rs` | binary | Scans (masters, LAN, single servers), worker threads, message handling |
+| `rust/src/gui/list.rs` | binary | Server list: filtering, sorting, the table |
+| `rust/src/gui/tree.rs` | binary | Navigation tree |
+| `rust/src/gui/panes.rs` | binary | Bottom panes (friends, players, rules), status bar |
 | `rust/src/gui/dialogs.rs` | binary | Options dialog (tabs), Find player, Add server |
 | `rust/src/gui/extra.rs` | binary | First-run wizard, friends, import list, custom filter editor, About |
 | `rust/src/gui/icons.rs` | binary | Toolbar and tree icons painted by hand, game badges |
@@ -52,6 +56,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/lan.rs` | service | LAN discovery by UDP broadcast, every protocol that supports it |
 | `rust/src/geoip.rs` | service | DB-IP country database: monthly download, lookup |
 | `rust/src/location.rs` | leaf | Country / region of a server for the Location column |
+| `rust/src/exe_icon.rs` | service | Icon of a Windows executable from its PE resources (any OS) |
 | `rust/src/maps.rs` | service | Levelshots from a game's `.pk3` files ([ADR 0007](adr/0007-map-images-from-local-files.md)) |
 | `rust/src/rcon.rs` | service | RCON: Quake (UDP), GoldSrc (UDP + challenge), Source (TCP) |
 | `rust/src/lists.rs` | service | Server lists kept between sessions, one JSON file per game |
@@ -59,7 +64,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/instance.rs` | service | One running instance: a second one hands its link over localhost TCP |
 | `rust/src/alerts.rs` | service | Slot and party alert decisions (no GUI) |
 | `rust/src/update.rs` | service | Update check against GitHub Releases |
-| `rust/src/i18n.rs` | service | English and French texts: `tr`, `fill`, `noop` |
+| `rust/src/i18n.rs` | service | `tr`, `fill`, `noop`; English source, tables in `rust/src/locales/` (fr, es, pt, it, de, ru) |
 
 ## Data flow of a scan
 
@@ -76,7 +81,7 @@ queried only on demand ([ADR 0005](adr/0005-333networks-light-lists.md)).
 
 | What | Where |
 |---|---|
-| Settings, favorites, friends | `settings.json` in the config folder (`settings::config_dir`: `%APPDATA%\OpenASE`, `~/Library/Application Support/OpenASE`, `$XDG_CONFIG_HOME/OpenASE`, else `~/.config/OpenASE`) |
+| Settings, favorites, friends | `settings.json` in the config folder (`settings::config_dir`: `%APPDATA%\OpenASE-Plus`, `~/Library/Application Support/OpenASE-Plus`, `$XDG_CONFIG_HOME/OpenASE-Plus`, else `~/.config/OpenASE-Plus`; upstream OpenASE's `settings.json` is copied in once by `settings::import_upstream`) |
 | Window, panel and column sizes | eframe persistence |
 | Last list of each game | `lists/<id>.json` in the config folder (written after a completed scan, loaded at start) |
 | GeoIP database | config folder, downloaded monthly from DB-IP |

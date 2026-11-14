@@ -15,7 +15,7 @@ Technical docs: `docs/README.md`.
 - No network, DNS, disk search or process wait on the UI thread; scan results carry their `generation`.
 - A game on a supported protocol is a `rust/src/games.json` entry; never rename a game `id`.
 - Server and master text is untrusted: plain text only, validated before it reaches a command line, never through a shell.
-- Every visible string through `tr` / `fill` / `noop` with a French entry in `rust/src/i18n.rs`.
+- Every visible string through `tr` / `fill` / `noop`, with a line in each `rust/src/locales/*.tsv` (fr, es, pt, it, de, ru).
 - Tests offline (captured packets). Never commit ASE files, game assets or `docs/superpowers/` (local notes).
 - Be gentle with community masters: no bulk queries of 333networks-listed servers.
 

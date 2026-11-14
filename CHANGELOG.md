@@ -1,9 +1,35 @@
 # Changelog
 
-All notable changes to OpenASE. Downloads for every version are on the
-[releases page](https://github.com/tsautier/OpenASE/releases).
+All notable changes to OpenASE-Plus, and before 1.0.0 to OpenASE. Downloads
+are on the [OpenASE-Plus releases page](https://github.com/OpenGamePlus/OpenASE-Plus/releases);
+versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases).
 
-## Unreleased
+## 1.0.0 — 2026-11-14 (first OpenASE-Plus release)
+
+### Identity
+- **OpenASE-Plus**, a fork of OpenASE 0.9.6 by Thomas Sautier. It installs next to
+  OpenASE (own installer id, `OpenASEplus.exe`, `openase-plus` on Linux) and keeps its
+  settings in an `OpenASE-Plus` folder; OpenASE's settings are imported on first start.
+- New icon: a neon cyan eye in a triangle in a circle, after JASE's colors
+  (`scripts/make_icon.sh`; a bolder variant at 16 and 24 px).
+- Update check, links, packages and the 333networks User-Agent point at
+  github.com/OpenGamePlus/OpenASE-Plus.
+
+### Auto-Search
+- Auto-Search first asks where to look: tick drives and usual folders, or add a folder;
+  the choice is remembered. Searching one drive instead of all of them is much faster.
+- **Search all games...** (Options > Games) finds every installed game in one pass and
+  lists them; sure matches are ticked, and "Apply" sets their program locations. A
+  program shared by several games (hl2.exe) is ticked only when its folder names the game.
+
+### Languages
+- **Spanish, Portuguese (Brazil), Italian, German and Russian** join English and French.
+  Options > General > Language; "System" follows the operating system. Translations
+  live in `rust/src/locales/*.tsv`.
+
+### Game icons
+- Games show the icon of their installed executable; the others a two-letter badge in the
+  game's color, as in JASE.
 
 ### New games
 - Xonotic, Warsow, Warfork, Tremulous and Smokin' Guns (Quake 3 protocol).
@@ -41,7 +67,7 @@ All notable changes to OpenASE. Downloads for every version are on the
 - **Map images**: the levelshot of the selected server's map, read from your installed
   game's `.pk3` files (Quake 3 engine games). Nothing is downloaded.
 
-- **Country flags** in Location, **ping colors** (good, medium, bad), an **occupancy bar**
+- **Country flags** in Location (the country shows on hover), **ping colors** (good, medium, bad), an **occupancy bar**
   in Players, always-visible scroll bars and framed panels. Flags from flag-icons (MIT).
 
 - **Installed games only** at the top of the tree, server counts next to each game, and a
@@ -51,6 +77,16 @@ All notable changes to OpenASE. Downloads for every version are on the
   draws thin, pixel-exact sunken frames.
 
 ### Fixes
+- The panels no longer show thick dark borders: the gaps between them took the window's
+  near-black clear color. Edges are one pixel wide in every theme.
+- Yellow and cyan Quake color codes are darkened on light themes, and control characters
+  in server names no longer show as boxes.
+- The server list stays responsive with thousands of servers: rows are filtered and
+  sorted once per frame, with sort keys built once per row.
+- Settings are saved atomically; an unreadable settings file is kept as `settings.json.bad`
+  instead of being overwritten.
+- Imported server lists ignore host names that are not valid (such as ones starting with `-`).
+- A server that keeps sending unexpected packets can no longer stall a scan.
 - Columns of the Friends, Players and Rules panes can no longer be widened past the
   pane, where their handle could not be reached again.
 - The US flag (and other flags drawn with stroked lines) shows its stripes.

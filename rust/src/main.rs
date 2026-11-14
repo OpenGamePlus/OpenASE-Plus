@@ -19,13 +19,13 @@ fn main() -> eframe::Result {
     }
     let options = eframe::NativeOptions {
         viewport: viewport
-            .with_title("OpenASE")
+            .with_title("OpenASE-Plus")
             .with_inner_size([1280.0, 760.0])
             .with_min_inner_size([960.0, 560.0]),
         ..Default::default()
     };
     eframe::run_native(
-        "OpenASE",
+        "OpenASE-Plus",
         options,
         Box::new(|cc| Ok(Box::new(gui::OpenAseApp::new(cc, link)))),
     )

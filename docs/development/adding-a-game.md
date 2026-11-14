@@ -33,7 +33,8 @@ Copy an entry of the same protocol. Quake 3, shortened:
 | Field | Req. | Meaning |
 |---|---|---|
 | `id` | yes | Unique, lowercase; stored in settings and used by `scan -- <id>`: never rename |
-| `name`, `short`, `color` | yes | Tree name, list badge, badge color `#rrggbb` (a test parses it) |
+| `name`, `short`, `color` | yes | Tree name, short name, icon color `#rrggbb` (a test parses it) |
+| `badge` | no | Two letters of the game icon when the game is not installed (JASE's badges: `C2`, `Q3`); unique per game |
 | `protocol`, `default_port` | yes | Query protocol; port when an address has none |
 | `masters` | yes | List of masters (may be `[]`); queried in parallel, merged |
 | `steam_appid` | no | Steam app id (`cs16`: `10`); joins through `steam://connect` when no program is set |
@@ -57,9 +58,9 @@ splitting: `rust/src/launch.rs`.
 ## Interface texts
 
 Visible GUI strings: `tr("English")`; with values one whole-sentence entry with `{}` placeholders, `fill(&tr("... {} ..."), &[&v])`;
-in constants `noop("...")`, translated where shown. Each needs a French entry
-in `rust/src/i18n.rs`; `rust/tests/i18n.rs` fails otherwise. Language names
-are not translated.
+in constants `noop("...")`, translated where shown. Each needs a line `English<TAB>translation` in every
+`rust/src/locales/*.tsv` (fr, es, pt, it, de, ru; `\t`, `\n`, `\\` escapes);
+`rust/tests/i18n.rs` fails otherwise. Language names are not translated.
 
 ## Check
 

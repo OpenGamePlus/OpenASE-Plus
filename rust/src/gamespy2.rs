@@ -19,7 +19,6 @@
 
 use std::collections::BTreeMap;
 use std::io;
-use std::net::UdpSocket;
 use std::time::{Duration, Instant};
 
 use crate::model::{Player, Server, parse_count};
@@ -349,16 +348,9 @@ pub fn server_from_response(game: &str, host: &str, port: u16, response: Respons
     server
 }
 
-fn connect(host: &str, port: u16, timeout: Duration) -> io::Result<UdpSocket> {
-    let socket = UdpSocket::bind("0.0.0.0:0")?;
-    socket.set_read_timeout(Some(timeout))?;
-    socket.connect((host, port))?;
-    Ok(socket)
-}
-
 /// Query a version 2 server. Returns the answer and the round-trip time.
 pub fn query_v2(host: &str, port: u16, timeout: Duration) -> io::Result<(Response, Duration)> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&v2_request())?;
     let mut buffer = [0u8; 8192];
@@ -379,7 +371,7 @@ pub fn query_v2(host: &str, port: u16, timeout: Duration) -> io::Result<(Respons
 
 /// Measure the round-trip time of a version 2 rules-only request.
 pub fn ping_v2(host: &str, port: u16, timeout: Duration) -> io::Result<Duration> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&v2_info_request())?;
     let mut buffer = [0u8; 8192];
@@ -394,7 +386,7 @@ pub fn ping_v2(host: &str, port: u16, timeout: Duration) -> io::Result<Duration>
 /// get the challenged query right after. Returns the merged answer and the
 /// round-trip time of the first reply.
 pub fn query_v3(host: &str, port: u16, timeout: Duration) -> io::Result<(Response, Duration)> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&v3_request(None))?;
     socket.send(&v3_challenge_request())?;
@@ -453,7 +445,7 @@ pub fn is_complete(packets: &[V3Packet]) -> bool {
 /// Measure the round-trip time to a version 3 server (first reply to a
 /// rules-only query or to a challenge request).
 pub fn ping_v3(host: &str, port: u16, timeout: Duration) -> io::Result<Duration> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     let mut info = vec![0xfe, 0xfd, 0x00];
     info.extend_from_slice(&REQUEST_ID);

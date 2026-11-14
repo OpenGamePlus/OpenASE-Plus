@@ -25,7 +25,7 @@
 
 use std::collections::BTreeMap;
 use std::io;
-use std::net::{ToSocketAddrs, UdpSocket};
+use std::net::UdpSocket;
 use std::time::{Duration, Instant};
 
 use crate::model::{Player, Server, parse_count};
@@ -150,26 +150,11 @@ pub fn server_from_fields(
     server
 }
 
-fn connect(host: &str, port: u16, timeout: Duration) -> io::Result<UdpSocket> {
-    let target = (host, port)
-        .to_socket_addrs()?
-        .find(|address| address.is_ipv4())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("no IPv4 address for {host}"),
-            )
-        })?;
-    let socket = UdpSocket::bind("0.0.0.0:0")?;
-    socket.set_read_timeout(Some(timeout))?;
-    socket.connect(target)?;
-    Ok(socket)
-}
-
 /// Receive until an answer to our request arrives, ignoring stray packets.
-fn receive(socket: &UdpSocket) -> io::Result<Vec<u8>> {
+fn receive(socket: &UdpSocket, started: Instant, timeout: Duration) -> io::Result<Vec<u8>> {
     let mut buffer = [0u8; 4096];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if is_answer(&buffer[..size]) {
             return Ok(buffer[..size].to_vec());
@@ -184,10 +169,10 @@ pub fn status(
     port: u16,
     timeout: Duration,
 ) -> io::Result<(Server, Duration)> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&REQUEST_PLAYERS)?;
-    let packet = receive(&socket)?;
+    let packet = receive(&socket, started, timeout)?;
     let rtt = started.elapsed();
     let fields = parse_fields(&packet)?;
     Ok((server_from_fields(game, host, port, fields), rtt))
@@ -195,10 +180,10 @@ pub fn status(
 
 /// Round-trip time of the short info request.
 pub fn ping(host: &str, port: u16, timeout: Duration) -> io::Result<Duration> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&REQUEST_INFO)?;
-    receive(&socket)?;
+    receive(&socket, started, timeout)?;
     Ok(started.elapsed())
 }
 

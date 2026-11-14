@@ -67,8 +67,7 @@ impl PartyTracker {
 /// Watching one full server for a free slot.
 #[derive(Debug, Clone)]
 pub struct SlotWatch {
-    /// [`crate::settings::ServerRef::key`] of the watched server.
-    pub key: String,
+    pub server: crate::settings::ServerRef,
     started: Instant,
     last_query: Option<Instant>,
 }
@@ -77,9 +76,9 @@ impl SlotWatch {
     pub const INTERVAL: Duration = Duration::from_secs(10);
     pub const MAX_WATCH: Duration = Duration::from_secs(30 * 60);
 
-    pub fn new(key: String, now: Instant) -> Self {
+    pub fn new(server: crate::settings::ServerRef, now: Instant) -> Self {
         SlotWatch {
-            key,
+            server,
             started: now,
             last_query: None,
         }

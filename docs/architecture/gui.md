@@ -32,12 +32,13 @@ shows every loaded server with at least one human; F5 or a first visit scans
 | Refresh favorites / visible / list | `start_scan` callers | `Server`*, `ScanDone` |
 | One server | `query_single` | `Single` |
 | Next 333networks page | Load more | `MorePage` |
-| LAN, GeoIP, update check, Auto-Search | menus, first frame | `Lan`, `GeoIp`, `Update`, `Search*` |
+| LAN, GeoIP, update check, Auto-Search | menus, first frame (Auto-Search after its "where to look" step, `search_places`; choice in `Settings::search_roots`); "Search all games..." walks once for every game (`detect::search_all`, `detect::owners`) | `Lan`, `GeoIp`, `Update`, `Search*`, `SearchHit` |
 | Saved Unreal servers moved to their query port | startup (`extra.rs`) | `PortFixes` |
 | Add server / Import list query-port check | `resolve_in_background` | `Resolved` |
 | Slot watch (every 10 s, 30 min max) and party alerts (every 60 s) | `watch_tick`, each frame | `Watched`*, `WatchDone` |
 | Friend sound | friend found | none (waits for the player process) |
 | Saved lists: load at start, save after a completed game scan | `OpenAseApp::new`, `save_lists` | `SavedLists` |
+| Executable icons of configured games (once per path) | `request_exe_icons`, each frame | `ExeIcon` |
 | Map image of the selected server (once per game and map) | `request_map_image`, each frame | `MapImage` |
 | RCON command | `send_rcon` (console window, right-click > RCON console) | `Rcon` |
 | `openase://` links from a second instance | `instance::listen` in `OpenAseApp::new` | `Link` (also sent once for a link on the command line) |
@@ -47,7 +48,9 @@ queue and checks the stop flag between servers.
 
 ## List cells
 
-Location draws the server's country flag from `rust/assets/flags.png` (a
+Location draws only the server's country flag (country or location as a
+hover tooltip; text when there is no flag). The icon column shows the lock,
+then the game icon, then the favorite star. Location draws the server's country flag from `rust/assets/flags.png` (a
 40x30-per-flag atlas drawn at 20x15 with mipmaps, built by
 `scripts/make_flag_atlas.sh` from flag-icons, MIT, which rewrites straight
 stroked lines as rectangles for ImageMagick; codes in `rust/assets/flags.txt`)
@@ -64,6 +67,13 @@ list installed games only (`FilterSettings::installed_only`). Bottom pane
 columns are capped below the pane width, so a resize handle never leaves the
 screen.
 
+## Game icons
+
+`icons::game_icon` draws the icon of the game's configured executable
+(`exe_icon.rs`, 32 px image preferred) or, without one, JASE's badge: the
+catalog `badge` letters in white on the game's color, in a rounded square.
+Used in the tree and the list's icon column.
+
 ## Alerts
 
 Decisions live in `rust/src/alerts.rs` (`has_free_slot`, `PartyTracker`,
@@ -76,7 +86,11 @@ context menu.
 
 | File | Holds |
 |---|---|
-| `src/gui/mod.rs` | `OpenAseApp`, `Msg`, columns (`Col`), main window, workers, style and palette |
+| `src/gui/mod.rs` | `OpenAseApp`, `Msg`, columns (`Col`), actions, menus, toolbar, style and palette |
+| `src/gui/scan.rs` | Scans, worker threads (`run_queries`), `drain_messages` |
+| `src/gui/list.rs` | `candidates`, `filtered_rows`, `sorted`, the server table, sort keys |
+| `src/gui/tree.rs` | The tree and `tree_row` |
+| `src/gui/panes.rs` | Friends, players and rules panes, status bar |
 | `src/gui/dialogs.rs` | Options (General, Network, Events, Games, Toolbar, Colors), Find player, Add server, notices |
 | `src/gui/extra.rs` | Setup wizard, Add friend, Import list, filter editor, About / license |
 | `src/gui/icons.rs` | Painted toolbar and tree icons, badges, lock, sort arrows |

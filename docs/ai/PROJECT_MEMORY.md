@@ -3,6 +3,53 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — 1.0.0 release
+- README rewritten in the OpenGamePlus family layout: `docs/banner.svg` (the app icon as emblem), badges, tagline, screenshots, "What works today" for players and server admins, NOTE / IMPORTANT callouts.
+- CHANGELOG 1.0.0 dated; `plus-identity` merged into `main` and tagged `v1.0.0`, which runs the release workflow.
+- Not done: translated READMEs (siblings have them; English only here), the upstream website `docs/index.html`, winget / Scoop hashes (filled by hand after the release).
+
+## 2026-11-14 — exe name, visual polish, own screenshots
+- The GUI binary is `OpenASEplus` (`OpenASEplus.exe`, explicit `[[bin]]`); Windows zip, installer and Scoop ship that name, Linux and macOS packages keep theirs.
+- The thick dark borders were eframe's near-black clear color showing in the gaps between boxes: `clear_color` now returns the panel fill; box edges are 1 px on whole pixels in every theme; light Quake colors darkened on light themes; control characters (`\x07`) removed from colored names.
+- README screenshots are our own (`docs/screenshots/`, taken under WSLg); `docs/screenshot.png` stays only for the upstream `docs/index.html`, still undecided.
+
+## 2026-11-14 — GUI per-frame work and module split
+- Per-frame work cut: `catalog::game` is a map lookup, `Settings::game_ref` reads without cloning, filter groups resolve once, text columns sort with keys built once per row, the status bar counts without sorting, countries are listed only while their combo is open.
+- `SlotWatch` holds a `ServerRef`; `ServerRef::from_key` is the one inverse of `ServerRef::key` (party alert keys stay strings as JSON map keys).
+- `gui/mod.rs` (3781 lines) split by job into `scan.rs`, `list.rs`, `tree.rs`, `panes.rs`, no behavior change; not profiled, costs counted from the code.
+
+## 2026-11-14 — audit fixes
+- Ponytail audit: settings saved atomically with unreadable files kept as `.bad`; `quake3::give_up` (2 × timeout) and `MAX_PACKETS` on 11 receive loops; imported hosts validated by `links::valid_host` (keeping the dot-and-letter rule for scanned text); `ready_games` needs the program file; one `quake3::udp_connect`; French-only i18n helpers and per-frame clones removed.
+- Rulings: gamespy2 already had deadlines (11 loops, not 14); gamespy2 now picks IPv4 like the rest.
+- Open: nothing from the audit; system tray and macOS links remain as before.
+
+## 2026-11-14 — readable tree, flag-only Location
+- The tree text stayed dark on dark themes because `tree_row` laid labels out in a fixed black, so the painter's color was ignored; now `Color32::PLACEHOLDER`, white (`strong_text_color`) on dark themes.
+- Location shows the flag only with a hover tooltip (40 px column); the lock now comes before the game icon.
+
+## 2026-11-14 — Search all games
+- One disk walk for all exe names (`detect::search_all`); `detect::owners` marks a hit sure when the exe is one game's or the game's registry folder is in the path (hl2.exe under "Counter-Strike Source"); hl.exe goes to all eight GoldSrc games, which is right. Results: checklist, one per game, "Apply" writes the Options draft.
+- The i18n scanner missed `tr(` calls split by rustfmt (trailing comma); fixed, no hidden missing text found.
+
+## 2026-11-14 — Auto-Search asks where to look
+- User request: Auto-Search started on C: and crawled every drive. It now opens on a checklist of `detect::search_roots()` plus added folders (rfd), remembered in `Settings::search_roots`; registry lookup and disk walk start with "Search".
+
+## 2026-11-14 — five more languages
+- i18n moved from a French `match` to one TSV table per language (`rust/src/locales/`, embedded, parsed once); fr migrated by script, es/pt/it/de/ru translated by five parallel agents with shared rules; Spanish uses "cupo" (as in JASE). Tests now require every source text in every table, same `{}` and shortcuts.
+- System language detection covers the six languages (Windows LANGID, LC_*/LANG). egui's Ubuntu font has Cyrillic.
+- Open: no native-speaker review; some strings may be too long for their widgets.
+
+## 2026-11-14 — new app icon
+- The user chose a neon cyan Eye of Providence (eye, inscribed triangle, circle) on JASE's dark background, from a stock reference redrawn from scratch (generic symbol, no copying). Drawn with ImageMagick primitives in `scripts/make_icon.sh` (its SVG renderer is unreliable); 16 and 24 px use a bolder variant without the circle.
+
+## 2026-11-14 — game icons
+- `exe_icon.rs`: bounds-checked PE resource reader (RT_GROUP_ICON -> best RT_ICON -> one-image .ico, decoded by `image` with the `ico` feature); tested on a synthetic PE and checked on real CoD2, OpenCoD2-Plus, notepad and explorer executables.
+- Not-installed games: JASE badges, new unique two-letter `badge` field for all 80 games (JASE's letters where ids match). The old rectangular `short` badge is gone.
+
+## 2026-11-14 — fork identity for 1.0.0
+- User's choices: name OpenASE-Plus, version 1.0.0, own config folder importing OpenASE's settings.json once, links to the GitHub repo. New installer `AppId` (BE92ED7C-...; also the winget ProductCode), packages `OpenASE-Plus-*`, `OpenASE-Plus.exe`, `openase-plus`, `io.github.opengameplus.openase-plus`.
+- Kept Thomas Sautier's copyright next to the fork's (GPL), the Cargo binary names (`openase`, `openase-cli`) and the `openase://` scheme. Removed the CNAME file of docs/ and upstream's 0.9.1 winget manifests.
+
 ## 2026-11-14 — JASE look for non-Classic themes, filter bar
 - Rule agreed with the user: Classic keeps ASE's look; other themes follow JASE (24 px rows, centered headers, no stripes). Filter bar under the tree reuses `FilterSettings`.
 - Thick GoldSrc frames came from the frame stroke doubling the bevel and from half-pixel lines; bevels are now one-pixel rects on whole pixels (`icons::edges`), no stroke when a bevel exists, softer light edge on boxes.

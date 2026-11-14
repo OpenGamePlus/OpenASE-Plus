@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag such as v0.7.0 to build OpenASE for Windows, Linux and macOS and
+# Push a tag such as v0.7.0 to build OpenASE-Plus for Windows, Linux and macOS and
 # publish a GitHub release with the three packages attached. Run it by hand
 # with a tag name to (re)build the packages of an existing release.
 on:
@@ -37,16 +37,16 @@ jobs:
         working-directory: rust
         run: cargo build --release
       # Code signing is not set up yet (no certificate). To add it, sign
-      # rust/target/release/openase.exe here, before it is zipped and wrapped
+      # rust/target/release/OpenASEplus.exe here, before it is zipped and wrapped
       # in the installer. SignPath is free for open source projects:
       # https://signpath.org/ (use the signpath/github-action-submit-signing-request
       # action, or call signtool). Keep the exe unsigned until then.
       - name: Package zip
         shell: pwsh
         run: |
-          $name = "OpenASE-$env:TAG-windows-x64"
+          $name = "OpenASE-Plus-$env:TAG-windows-x64"
           New-Item -ItemType Directory $name | Out-Null
-          Copy-Item rust/target/release/openase.exe "$name/OpenASE.exe"
+          Copy-Item rust/target/release/OpenASEplus.exe "$name/OpenASEplus.exe"
           Copy-Item rust/target/release/openase-cli.exe "$name/openase-cli.exe"
           Copy-Item LICENSE, README.md, rust/assets/flags-LICENSE.txt $name
           Compress-Archive -Path $name -DestinationPath "$name.zip"
@@ -58,16 +58,16 @@ jobs:
           if (-not (Test-Path $iscc)) {
             choco install innosetup -y --no-progress
           }
-          & $iscc "/DAppVersion=$($env:TAG.TrimStart('v'))" "/DOutputName=OpenASE-$env:TAG-windows-x64-setup" "/DOutputDir=$PWD" packaging/windows/openase.iss
+          & $iscc "/DAppVersion=$($env:TAG.TrimStart('v'))" "/DOutputName=OpenASE-Plus-$env:TAG-windows-x64-setup" "/DOutputDir=$PWD" packaging/windows/openase.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
-      # To sign the installer, add a signing step here for OpenASE-*-setup.exe
+      # To sign the installer, add a signing step here for OpenASE-Plus-*-setup.exe
       # (same SignPath setup as above), before it is uploaded.
       - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: |
-            OpenASE-*.zip
-            OpenASE-*-setup.exe
+            OpenASE-Plus-*.zip
+            OpenASE-Plus-*-setup.exe
 
   linux:
     # The oldest supported Ubuntu keeps the glibc requirement low, so the
@@ -90,23 +90,23 @@ jobs:
         run: cargo build --release
       - name: Package
         run: |
-          name="OpenASE-$TAG-linux-x64"
+          name="OpenASE-Plus-$TAG-linux-x64"
           mkdir "$name"
-          cp rust/target/release/openase "$name/openase"
+          cp rust/target/release/OpenASEplus "$name/openase-plus"
           cp rust/target/release/openase-cli "$name/openase-cli"
-          cp rust/assets/icon.png "$name/openase.png"
+          cp rust/assets/icon.png "$name/openase-plus.png"
           cp LICENSE README.md rust/assets/flags-LICENSE.txt "$name/"
-          cat > "$name/openase.desktop" <<'EOF'
+          cat > "$name/openase-plus.desktop" <<'EOF'
           [Desktop Entry]
           Type=Application
-          Name=OpenASE
+          Name=OpenASE-Plus
           Comment=Game server browser in the spirit of The All-Seeing Eye
-          Exec=openase %u
-          Icon=openase
+          Exec=openase-plus %u
+          Icon=openase-plus
           Categories=Game;Network;
           MimeType=x-scheme-handler/openase;
           EOF
-          sed -i 's/^ *//' "$name/openase.desktop"
+          sed -i 's/^ *//' "$name/openase-plus.desktop"
           tar czf "$name.tar.gz" "$name"
       - name: Package AppImage
         env:
@@ -115,33 +115,33 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: "1"
           ARCH: x86_64
         run: |
-          appdir=OpenASE.AppDir
+          appdir=OpenASE-Plus.AppDir
           mkdir -p "$appdir/usr/bin"
-          cp rust/target/release/openase "$appdir/usr/bin/openase"
-          cp rust/assets/icon.png "$appdir/openase.png"
+          cp rust/target/release/OpenASEplus "$appdir/usr/bin/openase-plus"
+          cp rust/assets/icon.png "$appdir/openase-plus.png"
           cp rust/assets/icon.png "$appdir/.DirIcon"
-          cat > "$appdir/openase.desktop" <<'EOF'
+          cat > "$appdir/openase-plus.desktop" <<'EOF'
           [Desktop Entry]
           Type=Application
-          Name=OpenASE
+          Name=OpenASE-Plus
           Comment=Game server browser in the spirit of The All-Seeing Eye
-          Exec=openase %u
-          Icon=openase
+          Exec=openase-plus %u
+          Icon=openase-plus
           Categories=Game;Network;
           MimeType=x-scheme-handler/openase;
           EOF
-          sed -i 's/^ *//' "$appdir/openase.desktop"
-          ln -s usr/bin/openase "$appdir/AppRun"
+          sed -i 's/^ *//' "$appdir/openase-plus.desktop"
+          ln -s usr/bin/openase-plus "$appdir/AppRun"
           curl -fsSL -o appimagetool.AppImage "$APPIMAGETOOL_URL"
           echo "$APPIMAGETOOL_SHA256  appimagetool.AppImage" | sha256sum -c -
           chmod +x appimagetool.AppImage
-          ./appimagetool.AppImage "$appdir" "OpenASE-$TAG-linux-x86_64.AppImage"
+          ./appimagetool.AppImage "$appdir" "OpenASE-Plus-$TAG-linux-x86_64.AppImage"
       - uses: actions/upload-artifact@v7
         with:
           name: linux
           path: |
-            OpenASE-*.tar.gz
-            OpenASE-*.AppImage
+            OpenASE-Plus-*.tar.gz
+            OpenASE-Plus-*.AppImage
 
   macos:
     runs-on: macos-latest
@@ -163,29 +163,29 @@ jobs:
       - name: Package universal app
         run: |
           version="${TAG#v}"
-          app="OpenASE.app"
+          app="OpenASE-Plus.app"
           mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
-          lipo -create -output "$app/Contents/MacOS/OpenASE" \
-            rust/target/aarch64-apple-darwin/release/openase \
-            rust/target/x86_64-apple-darwin/release/openase
-          iconset=OpenASE.iconset
+          lipo -create -output "$app/Contents/MacOS/OpenASE-Plus" \
+            rust/target/aarch64-apple-darwin/release/OpenASEplus \
+            rust/target/x86_64-apple-darwin/release/OpenASEplus
+          iconset=OpenASE-Plus.iconset
           mkdir "$iconset"
           for size in 16 32 128 256 512; do
             sips -z $size $size rust/assets/icon.png --out "$iconset/icon_${size}x${size}.png" >/dev/null
             double=$((size * 2))
             sips -z $double $double rust/assets/icon.png --out "$iconset/icon_${size}x${size}@2x.png" >/dev/null
           done
-          iconutil -c icns "$iconset" -o "$app/Contents/Resources/OpenASE.icns"
+          iconutil -c icns "$iconset" -o "$app/Contents/Resources/OpenASE-Plus.icns"
           cat > "$app/Contents/Info.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-            <key>CFBundleName</key><string>OpenASE</string>
-            <key>CFBundleDisplayName</key><string>OpenASE</string>
-            <key>CFBundleIdentifier</key><string>io.github.tsautier.openase</string>
-            <key>CFBundleExecutable</key><string>OpenASE</string>
-            <key>CFBundleIconFile</key><string>OpenASE</string>
+            <key>CFBundleName</key><string>OpenASE-Plus</string>
+            <key>CFBundleDisplayName</key><string>OpenASE-Plus</string>
+            <key>CFBundleIdentifier</key><string>io.github.opengameplus.openase-plus</string>
+            <key>CFBundleExecutable</key><string>OpenASE-Plus</string>
+            <key>CFBundleIconFile</key><string>OpenASE-Plus</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>CFBundleShortVersionString</key><string>${version}</string>
             <key>CFBundleVersion</key><string>${version}</string>
@@ -196,7 +196,7 @@ jobs:
           EOF
           # Ad-hoc signature: required to run on Apple Silicon.
           codesign --force --deep --sign - "$app"
-          name="OpenASE-$TAG-macos-universal"
+          name="OpenASE-Plus-$TAG-macos-universal"
           mkdir "$name"
           mv "$app" "$name/"
           cp LICENSE README.md rust/assets/flags-LICENSE.txt "$name/"
@@ -204,7 +204,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: macos
-          path: OpenASE-*.zip
+          path: OpenASE-Plus-*.zip
 
   publish:
     needs: [windows, linux, macos]
@@ -228,7 +228,7 @@ jobs:
         run: |
           ls -l dist
           # Checksums of every package (also read by packaging/make-manifests.mjs).
-          (cd dist && sha256sum OpenASE-* > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          (cd dist && sha256sum OpenASE-Plus-* > SHA256SUMS.txt && cat SHA256SUMS.txt)
           # Release notes: this version's section of CHANGELOG.md, up to the next "## ".
           awk -v v="${TAG#v}" '
             index($0, "## " v " ") == 1 { on = 1; next }
@@ -239,5 +239,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/* --clobber
           else
-            gh release create "$TAG" dist/* --title "OpenASE $TAG" "${notes[@]}"
+            gh release create "$TAG" dist/* --title "OpenASE-Plus $TAG" "${notes[@]}"
           fi

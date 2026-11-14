@@ -56,7 +56,11 @@ fn party_fires_once_when_crossing_up_and_rearms_at_half() {
 #[test]
 fn slot_watch_is_due_every_interval_and_expires() {
     let start = Instant::now();
-    let mut watch = SlotWatch::new("q3|192.0.2.1:27960".into(), start);
+    let server = openase::settings::ServerRef {
+        game: "q3".into(),
+        address: "192.0.2.1:27960".into(),
+    };
+    let mut watch = SlotWatch::new(server, start);
     assert!(watch.due(start));
     watch.queried(start);
     assert!(!watch.due(start + Duration::from_secs(5)));

@@ -1,12 +1,13 @@
-//! "Update Eye": check GitHub Releases for a newer OpenASE.
+//! "Update Eye": check GitHub Releases for a newer OpenASE-Plus.
 
 use std::io;
 use std::time::Duration;
 
 use serde::Deserialize;
 
-pub const RELEASES_API: &str = "https://api.github.com/repos/tsautier/OpenASE/releases/latest";
-pub const RELEASES_PAGE: &str = "https://github.com/tsautier/OpenASE/releases/latest";
+pub const RELEASES_API: &str =
+    "https://api.github.com/repos/OpenGamePlus/OpenASE-Plus/releases/latest";
+pub const RELEASES_PAGE: &str = "https://github.com/OpenGamePlus/OpenASE-Plus/releases/latest";
 
 #[derive(Deserialize)]
 struct Release {
@@ -41,7 +42,10 @@ pub fn check_latest(timeout: Duration) -> io::Result<Option<String>> {
         .into();
     let body = agent
         .get(RELEASES_API)
-        .header("User-Agent", concat!("OpenASE/", env!("CARGO_PKG_VERSION")))
+        .header(
+            "User-Agent",
+            concat!("OpenASE-Plus/", env!("CARGO_PKG_VERSION")),
+        )
         .header("Accept", "application/vnd.github+json")
         .call()
         .map_err(io::Error::other)?

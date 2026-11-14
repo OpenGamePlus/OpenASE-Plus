@@ -1,7 +1,7 @@
 # Project context
 
 ## Identity
-OpenASE-Plus: an independent fork of OpenASE, the open-source game server
+OpenASE-Plus (1.0.0+): an independent fork of OpenASE 0.9.6 by Thomas Sautier, the open-source game server
 browser in the spirit of The All-Seeing Eye. Part of the maintainer's "-Plus"
 family of forks. It takes ideas from JASE, the maintainer's earlier Python
 browser.

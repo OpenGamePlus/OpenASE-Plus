@@ -9,6 +9,7 @@ pub mod colors;
 pub mod countries;
 pub mod detect;
 pub mod doom3;
+pub mod exe_icon;
 pub mod gamespy;
 pub mod gamespy2;
 pub mod gamespy_sb;

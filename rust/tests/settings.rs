@@ -161,10 +161,20 @@ fn ready_games_have_a_program_or_steam_with_a_key() {
     use openase::settings::GameSettings;
     let mut settings = Settings::default();
     assert!(settings.ready_games().is_empty());
+    let exe = tempfile::NamedTempFile::new().unwrap();
     settings.games.insert(
         "q3".into(),
         GameSettings {
-            program_location: "quake3.exe".into(),
+            program_location: exe.path().display().to_string(),
+            ..GameSettings::default()
+        },
+    );
+    // A program that is gone (uninstalled, moved) is not ready; its setting stays.
+    let missing = "/no/such/UnrealTournament.exe";
+    settings.games.insert(
+        "ut99".into(),
+        GameSettings {
+            program_location: missing.into(),
             ..GameSettings::default()
         },
     );
@@ -175,6 +185,7 @@ fn ready_games_have_a_program_or_steam_with_a_key() {
             .collect::<Vec<_>>()
     };
     assert_eq!(ids(&settings), ["q3"]);
+    assert_eq!(settings.game("ut99").program_location, missing);
     // Steam games join through Steam: ready once there is an API key.
     settings.steam_api_key = "key".into();
     let with_key = ids(&settings);
@@ -214,4 +225,106 @@ fn ping_levels_and_theme_colors() {
         assert!(good != mid && mid != bad && good != bad, "{theme:?}");
         assert_ne!(theme.occupancy(), theme.colors().list_bg, "{theme:?}");
     }
+}
+
+#[test]
+fn upstream_settings_are_imported_once() {
+    use openase::settings::import_upstream;
+    let root = tempfile::tempdir().unwrap();
+    let (old, new) = (
+        root.path().join("OpenASE"),
+        root.path().join("OpenASE-Plus"),
+    );
+    // Nothing to import.
+    assert!(!import_upstream(&old, &new));
+    std::fs::create_dir_all(&old).unwrap();
+    std::fs::write(old.join("settings.json"), "{\"friends\":[\"Visor\"]}").unwrap();
+    assert!(import_upstream(&old, &new));
+    assert_eq!(
+        std::fs::read_to_string(new.join("settings.json")).unwrap(),
+        "{\"friends\":[\"Visor\"]}"
+    );
+    // Never over an existing OpenASE-Plus profile.
+    std::fs::write(new.join("settings.json"), "{}").unwrap();
+    assert!(!import_upstream(&old, &new));
+    assert_eq!(
+        std::fs::read_to_string(new.join("settings.json")).unwrap(),
+        "{}"
+    );
+}
+
+#[test]
+fn settings_round_trip_through_a_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    let settings = Settings {
+        friends: vec!["Visor".into()],
+        ..Settings::default()
+    };
+    settings.export_to(&path).unwrap();
+    assert_eq!(Settings::load_from(&path).friends, ["Visor"]);
+    assert!(!dir.path().join("settings.json.partial").exists());
+}
+
+#[test]
+fn an_unreadable_settings_file_is_kept_aside() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    std::fs::write(&path, "{ broken").unwrap();
+    let settings = Settings::load_from(&path);
+    assert!(settings.friends.is_empty());
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("settings.json.bad")).unwrap(),
+        "{ broken"
+    );
+    assert!(!path.exists());
+}
+
+#[test]
+fn imported_lists_reject_option_like_hosts() {
+    let text = "-quit.example:7777\na..b:27960\n198.51.100.7:27960\nplay.example.org:28960\n";
+    assert_eq!(
+        openase::settings::parse_address_list(text),
+        ["198.51.100.7:27960", "play.example.org:28960"]
+    );
+}
+
+#[test]
+fn a_settings_file_that_is_not_utf8_is_kept_aside() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    // Saved as ANSI by a text editor: "Jos\xe9" is not UTF-8.
+    let ansi = b"{\"friends\":[\"Jos\xe9\"]}".to_vec();
+    std::fs::write(&path, &ansi).unwrap();
+    assert!(Settings::load_from(&path).friends.is_empty());
+    assert_eq!(
+        std::fs::read(dir.path().join("settings.json.bad")).unwrap(),
+        ansi
+    );
+}
+
+#[test]
+fn game_ref_reads_without_cloning_and_defaults_like_game() {
+    use openase::settings::GameSettings;
+    let mut settings = Settings::default();
+    assert_eq!(settings.game_ref("q3"), &GameSettings::default());
+    settings.games.insert(
+        "q3".into(),
+        GameSettings {
+            visible: false,
+            ..GameSettings::default()
+        },
+    );
+    assert!(!settings.game_ref("q3").visible);
+    assert_eq!(settings.game_ref("q3"), &settings.game("q3"));
+}
+
+#[test]
+fn server_ref_keys_round_trip() {
+    let server = ServerRef {
+        game: "q3".into(),
+        address: "192.0.2.1:27960".into(),
+    };
+    assert_eq!(ServerRef::from_key(&server.key()), Some(server));
+    assert_eq!(ServerRef::from_key("no separator"), None);
 }

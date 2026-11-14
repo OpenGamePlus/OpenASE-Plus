@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Most games are one entry in `rust/src/games.json`. Fill in what you know; partial info is fine.
-        See [CONTRIBUTING.md](https://github.com/tsautier/OpenASE/blob/main/CONTRIBUTING.md) if you want to add it yourself.
+        See [CONTRIBUTING.md](https://github.com/OpenGamePlus/OpenASE-Plus/blob/main/docs/development/adding-a-game.md) if you want to add it yourself.
   - type: input
     id: game
     attributes:

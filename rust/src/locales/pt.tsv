@@ -1,0 +1,357 @@
+# English<TAB>Portuguese (Brazil). \t, \n and \\ are escapes. One whole sentence per line.
+OpenASE-Plus	OpenASE-Plus
+Ping	Ping
+Flux	Flux
+DSL	DSL
+Score	Pontuação
+Version {}	Versão {}
+   OK   	   OK
+File	Arquivo
+View	Exibir
+Filter	Filtro
+Server	Servidor
+Player	Jogador
+Friends	Amigos
+Tools	Ferramentas
+Help	Ajuda
+Toolbar	Barra de ferramentas
+Export user profile...	Exportar perfil de usuário…
+Export user profile	Exportar perfil de usuário
+Import user profile...	Importar perfil de usuário…
+Import user profile	Importar perfil de usuário
+OpenASE-Plus profile	Perfil do OpenASE-Plus
+Save server list...	Salvar lista de servidores…
+Save server list	Salvar lista de servidores
+Import server list...	Importar lista de servidores…
+Import server list	Importar lista de servidores
+Check for updates	Verificar atualizações
+Automatic update check	Verificação automática de atualizações
+Setup Wizard...	Assistente de configuração…
+Setup Wizard	Assistente de configuração
+Exit	Sair
+Refresh\tF5	Atualizar\tF5
+Show selected\tCtrl+E	Mostrar seleção\tCtrl+E
+Clear modifiers\tCtrl+D	Limpar modificadores\tCtrl+D
+Collapse all\tCtrl+Q	Recolher tudo\tCtrl+Q
+Not empty	Não vazios
+Not full	Não cheios
+No password	Sem senha
+Hide unresponsive servers	Ocultar servidores sem resposta
+New filter...	Novo filtro…
+Edit filter...	Editar filtro…
+Make color filter...	Criar filtro de cor…
+Delete filter	Excluir filtro
+Configure games...	Configurar jogos…
+Add friend...	Adicionar amigo…
+Manage friends...	Gerenciar amigos…
+Friend name search...	Buscar nome de amigo…
+Show servers with friends	Mostrar servidores com amigos
+OpenASE-Plus Help\tF1	Ajuda do OpenASE-Plus\tF1
+License	Licença
+Online manual	Manual online
+Message board	Fórum
+Website	Site
+About OpenASE-Plus...	Sobre o OpenASE-Plus…
+About OpenASE-Plus	Sobre o OpenASE-Plus
+Refresh list\tF5	Atualizar lista\tF5
+Join\tEnter	Entrar\tEnter
+Copy address	Copiar endereço
+Add server...	Adicionar servidor…
+Find LAN servers	Procurar servidores LAN
+Find player...	Procurar jogador…
+Options...	Opções…
+Refresh server list	Atualizar lista de servidores
+Refresh server list (F5)	Atualizar lista de servidores (F5)
+Stop	Parar
+Refresh selected server	Atualizar servidor selecionado
+Ping visible servers	Pingar servidores visíveis
+Query the servers shown in the list (at most {})	Consultar os servidores exibidos na lista (no máximo {})
+Join server	Entrar no servidor
+Join server (Enter)	Entrar no servidor (Enter)
+Add to / remove from favorites	Adicionar aos / remover dos favoritos
+Add server	Adicionar servidor
+Find player	Procurar jogador
+Options	Opções
+Customize toolbar...	Personalizar barra de ferramentas…
+Reset toolbar	Redefinir barra de ferramentas
+Favorites	Favoritos
+{} ({} on)	{} ({} online)
+Special	Especial
+recently added	adicionados recentemente
+recently imported	importados recentemente
+LAN servers	Servidores LAN
+recently joined	acessados recentemente
+My filters	Meus filtros
+{} (color)	{} (cor)
+(refresh to fill)	(atualize para preencher)
+(none)	(nenhum)
+Modifiers	Modificadores
+Players	Jogadores
+Hide unresponsive	Ocultar sem resposta
+less than {}	menos de {}
+Country	País
+Country *	País *
+Location	Local
+Name	Nome
+PL	PL
+Game	Jogo
+Map	Mapa
+Address	Endereço
+<- select a game and click Refresh, or add a server	<- selecione um jogo e clique em Atualizar, ou adicione um servidor
+Join	Entrar
+Refresh	Atualizar
+Remove from favorites	Remover dos favoritos
+Add to favorites	Adicionar aos favoritos
+Add to favorites group	Adicionar ao grupo de favoritos
+Friend - on	Amigos - online
+Friend - off	Amigos - offline
+Player Name	Nome do jogador
+Time	Tempo
+Key	Chave
+Value	Valor
+(no response)	(sem resposta)
+unscanned	não verificado
+Unknown	Desconhecido
+Ready	Pronto
+Loading...	Carregando…
+Disabled	Desativada
+{} is playing on {}	{} está jogando em {}
+servers	servidores
+known servers	servidores conhecidos
+visible servers	servidores visíveis
+imported servers	servidores importados
+Looking for servers on the local network...	Procurando servidores na rede local…
+Scanning {}	Verificando {}
+Querying {} master servers...	Consultando servidores mestres de {}…
+No {} to refresh	Nenhum {} para atualizar
+Refreshing {}	Atualizando {}
+Invalid address {}	Endereço {} inválido
+No server list could be downloaded:\n\n{}	Não foi possível baixar nenhuma lista de servidores:\n\n{}
+Some masters failed: {}	Alguns servidores mestres falharam: {}
+Scan stopped	Verificação interrompida
+Scan complete	Verificação concluída
+Refreshed {}	{} atualizado
+{} did not answer	{} não respondeu
+{} IPv4 ranges loaded	{} faixas IPv4 carregadas
+Not available: {}	Indisponível: {}
+GeoIP database not available: {}	Banco de dados GeoIP indisponível: {}
+No server found on the local network	Nenhum servidor encontrado na rede local
+LAN search failed: {}	Falha na busca LAN: {}
+OpenASE-Plus {} is up to date.	O OpenASE-Plus {} está atualizado.
+Could not check for updates: {}	Não foi possível verificar atualizações: {}
+Launched {}	{} iniciado
+Opened {}	{} aberto
+Added to {}	Adicionado a {}
+Copied {}	{} copiado
+Unknown game	Jogo desconhecido
+Could not save settings: {}	Não foi possível salvar as configurações: {}
+{} servers, {}/{} players total, {} visible	{} servidores, {}/{} jogadores no total, {} visíveis
+{} of {} servers, {}/{} players total, {} visible	{} de {} servidores, {}/{} jogadores no total, {} visíveis
+Load more servers ({} of {})	Carregar mais servidores ({} de {})
+Loading more servers...	Carregando mais servidores…
+{} more servers loaded	Mais {} servidores carregados
+Could not load more servers: {}	Não foi possível carregar mais servidores: {}
+Modifiers cleared	Modificadores limpos
+Profile exported to {}	Perfil exportado para {}
+Export failed: {}	Falha na exportação: {}
+Profile imported from {}	Perfil importado de {}
+Import failed: {}	Falha na importação: {}
+Deleted filter {}	Filtro {} excluído
+The server list is empty.	A lista de servidores está vazia.
+Saved {} servers to {}	{} servidores salvos em {}
+Could not save: {}	Não foi possível salvar: {}
+{} added to your friends	{} adicionado aos seus amigos
+No ip:port entries found in this file.	Nenhuma entrada ip:port encontrada neste arquivo.
+Imported {} servers into {}	{} servidores importados em {}
+Cannot read {}: {}	Não foi possível ler {}: {}
+Set the program location of {} in Options > Games first.	Defina primeiro o local do programa de {} em Opções > Jogos.
+An open-source game server browser in the spirit of The All-Seeing Eye.	Um navegador de servidores de jogos de código aberto, no espírito do The All-Seeing Eye.
+New code, not affiliated with Yahoo or the original authors.	Código novo, sem vínculo com o Yahoo nem com os autores originais.
+Free software under the GNU GPL v3 or later.	Software livre sob a GNU GPL v3 ou posterior.
+Server lists from 333networks, OpenSpy, dpmaster and the other community master servers.	Listas de servidores do 333networks, OpenSpy, dpmaster e dos outros servidores mestres da comunidade.
+Add Server	Adicionar servidor
+Cancel	Cancelar
+Close	Fechar
+   Add   	  Adicionar
+   Join   	  Entrar
+Password required	Senha necessária
+This server needs a password.	Este servidor exige uma senha.
+OpenASE-Plus looks for these names on every server it scans.	O OpenASE-Plus procura estes nomes em todos os servidores que verifica.
+No friends yet.	Nenhum amigo ainda.
+online	online
+offline	offline
+Remove	Remover
+Add	Adicionar
+Player name	Nome do jogador
+Find Player	Procurar jogador
+Player name contains	O nome do jogador contém
+{} players found in scanned servers	{} jogadores encontrados nos servidores verificados
+Searching for {}	Procurando {}
+No installation found.	Nenhuma instalação encontrada.
+Search complete.	Busca concluída.
+Select a sound	Selecionar um som
+WAV sound	Som WAV
+General	Geral
+Network	Rede
+Events	Eventos
+Games	Jogos
+Colors	Cores
+Language	Idioma
+System	Sistema
+Counter-Strike 1.6 server lists come from the Steam Web API, which needs your own free key.	As listas de servidores do Counter-Strike 1.6 vêm da Steam Web API, que exige sua própria chave gratuita.
+Steam Web API key	Chave da Steam Web API
+Get a key at steamcommunity.com/dev/apikey	Obtenha uma chave em steamcommunity.com/dev/apikey
+Show server countries (downloads a free IP-to-country database once a month)	Mostrar o país dos servidores (baixa um banco de dados IP-país gratuito uma vez por mês)
+Database: {}.	Banco de dados: {}.
+Takes effect at the next start.	Entra em vigor na próxima inicialização.
+Settings file	Arquivo de configurações
+Advanced connection settings	Configurações avançadas de conexão
+Timeout when querying servers (ms)	Tempo limite ao consultar servidores (ms)
+Number of times to ping a server	Número de pings por servidor
+Number of times to retry a scan	Número de novas tentativas de verificação
+Servers queried at the same time	Servidores consultados ao mesmo tempo
+Maximum servers per refresh	Máximo de servidores por atualização
+Restore defaults	Restaurar padrões
+Ping is the average round-trip time, Flux half the spread between the fastest and slowest answer, PL the share of unanswered queries.	Ping é o tempo médio de ida e volta, Flux é metade da diferença entre a resposta mais rápida e a mais lenta, PL é a parcela de consultas sem resposta.
+Friend joins a server	Amigo entra em um servidor
+Show a notice	Mostrar um aviso
+Play the system notification sound	Tocar o som de notificação do sistema
+Monitored server	Servidor monitorado
+Refresh the selected server every	Atualizar o servidor selecionado a cada
+seconds	segundos
+Installed games	Jogos instalados
+Not installed	Não instalados
+Select a game on the left.	Selecione um jogo à esquerda.
+Visible in filter list	Visível na lista de filtros
+Config file	Arquivo de configuração
+Browse	Procurar
+Browse...	Procurar…
+Select config file	Selecionar arquivo de configuração
+Program location	Local do programa
+Select game executable	Selecionar executável do jogo
+Executable	Executável
+All files	Todos os arquivos
+Auto-Search	Busca automática
+allow invitations for this game	permitir convites para este jogo
+draw player names with game colors	exibir nomes dos jogadores com as cores do jogo
+Default sound	Som padrão
+No sound	Sem som
+Sound file...	Arquivo de som…
+Path of a .wav file	Caminho de um arquivo .wav
+Play	Ouvir
+Choose the buttons of the toolbar and their order. You can also right-click the toolbar.	Escolha os botões da barra de ferramentas e a ordem deles. Você também pode clicar com o botão direito na barra de ferramentas.
+Up	Subir
+Down	Descer
+Reset to default	Redefinir para o padrão
+Changes are shown right away; Cancel puts the old colors back.	As alterações aparecem na hora; Cancelar restaura as cores anteriores.
+List background	Fundo da lista
+Alternating row	Linha alternada
+Selection	Seleção
+Text	Texto
+Draw Quake color codes in server and player names	Exibir códigos de cor do Quake nos nomes de servidores e jogadores
+Reset to defaults	Restaurar padrões
+Welcome to OpenASE-Plus!	Bem-vindo ao OpenASE-Plus!
+This is your first time running OpenASE-Plus, so let's set a few things up.	Esta é a primeira vez que você executa o OpenASE-Plus, então vamos configurar algumas coisas.
+First, tell OpenASE-Plus about your internet connection.	Primeiro, informe ao OpenASE-Plus a sua conexão com a internet.
+Refreshing a server list sends thousands of small queries; matching them to your connection keeps pings accurate.	Atualizar uma lista de servidores envia milhares de pequenas consultas; ajustá-las à sua conexão mantém os pings precisos.
+You can run this wizard again from File > Setup Wizard.	Você pode executar este assistente novamente em Arquivo > Assistente de configuração.
+Your connection	Sua conexão
+Slow (mobile, satellite)	Lenta (móvel, satélite)
+Cable or fiber (recommended)	Cabo ou fibra (recomendado)
+Very fast, low latency	Muito rápida, baixa latência
+{} servers at once, {} ms timeout	{} servidores por vez, tempo limite de {} ms
+If pings look too high, come back here and pick a slower setting. Fine tuning lives in Options > Network.	Se os pings parecerem altos demais, volte aqui e escolha uma opção mais lenta. O ajuste fino fica em Opções > Rede.
+You and your games	Você e seus jogos
+Games shown in the filter tree:	Jogos exibidos na árvore de filtros:
+{}  (installed)	{}  (instalado)
+Setup done.	Configuração concluída.
+Tips:	Dicas:
+•  F5 refreshes the selected game, double-click or Enter joins a server.	•  F5 atualiza o jogo selecionado; clique duplo ou Enter entra em um servidor.
+•  Tick filters in the tree: game types, mods, maps, Kill Cam, countries...	•  Marque filtros na árvore: tipos de jogo, mods, mapas, Kill Cam, países…
+•  Friends > Add friend tracks players on every server you scan.	•  Amigos > Adicionar amigo acompanha jogadores em todos os servidores verificados.
+•  Counter-Strike 1.6 lists need a free Steam Web API key (Options > General).	•  As listas do Counter-Strike 1.6 exigem uma chave gratuita da Steam Web API (Opções > Geral).
+Have fun, and see you on the servers.	Divirta-se, e até mais nos servidores.
+Next >	Avançar >
+Finish	Concluir
+< Back	< Voltar
+Add Friend	Adicionar amigo
+Enter the player's name as it appears on servers. Color codes are ignored and partial names match.	Digite o nome do jogador como aparece nos servidores. Códigos de cor são ignorados e nomes parciais também valem.
+Go to Friend Name Search	Ir para a busca de nome de amigo
+Group	Grupo
+Server list	Lista de servidores
+Add to	Adicionar a
+Any text file with ip:port entries works: OpenASE-Plus lists, GameSpy exports, configs...	Qualquer arquivo de texto com entradas ip:port funciona: listas do OpenASE-Plus, exportações do GameSpy, configurações…
+  Import  	  Importar
+Edit filter	Editar filtro
+New filter	Novo filtro
+My filter	Meu filtro
+Any game	Qualquer jogo
+Show servers where all of these are true:	Mostrar servidores que atendem a todas estas condições:
+Any server rule, e.g. g_gametype	Qualquer regra de servidor, p. ex. g_gametype
++ Add rule	+ Adicionar regra
+Color filter: highlight matching servers everywhere	Filtro de cor: destaca em todo lugar os servidores correspondentes
+is	é
+is not	não é
+less than	menor que
+greater than	maior que
+contains	contém
+does not contain	não contém
+OpenASE-Plus is free software under the GNU General Public License, version 3 or later.	O OpenASE-Plus é software livre sob a GNU General Public License, versão 3 ou posterior.
+Update available	Atualização disponível
+OpenASE-Plus {} is available. You are running {}.	O OpenASE-Plus {} está disponível. Você está usando a versão {}.
+Download it from GitHub Releases	Baixar nas versões do GitHub
+Later	Mais tarde
+Playing now	Jogando agora
+No game is set up: set its program in Options > Games	Nenhum jogo configurado: defina o programa em Opções > Jogos
+Querying the master servers of {} games...	Consultando os servidores mestres de {} jogos…
+Installed games only	Somente jogos instalados
+Hide empty	Ocultar vazios
+Hide full	Ocultar cheios
+Hide passworded	Ocultar com senha
+Max ping	Ping máx.
+No limit	Sem limite
+All countries	Todos os países
+{} countries	{} países
+Theme	Tema
+Classic	Clássico
+Dark	Escuro
+Terminal	Terminal
+Amber terminal	Terminal âmbar
+Synthwave	Synthwave
+GoldSrc (Counter-Strike 1.6)	GoldSrc (Counter-Strike 1.6)
+RCON console...	Console RCON…
+Password	Senha
+RCON: {}	RCON: {}
+Command, e.g. status	Comando, p. ex. status
+Send	Enviar
+No answer from the server	O servidor não respondeu
+Wrong RCON password	Senha RCON incorreta
+The server gave no RCON challenge (is RCON enabled?)	O servidor não enviou o desafio RCON (o RCON está ativado?)
+This game has no RCON	Este jogo não tem RCON
+Invalid answer from the server	Resposta inválida do servidor
+Network error: {}	Erro de rede: {}
+Open link	Abrir link
+Join this server?	Entrar neste servidor?
+Copy openase:// link	Copiar link openase://
+Querying...	Consultando…
+Alert me when a slot is free	Avisar quando houver vaga
+Stop watching for a free slot	Parar de aguardar vaga
+Watching {} for a free slot...	Aguardando vaga em {}…
+A slot is free on {} ({}/{})	Há uma vaga livre em {} ({}/{})
+Stopped watching {}: no free slot in 30 minutes	Parou de aguardar {}: nenhuma vaga em 30 minutos
+Alert when players reach	Avisar quando os jogadores chegarem a
+At {} players	{} jogadores
+No alert	Sem alerta
+A match is on at {}: {} players	Há uma partida em {}: {} jogadores
+I will alert you when {} has {} players	Você será avisado quando {} tiver {} jogadores
+No more match alerts for {}	Sem mais alertas de partida para {}
+Where should Auto-Search look? Fewer places search faster.	Onde procurar? Menos locais deixam a busca mais rápida.
+Add folder...	Adicionar pasta…
+All	Tudo
+None	Nenhum
+Search	Procurar
+Search all games...	Procurar todos os jogos…
+all games	todos os jogos
+Apply	Aplicar
+{} games set up	{} jogos configurados
+Unchecked rows are guesses: the same program serves several games.	Linhas desmarcadas são palpites: o mesmo programa serve vários jogos.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generate the winget manifest set for an OpenASE release. Downloads nothing.
+// Generate the winget manifest set for an OpenASE-Plus release. Downloads nothing.
 //
 //   node packaging/make-manifests.mjs <tag> [SHA256SUMS.txt] [--date YYYY-MM-DD]
 //
@@ -19,11 +19,11 @@ if (!tag || !/^v\d+\.\d+\.\d+/.test(tag)) {
   process.exit(1);
 }
 const version = tag.slice(1);
-const id = "TSautier.OpenASE";
-const setupName = `OpenASE-${tag}-windows-x64-setup.exe`;
-const url = `https://github.com/tsautier/OpenASE/releases/download/${tag}/${setupName}`;
+const id = "OpenGamePlus.OpenASE-Plus";
+const setupName = `OpenASE-Plus-${tag}-windows-x64-setup.exe`;
+const url = `https://github.com/OpenGamePlus/OpenASE-Plus/releases/download/${tag}/${setupName}`;
 // Must match AppId in packaging/windows/openase.iss (winget wants the Inno uninstall key).
-const productCode = "{5C725B6E-FEF6-47EC-94BB-279FCFB8786D}_is1";
+const productCode = "{BE92ED7C-7E22-4C2E-A9CC-63ADB627803D}_is1";
 
 const sums = new Map();
 for (const line of readFileSync(sumsPath, "utf8").split(/\r?\n/)) {
@@ -47,19 +47,19 @@ const files = {
   [`${id}.locale.en-US.yaml`]:
     header("defaultLocale") + common +
     `PackageLocale: en-US
-Publisher: Thomas Sautier
-PublisherUrl: https://openase.org
-PublisherSupportUrl: https://github.com/tsautier/OpenASE/issues
-PackageName: OpenASE
-PackageUrl: https://openase.org
+Publisher: OpenGamePlus
+PublisherUrl: https://github.com/OpenGamePlus
+PublisherSupportUrl: https://github.com/OpenGamePlus/OpenASE-Plus/issues
+PackageName: OpenASE-Plus
+PackageUrl: https://github.com/OpenGamePlus/OpenASE-Plus
 License: GPL-3.0-or-later
-LicenseUrl: https://github.com/tsautier/OpenASE/blob/main/LICENSE
+LicenseUrl: https://github.com/OpenGamePlus/OpenASE-Plus/blob/main/LICENSE
 ShortDescription: Game server browser in the spirit of The All-Seeing Eye
 Tags:
 - game
 - server-browser
 - multiplayer
-ReleaseNotesUrl: https://github.com/tsautier/OpenASE/releases/tag/${tag}
+ReleaseNotesUrl: https://github.com/OpenGamePlus/OpenASE-Plus/releases/tag/${tag}
 ManifestType: defaultLocale
 ManifestVersion: ${schema}
 `,

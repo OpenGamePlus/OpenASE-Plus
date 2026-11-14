@@ -14,9 +14,9 @@ use openase::update;
 
 use super::{Msg, Nav, OpenAseApp, ServerKey};
 
-pub const SITE: &str = "https://openase.org/";
-pub const MANUAL: &str = "https://openase.org/#manual";
-pub const MESSAGE_BOARD: &str = "https://github.com/tsautier/OpenASE/issues";
+pub const SITE: &str = "https://github.com/OpenGamePlus/OpenASE-Plus";
+pub const MANUAL: &str = "https://github.com/OpenGamePlus/OpenASE-Plus#readme";
+pub const MESSAGE_BOARD: &str = "https://github.com/OpenGamePlus/OpenASE-Plus/issues";
 const LICENSE_TEXT: &str = include_str!("../../../LICENSE");
 
 /// Connection presets offered by the setup wizard: (label, parallel queries, timeout ms).
@@ -249,7 +249,7 @@ impl OpenAseApp {
             if let Some(path) = rfd::FileDialog::new()
                 .set_title(tr("Export user profile"))
                 .set_file_name("openase-profile.json")
-                .add_filter(tr("OpenASE profile"), &["json"])
+                .add_filter(tr("OpenASE-Plus profile"), &["json"])
                 .save_file()
             {
                 match self.settings.export_to(&path) {
@@ -264,7 +264,7 @@ impl OpenAseApp {
             ui.close();
             if let Some(path) = rfd::FileDialog::new()
                 .set_title(tr("Import user profile"))
-                .add_filter(tr("OpenASE profile"), &["json"])
+                .add_filter(tr("OpenASE-Plus profile"), &["json"])
                 .pick_file()
             {
                 match Settings::import_from(&path) {
@@ -436,7 +436,7 @@ impl OpenAseApp {
     }
 
     pub(super) fn help_menu(&mut self, ui: &mut egui::Ui) {
-        if ui.button(tr("OpenASE Help\tF1")).clicked() {
+        if ui.button(tr("OpenASE-Plus Help\tF1")).clicked() {
             ui.close();
             ui.ctx().open_url(egui::OpenUrl::new_tab(MANUAL));
         }
@@ -462,7 +462,7 @@ impl OpenAseApp {
             let ctx = ui.ctx().clone();
             self.check_updates(&ctx, true);
         }
-        if ui.button(tr("About OpenASE...")).clicked() {
+        if ui.button(tr("About OpenASE-Plus...")).clicked() {
             ui.close();
             self.dialogs.about = true;
         }
@@ -488,7 +488,7 @@ impl OpenAseApp {
         else {
             return;
         };
-        let mut text = String::from("# OpenASE server list, one ip:port per line\n");
+        let mut text = String::from("# OpenASE-Plus server list, one ip:port per line\n");
         for address in &rows {
             text.push_str(address);
             text.push('\n');
@@ -507,7 +507,7 @@ impl OpenAseApp {
     fn open_wizard(&mut self) {
         let visible = catalog::games()
             .iter()
-            .map(|game| (game.id.clone(), self.settings.game(&game.id).visible))
+            .map(|game| (game.id.clone(), self.settings.game_ref(&game.id).visible))
             .collect();
         let player_name = self
             .settings
@@ -577,11 +577,11 @@ impl OpenAseApp {
                 ui.set_min_size(vec2(436.0, 230.0));
                 match wizard.page {
                     0 => {
-                        ui.heading(tr("Welcome to OpenASE!"));
+                        ui.heading(tr("Welcome to OpenASE-Plus!"));
                         ui.add_space(6.0);
-                        ui.label(tr("This is your first time running OpenASE, so let's set a few things up."));
+                        ui.label(tr("This is your first time running OpenASE-Plus, so let's set a few things up."));
                         ui.add_space(6.0);
-                        ui.label(RichText::new(tr("First, tell OpenASE about your internet connection.")).strong());
+                        ui.label(RichText::new(tr("First, tell OpenASE-Plus about your internet connection.")).strong());
                         ui.label(tr("Refreshing a server list sends thousands of small queries; matching them to your connection keeps pings accurate."));
                         ui.add_space(6.0);
                         ui.label(tr("You can run this wizard again from File > Setup Wizard."));
@@ -783,7 +783,7 @@ impl OpenAseApp {
                 group_combo(ui, "import-group", &mut import.group, &FAVORITE_GROUPS);
                 ui.end_row();
             });
-            ui.weak(tr("Any text file with ip:port entries works: OpenASE lists, GameSpy exports, configs..."));
+            ui.weak(tr("Any text file with ip:port entries works: OpenASE-Plus lists, GameSpy exports, configs..."));
             super::dialogs::buttons_right(ui, |ui| {
                 cancel = ui.button(tr("Cancel")).clicked();
                 ok = ui.button(tr("  Import  ")).clicked();
@@ -925,7 +925,7 @@ impl OpenAseApp {
         let mut open = self.extra.license;
         egui::Window::new(tr("License"))
             .id(egui::Id::unique("License")).open(&mut open).default_size([560.0, 420.0]).show(ctx, |ui| {
-            ui.label(tr("OpenASE is free software under the GNU General Public License, version 3 or later."));
+            ui.label(tr("OpenASE-Plus is free software under the GNU General Public License, version 3 or later."));
             ui.separator();
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.add(egui::Label::new(RichText::new(LICENSE_TEXT).monospace().size(11.0)).wrap());
@@ -941,7 +941,7 @@ impl OpenAseApp {
         let mut close = false;
         window("Update available").show(ctx, |ui| {
             ui.label(fill(
-                tr("OpenASE {} is available. You are running {}."),
+                tr("OpenASE-Plus {} is available. You are running {}."),
                 &[&tag, &env!("CARGO_PKG_VERSION")],
             ));
             ui.hyperlink_to(

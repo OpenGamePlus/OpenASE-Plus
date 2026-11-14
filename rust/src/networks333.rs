@@ -113,9 +113,9 @@ pub fn fetch_page(api: &str, gamename: &str, page: usize, timeout: Duration) -> 
         .header(
             "User-Agent",
             concat!(
-                "OpenASE/",
+                "OpenASE-Plus/",
                 env!("CARGO_PKG_VERSION"),
-                " (+https://openase.org)"
+                " (+https://github.com/OpenGamePlus/OpenASE-Plus)"
             ),
         )
         .call()

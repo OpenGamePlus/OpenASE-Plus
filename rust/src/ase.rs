@@ -162,6 +162,7 @@ fn exchange(host: &str, port: u16, timeout: Duration) -> io::Result<(Vec<u8>, Du
     socket.send(b"s")?;
     let mut buffer = vec![0u8; 16384];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if buffer[..size].starts_with(b"EYE1") {
             buffer.truncate(size);

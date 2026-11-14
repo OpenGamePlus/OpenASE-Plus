@@ -1,5 +1,6 @@
 //! User settings, stored as JSON in the user's config folder
-//! (`%APPDATA%\OpenASE\settings.json` on Windows).
+//! (`%APPDATA%\OpenASE-Plus\settings.json` on Windows; upstream OpenASE's
+//! file is imported once, see [`import_upstream`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
@@ -452,6 +453,8 @@ pub struct Settings {
     pub unreal_ports_checked: bool,
     /// "Alert when players reach": humans threshold, keyed by [`ServerRef::key`].
     pub party_alerts: BTreeMap<String, usize>,
+    /// Places Auto-Search looked in last time (drives, folders); empty = all.
+    pub search_roots: Vec<String>,
 }
 
 pub const RECENT_LIMIT: usize = 20;
@@ -473,6 +476,15 @@ impl ServerRef {
     pub fn key(&self) -> String {
         format!("{}|{}", self.game, self.address)
     }
+
+    /// The server of a [`ServerRef::key`].
+    pub fn from_key(key: &str) -> Option<ServerRef> {
+        let (game, address) = key.split_once('|')?;
+        Some(ServerRef {
+            game: game.to_string(),
+            address: address.to_string(),
+        })
+    }
 }
 
 /// Extract every `a.b.c.d:port` (or `host:port` line) from a server list file.
@@ -486,12 +498,12 @@ pub fn parse_address_list(text: &str) -> Vec<String> {
         let Some((host, port)) = token.rsplit_once(':') else {
             continue;
         };
+        // Any text file is scanned: a host name also needs a dot and a
+        // letter, so tokens like `time:12` are not taken for servers.
         let valid_host = host.parse::<std::net::Ipv4Addr>().is_ok()
-            || (host.contains('.')
-                && host.chars().any(|c| c.is_ascii_alphabetic())
-                && host
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-'));
+            || (crate::links::valid_host(host)
+                && host.contains('.')
+                && host.chars().any(|c| c.is_ascii_alphabetic()));
         if valid_host
             && port.parse::<u16>().is_ok_and(|port| port > 0)
             && seen.insert(token.to_string())
@@ -508,11 +520,28 @@ impl Settings {
     }
 
     pub fn load() -> Self {
-        std::fs::read_to_string(Self::path())
-            .ok()
-            .and_then(|text| serde_json::from_str::<Self>(&text).ok())
-            .map(Self::normalized)
-            .unwrap_or_default()
+        import_upstream(&upstream_config_dir(), &config_dir());
+        Self::load_from(&Self::path())
+    }
+
+    /// Settings from `path`. A file that exists but does not parse is
+    /// renamed to `<name>.bad` first, so the next save cannot overwrite the
+    /// user's favorites and friends with defaults.
+    pub fn load_from(path: &std::path::Path) -> Self {
+        // Bytes, not a string: a file that is not UTF-8 (saved as ANSI by an
+        // editor) must reach the `.bad` path too, not be silently replaced.
+        let Ok(bytes) = std::fs::read(path) else {
+            return Self::default();
+        };
+        match serde_json::from_slice::<Self>(&bytes) {
+            Ok(settings) => settings.normalized(),
+            Err(_) => {
+                let mut bad = path.as_os_str().to_owned();
+                bad.push(".bad");
+                let _ = std::fs::rename(path, bad);
+                Self::default()
+            }
+        }
     }
 
     fn normalized(mut self) -> Self {
@@ -525,12 +554,11 @@ impl Settings {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let text = serde_json::to_string_pretty(self).map_err(std::io::Error::other)?;
-        std::fs::write(path, text)
+        self.export_to(&path)
     }
 
-    /// Games the user can join: a program is set, or a Steam game and a Steam
-    /// Web API key to list it.
+    /// Games the user can join: their program file exists (the same rule as
+    /// Options > Games), or a Steam game and a Steam Web API key to list it.
     pub fn ready_games(&self) -> Vec<&'static crate::catalog::Game> {
         crate::catalog::games()
             .iter()
@@ -538,7 +566,7 @@ impl Settings {
                 let program = self
                     .games
                     .get(&game.id)
-                    .is_some_and(|g| !g.program_location.trim().is_empty());
+                    .is_some_and(|g| std::path::Path::new(g.program_location.trim()).is_file());
                 program || (game.steam_appid.is_some() && !self.steam_api_key.trim().is_empty())
             })
             .collect()
@@ -546,6 +574,14 @@ impl Settings {
 
     pub fn game(&self, id: &str) -> GameSettings {
         self.games.get(id).cloned().unwrap_or_default()
+    }
+
+    /// Like [`Settings::game`] without the clone, for code that runs every
+    /// frame (tree, list rows, panes).
+    pub fn game_ref(&self, id: &str) -> &GameSettings {
+        static DEFAULT: std::sync::LazyLock<GameSettings> =
+            std::sync::LazyLock::new(GameSettings::default);
+        self.games.get(id).unwrap_or(&DEFAULT)
     }
 
     pub fn is_favorite(&self, server: &ServerRef) -> bool {
@@ -640,7 +676,16 @@ impl Settings {
     /// Save to any path (File > Export user profile).
     pub fn export_to(&self, path: &std::path::Path) -> std::io::Result<()> {
         let text = serde_json::to_string_pretty(self).map_err(std::io::Error::other)?;
-        std::fs::write(path, text)
+        // Write then rename, so a crash never leaves half a file.
+        let mut partial = path.as_os_str().to_owned();
+        partial.push(".partial");
+        // Flushed to disk before the rename, or a power cut could leave the
+        // renamed file empty.
+        let mut file = std::fs::File::create(&partial)?;
+        std::io::Write::write_all(&mut file, text.as_bytes())?;
+        file.sync_all()?;
+        drop(file);
+        std::fs::rename(&partial, path)
     }
 
     /// Read a profile written by [`Settings::export_to`].
@@ -652,8 +697,27 @@ impl Settings {
     }
 }
 
-/// Folder holding OpenASE's settings.
+/// Folder holding OpenASE-Plus's settings.
 pub fn config_dir() -> PathBuf {
+    config_base().join("OpenASE-Plus")
+}
+
+/// Folder of upstream OpenASE's settings, imported once by [`import_upstream`].
+pub fn upstream_config_dir() -> PathBuf {
+    config_base().join("OpenASE")
+}
+
+/// Copy upstream OpenASE's `settings.json` (favorites, friends, options)
+/// into a new OpenASE-Plus folder, once: never over an existing profile.
+pub fn import_upstream(old: &std::path::Path, new: &std::path::Path) -> bool {
+    let (from, to) = (old.join("settings.json"), new.join("settings.json"));
+    if to.exists() || !from.is_file() {
+        return false;
+    }
+    std::fs::create_dir_all(new).is_ok() && std::fs::copy(&from, &to).is_ok()
+}
+
+fn config_base() -> PathBuf {
     let base = if cfg!(windows) {
         std::env::var_os("APPDATA").map(PathBuf::from)
     } else if cfg!(target_os = "macos") {
@@ -663,5 +727,5 @@ pub fn config_dir() -> PathBuf {
             .map(PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
     };
-    base.unwrap_or_else(|| PathBuf::from(".")).join("OpenASE")
+    base.unwrap_or_else(|| PathBuf::from("."))
 }

@@ -222,6 +222,42 @@ impl Quake3Client {
     }
 }
 
+/// Most packets read for one answer: a server that keeps sending more is
+/// cut off (GameSpy answers end with `\final\`, a broken one never does).
+pub const MAX_PACKETS: usize = 32;
+
+/// `Err(TimedOut)` once `2 × timeout` has passed since `started`: receive
+/// loops call it before each read, so a server that keeps sending packets
+/// that are not the answer cannot hold a query forever (each `recv` alone
+/// restarts the read timeout).
+pub fn give_up(started: Instant, timeout: Duration) -> io::Result<()> {
+    if started.elapsed() > timeout * 2 {
+        return Err(io::Error::new(
+            io::ErrorKind::TimedOut,
+            "no valid answer in time",
+        ));
+    }
+    Ok(())
+}
+
+/// A UDP socket connected to the first IPv4 address of `host:port`, with
+/// `timeout` on reads. Shared by the protocol modules and RCON.
+pub fn udp_connect(host: &str, port: u16, timeout: Duration) -> io::Result<UdpSocket> {
+    let target = (host, port)
+        .to_socket_addrs()?
+        .find(|address| address.is_ipv4())
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("no IPv4 address for {host}"),
+            )
+        })?;
+    let socket = UdpSocket::bind("0.0.0.0:0")?;
+    socket.set_read_timeout(Some(timeout))?;
+    socket.connect(target)?;
+    Ok(socket)
+}
+
 /// Parse `host` or `host:port` into a host and UDP port.
 pub fn parse_address(address: &str, default_port: u16) -> Result<(String, u16), ParseError> {
     if address.starts_with('[') {

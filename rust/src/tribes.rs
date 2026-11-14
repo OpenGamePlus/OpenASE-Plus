@@ -270,6 +270,7 @@ pub fn t1_status(
     socket.send(&t1_status_request(key))?;
     let mut buffer = [0u8; 16384];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if is_t1_status(&buffer[..size], Some(key)) {
             let rtt = started.elapsed();
@@ -286,6 +287,7 @@ pub fn t1_ping(host: &str, port: u16, timeout: Duration) -> io::Result<Duration>
     socket.send(&t1_ping_request(key))?;
     let mut buffer = [0u8; 1024];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if is_t1_ping(&buffer[..size], key) {
             return Ok(started.elapsed());
@@ -597,6 +599,12 @@ pub fn t2_status(
     let mut info = None;
     let mut rtt = None;
     while ping.is_none() || info.is_none() {
+        if let Err(error) = crate::quake3::give_up(started, timeout) {
+            if info.is_none() {
+                return Err(error);
+            }
+            break;
+        }
         let size = match socket.recv(&mut buffer) {
             Ok(size) => size,
             Err(error) if info.is_none() => return Err(error),
@@ -630,6 +638,7 @@ pub fn t2_ping(host: &str, port: u16, timeout: Duration) -> io::Result<Duration>
     socket.send(&t2_request(T2_PING, key))?;
     let mut buffer = [0u8; 2048];
     loop {
+        crate::quake3::give_up(started, timeout)?;
         let size = socket.recv(&mut buffer)?;
         if is_t2_answer(&buffer[..size], T2_PING_ANSWER, Some(key)) {
             return Ok(started.elapsed());

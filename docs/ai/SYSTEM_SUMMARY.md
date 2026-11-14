@@ -1,6 +1,6 @@
 # System summary
 
-Last updated: 2026-11-14 (fork point: OpenASE 0.9.6).
+Last updated: 2026-11-14. Version 1.0.0 (released 2026-11-14), forked from OpenASE 0.9.6.
 
 ## Tree
 
@@ -12,7 +12,7 @@ rust/                Cargo package `openase` (lib + bin)
 ├── src/games.json   game catalog
 ├── examples/        scan.rs, query.rs (CLI, no GUI)
 ├── tests/           offline integration tests + docs checker (docs.rs)
-├── assets/          icon.png, icon.ico, flags.png + flags.txt (flag-icons atlas, MIT)
+├── assets/          icon.png, icon.ico (scripts/make_icon.sh), flags.png + flags.txt (flag-icons atlas, MIT)
 └── build.rs         Windows icon and product name resource
 docs/                website (index.html, CNAME) + technical docs (*.md)
 packaging/           Inno Setup, Scoop, winget generator
@@ -23,7 +23,7 @@ packaging/           Inno Setup, Scoop, winget generator
 
 | Binary | Source | Use |
 |---|---|---|
-| `openase` | `rust/src/main.rs` | The GUI (`default-run`) |
+| `OpenASEplus` | `rust/src/main.rs` | The GUI (`default-run`; `OpenASEplus.exe` on Windows) |
 | `openase-cli` | `rust/src/bin/openase-cli.rs` | `games`, `scan`, `query`, `--json` ([cli.md](../cli.md)) |
 | `scan` example | `rust/examples/scan.rs` | Masters + queries of one game, printed |
 | `query` example | `rust/examples/query.rs` | One server, everything printed |
@@ -42,12 +42,13 @@ packaging/           Inno Setup, Scoop, winget generator
 | Links | `openase://connect/<game>/<host>:<port>`: confirm before joining, handed to the running instance; registered by the Windows installer and the Linux `.desktop`; not on macOS |
 | List | Country flags, ping colored by level (80 / 150 ms), occupancy meter in Players, solid scroll bars; tree with server counts and an "Installed games only" filter |
 | Themes | Classic (default), Dark, Terminal, Amber terminal, Synthwave, GoldSrc (CS 1.6 olive and gold) in Options > Colors |
+| Game icons | Icon of the configured executable (PE resources, any OS), else a JASE-style two-letter badge |
 | Map images | Levelshots from the installed game's `.pk3` files, shown above the Rules pane (12 Quake 3 engine games) |
 | RCON | Console per server for Quake 3 / CoD / Quake 2 families, Half-Life 1 and Source games; password kept for the session only |
 | Saved lists | Last completed scan per game, shown at start as listed rows (no ping, `saved`), queried on demand |
 | GeoIP | DB-IP country database, monthly download |
-| i18n | English, French |
-| Update check | Points at upstream releases (debt R2) |
+| i18n | English, French, Spanish, Portuguese (Brazil), Italian, German, Russian (`rust/src/locales/*.tsv`) |
+| Update check | OpenGamePlus/OpenASE-Plus releases |
 | Docs | This system; checker in `rust/tests/docs.rs` |
 
 ## Commands
