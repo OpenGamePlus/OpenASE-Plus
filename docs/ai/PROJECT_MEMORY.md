@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — game icons
+- `exe_icon.rs`: bounds-checked PE resource reader (RT_GROUP_ICON -> best RT_ICON -> one-image .ico, decoded by `image` with the `ico` feature); tested on a synthetic PE and checked on real CoD2, OpenCoD2-Plus, notepad and explorer executables.
+- Not-installed games: JASE badges, new unique two-letter `badge` field for all 80 games (JASE's letters where ids match). The old rectangular `short` badge is gone.
+
 ## 2026-11-14 — fork identity for 1.0.0
 - User's choices: name OpenASE-Plus, version 1.0.0, own config folder importing OpenASE's settings.json once, links to the GitHub repo. New installer `AppId` (BE92ED7C-...; also the winget ProductCode), packages `OpenASE-Plus-*`, `OpenASE-Plus.exe`, `openase-plus`, `io.github.opengameplus.openase-plus`.
 - Kept Thomas Sautier's copyright next to the fork's (GPL), the Cargo binary names (`openase`, `openase-cli`) and the `openase://` scheme. Removed the CNAME file of docs/ and upstream's 0.9.1 winget manifests.

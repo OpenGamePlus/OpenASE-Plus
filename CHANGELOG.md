@@ -13,6 +13,10 @@ versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases
 - Update check, links, packages and the 333networks User-Agent point at
   github.com/OpenGamePlus/OpenASE-Plus.
 
+### Game icons
+- Games show the icon of their installed executable; the others a two-letter badge in the
+  game's color, as in JASE.
+
 ### New games
 - Xonotic, Warsow, Warfork, Tremulous and Smokin' Guns (Quake 3 protocol).
 - Team Fortress 2, Left 4 Dead, Left 4 Dead 2 and Garry's Mod (Steam list, needs your own key).
