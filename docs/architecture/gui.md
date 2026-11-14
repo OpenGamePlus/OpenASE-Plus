@@ -38,6 +38,7 @@ shows every loaded server with at least one human; F5 or a first visit scans
 | Slot watch (every 10 s, 30 min max) and party alerts (every 60 s) | `watch_tick`, each frame | `Watched`*, `WatchDone` |
 | Friend sound | friend found | none (waits for the player process) |
 | Saved lists: load at start, save after a completed game scan | `OpenAseApp::new`, `save_lists` | `SavedLists` |
+| Executable icons of configured games (once per path) | `request_exe_icons`, each frame | `ExeIcon` |
 | Map image of the selected server (once per game and map) | `request_map_image`, each frame | `MapImage` |
 | RCON command | `send_rcon` (console window, right-click > RCON console) | `Rcon` |
 | `openase://` links from a second instance | `instance::listen` in `OpenAseApp::new` | `Link` (also sent once for a link on the command line) |
@@ -63,6 +64,13 @@ as the Modifiers branch. The tree shows server counts and can
 list installed games only (`FilterSettings::installed_only`). Bottom pane
 columns are capped below the pane width, so a resize handle never leaves the
 screen.
+
+## Game icons
+
+`icons::game_icon` draws the icon of the game's configured executable
+(`exe_icon.rs`, 32 px image preferred) or, without one, JASE's badge: the
+catalog `badge` letters in white on the game's color, in a rounded square.
+Used in the tree and the list's icon column.
 
 ## Alerts
 

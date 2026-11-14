@@ -7,6 +7,8 @@ mod icons;
 
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::path::Path;
+
+use eframe::emath::GuiRounding;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex};
@@ -191,6 +193,12 @@ pub enum Msg {
     PortFixes(Vec<(ServerRef, ServerRef)>),
     /// Lists saved by an earlier session (`openase::lists`).
     SavedLists(Vec<(String, Vec<Server>)>),
+    /// Icon of a game's executable (`None`: not a PE or no icon).
+    ExeIcon {
+        game: String,
+        path: String,
+        image: Option<([usize; 2], Vec<u8>)>,
+    },
     /// A levelshot looked up for (game, map); `None` when there is none.
     MapImage {
         game: String,
@@ -278,6 +286,8 @@ pub struct OpenAseApp {
     /// without an entry has not been looked up yet.
     map_images: HashMap<(String, String), Option<egui::TextureHandle>>,
     flags: Option<icons::Flags>,
+    /// Executable icons by game id: (program path it came from, icon).
+    exe_icons: HashMap<String, (String, Option<egui::TextureHandle>)>,
     /// "Alert me when a slot is free" on one full server.
     slot_watch: Option<SlotWatch>,
     party: PartyTracker,
@@ -367,6 +377,7 @@ impl OpenAseApp {
             slot_watch: None,
             map_images: HashMap::new(),
             flags: icons::Flags::load(&cc.egui_ctx),
+            exe_icons: HashMap::new(),
             party: PartyTracker::default(),
             watch_in_flight: false,
             last_party_poll: None,
@@ -680,6 +691,44 @@ impl OpenAseApp {
         if before != after {
             self.settings_dirty = true;
         }
+    }
+
+    fn exe_icon(&self, game: &str) -> Option<&egui::TextureHandle> {
+        self.exe_icons.get(game)?.1.as_ref()
+    }
+
+    /// Read the icons of configured game executables once per path, off
+    /// the UI thread; games without one keep their badge.
+    fn request_exe_icons(&mut self, ctx: &egui::Context) {
+        let mut wanted = Vec::new();
+        for game in catalog::games() {
+            let program = self
+                .settings
+                .game(&game.id)
+                .program_location
+                .trim()
+                .to_string();
+            let known = self.exe_icons.get(&game.id).map(|(path, _)| path.as_str());
+            if program.is_empty() {
+                self.exe_icons.remove(&game.id);
+            } else if known != Some(program.as_str()) {
+                self.exe_icons
+                    .insert(game.id.clone(), (program.clone(), None));
+                wanted.push((game.id.clone(), program));
+            }
+        }
+        if wanted.is_empty() {
+            return;
+        }
+        let (tx, ctx) = (self.tx.clone(), ctx.clone());
+        std::thread::spawn(move || {
+            for (game, path) in wanted {
+                let image = openase::exe_icon::icon_from_exe(Path::new(&path))
+                    .and_then(|ico| openase::exe_icon::decode_icon(&ico));
+                let _ = tx.send(Msg::ExeIcon { game, path, image });
+            }
+            ctx.request_repaint();
+        });
     }
 
     /// Look up the levelshot of the selected server's map once, off the UI
@@ -1201,6 +1250,18 @@ impl OpenAseApp {
                     }
                 },
                 Msg::Link(url) => self.open_link(ctx, &url),
+                Msg::ExeIcon { game, path, image } => {
+                    // A result for a path changed meanwhile is stale.
+                    if self.exe_icons.get(&game).is_some_and(|(p, _)| *p == path) {
+                        let texture = image.map(|(size, rgba)| {
+                            let image = egui::ColorImage::from_rgba_unmultiplied(size, &rgba);
+                            let options = egui::TextureOptions::LINEAR
+                                .with_mipmap_mode(Some(egui::TextureFilter::Linear));
+                            ctx.load_texture(format!("exe-{game}"), image, options)
+                        });
+                        self.exe_icons.insert(game, (path, texture));
+                    }
+                }
                 Msg::MapImage { game, map, image } => {
                     let texture = image.map(|(size, rgba)| {
                         let image = egui::ColorImage::from_rgba_unmultiplied(size, &rgba);
@@ -1962,7 +2023,7 @@ impl OpenAseApp {
                 ui,
                 0,
                 Some(&path),
-                TreeIcon::Game(game),
+                TreeIcon::Game(game, self.exe_icon(&game.id)),
                 &label,
                 self.nav == Nav::Game(game.id.clone()),
             ) {
@@ -2385,25 +2446,28 @@ impl OpenAseApp {
                                 Col::Icon => {
                                     let rect = ui.max_rect();
                                     if let Some(game) = game {
-                                        icons::badge(
+                                        let icon = egui::Rect::from_min_size(
+                                            rect.left_center() + vec2(2.0, -7.0),
+                                            vec2(14.0, 14.0),
+                                        )
+                                        .round_to_pixels(ui.pixels_per_point());
+                                        icons::game_icon(
                                             ui.painter(),
-                                            egui::Rect::from_min_size(
-                                                rect.left_center() + vec2(1.0, -6.0),
-                                                vec2(20.0, 12.0),
-                                            ),
+                                            icon,
                                             game,
+                                            self.exe_icon(&game.id),
                                         );
                                     }
                                     if server.password {
                                         icons::lock(
                                             ui.painter(),
-                                            rect.left_center() + vec2(28.0, 0.0),
+                                            rect.left_center() + vec2(24.0, 0.0),
                                         );
                                     }
                                     if favorite {
                                         icons::star(
                                             ui.painter(),
-                                            rect.left_center() + vec2(38.0, 0.0),
+                                            rect.left_center() + vec2(34.0, 0.0),
                                             5.0,
                                             Color32::from_rgb(0xf0, 0xc0, 0x1e),
                                             Color32::from_rgb(0x96, 0x6e, 0x00),
@@ -2878,6 +2942,7 @@ impl eframe::App for OpenAseApp {
         }
         self.watch_tick(&ctx);
         self.request_map_image(&ctx);
+        self.request_exe_icons(&ctx);
         if self.slot_watch.is_some() || !self.settings.party_alerts.is_empty() {
             ctx.request_repaint_after(Duration::from_secs(1));
         }

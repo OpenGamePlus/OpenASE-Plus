@@ -312,14 +312,32 @@ fn friends(painter: &egui::Painter, r: Rect, back: Color32, front: Color32) {
 }
 
 /// Small colored game badge with the game's short name.
-pub fn badge(painter: &egui::Painter, rect: Rect, game: &Game) {
+/// Icon of a game in a square `rect`: the icon of its executable when
+/// there is one, else JASE's badge (white letters on the game's color).
+pub fn game_icon(
+    painter: &egui::Painter,
+    rect: Rect,
+    game: &Game,
+    exe: Option<&egui::TextureHandle>,
+) {
+    if let Some(texture) = exe {
+        let uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
+        painter.image(texture.id(), rect, uv, Color32::WHITE);
+        return;
+    }
     let [r, g, b] = game.rgb();
-    painter.rect_filled(rect, CornerRadius::same(2), Color32::from_rgb(r, g, b));
+    let radius = CornerRadius::same((rect.width() * 0.22).round() as u8);
+    painter.rect_filled(rect, radius, Color32::from_rgb(r, g, b));
+    let text = if game.badge.is_empty() {
+        &game.short
+    } else {
+        &game.badge
+    };
     painter.text(
         rect.center(),
         egui::Align2::CENTER_CENTER,
-        &game.short,
-        FontId::proportional(if game.short.len() > 3 { 8.0 } else { 9.0 }),
+        text,
+        FontId::proportional((rect.height() * 0.58).round()),
         Color32::WHITE,
     );
 }
@@ -335,12 +353,13 @@ pub fn lock(painter: &egui::Painter, center: Pos2) {
     );
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub enum TreeIcon<'a> {
     None,
     Folder,
     Check(bool),
-    Game(&'a Game),
+    /// A game, with the icon of its executable when known.
+    Game(&'a Game, Option<&'a egui::TextureHandle>),
     Star,
     Clock,
     Friends,
@@ -380,7 +399,11 @@ pub fn tree_icon(painter: &egui::Painter, rect: Rect, icon: TreeIcon<'_>) {
                 ));
             }
         }
-        TreeIcon::Game(game) => badge(painter, Rect::from_center_size(c, vec2(16.0, 12.0)), game),
+        TreeIcon::Game(game, exe) => {
+            let rect = Rect::from_center_size(c, vec2(14.0, 14.0));
+            let rect = rect.round_to_pixels(painter.pixels_per_point());
+            game_icon(painter, rect, game, exe)
+        }
         TreeIcon::Star => star(
             painter,
             c,

@@ -42,6 +42,7 @@ packaging/           Inno Setup, Scoop, winget generator
 | Links | `openase://connect/<game>/<host>:<port>`: confirm before joining, handed to the running instance; registered by the Windows installer and the Linux `.desktop`; not on macOS |
 | List | Country flags, ping colored by level (80 / 150 ms), occupancy meter in Players, solid scroll bars; tree with server counts and an "Installed games only" filter |
 | Themes | Classic (default), Dark, Terminal, Amber terminal, Synthwave, GoldSrc (CS 1.6 olive and gold) in Options > Colors |
+| Game icons | Icon of the configured executable (PE resources, any OS), else a JASE-style two-letter badge |
 | Map images | Levelshots from the installed game's `.pk3` files, shown above the Rules pane (12 Quake 3 engine games) |
 | RCON | Console per server for Quake 3 / CoD / Quake 2 families, Half-Life 1 and Source games; password kept for the session only |
 | Saved lists | Last completed scan per game, shown at start as listed rows (no ping, `saved`), queried on demand |

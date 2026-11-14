@@ -155,6 +155,10 @@ pub struct Game {
     pub id: String,
     pub name: String,
     pub short: String,
+    /// Two letters for the game icon of games that are not installed
+    /// (JASE's badges: `C2`, `Q3`, `UT`...).
+    #[serde(default)]
+    pub badge: String,
     pub color: String,
     pub protocol: Protocol,
     pub default_port: u16,

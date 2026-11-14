@@ -33,7 +33,8 @@ Copy an entry of the same protocol. Quake 3, shortened:
 | Field | Req. | Meaning |
 |---|---|---|
 | `id` | yes | Unique, lowercase; stored in settings and used by `scan -- <id>`: never rename |
-| `name`, `short`, `color` | yes | Tree name, list badge, badge color `#rrggbb` (a test parses it) |
+| `name`, `short`, `color` | yes | Tree name, short name, icon color `#rrggbb` (a test parses it) |
+| `badge` | no | Two letters of the game icon when the game is not installed (JASE's badges: `C2`, `Q3`); unique per game |
 | `protocol`, `default_port` | yes | Query protocol; port when an address has none |
 | `masters` | yes | List of masters (may be `[]`); queried in parallel, merged |
 | `steam_appid` | no | Steam app id (`cs16`: `10`); joins through `steam://connect` when no program is set |

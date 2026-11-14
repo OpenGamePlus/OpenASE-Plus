@@ -12,7 +12,7 @@ main.rs ──► gui/  (binary only: egui, threads, channels)
                │
                ▼
    services:  settings · rules · launch · detect · lan · geoip · update · i18n · alerts
-              links · instance · lists · rcon · maps
+              links · instance · lists · rcon · maps · exe_icon
                │
                ▼
    dispatch:  query  ◄── catalog (games.json)
@@ -52,6 +52,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/lan.rs` | service | LAN discovery by UDP broadcast, every protocol that supports it |
 | `rust/src/geoip.rs` | service | DB-IP country database: monthly download, lookup |
 | `rust/src/location.rs` | leaf | Country / region of a server for the Location column |
+| `rust/src/exe_icon.rs` | service | Icon of a Windows executable from its PE resources (any OS) |
 | `rust/src/maps.rs` | service | Levelshots from a game's `.pk3` files ([ADR 0007](adr/0007-map-images-from-local-files.md)) |
 | `rust/src/rcon.rs` | service | RCON: Quake (UDP), GoldSrc (UDP + challenge), Source (TCP) |
 | `rust/src/lists.rs` | service | Server lists kept between sessions, one JSON file per game |

@@ -14,7 +14,7 @@ default-run = "openase"
 eframe = { version = "0.37.0", features = ["persistence"] }
 egui_extras = "0.37.0"
 flate2 = "1.1.11"
-image = { version = "0.25", default-features = false, features = ["jpeg", "tga", "png"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "tga", "png", "ico"] }
 regex = "1.13.1"
 rfd = "0.17.2"
 serde = { version = "1.0.229", features = ["derive"] }
