@@ -8,7 +8,7 @@ versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases
 
 ### Identity
 - **OpenASE-Plus**, a fork of OpenASE 0.9.6 by Thomas Sautier. It installs next to
-  OpenASE (own installer id, `OpenASE-Plus.exe`, `openase-plus` on Linux) and keeps its
+  OpenASE (own installer id, `OpenASEplus.exe`, `openase-plus` on Linux) and keeps its
   settings in an `OpenASE-Plus` folder; OpenASE's settings are imported on first start.
 - New icon: a neon cyan eye in a triangle in a circle, after JASE's colors
   (`scripts/make_icon.sh`; a bolder variant at 16 and 24 px).

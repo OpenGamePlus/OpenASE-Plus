@@ -9,7 +9,7 @@
   #define AppVersion "0.0.0"
 #endif
 #ifndef SourceExe
-  #define SourceExe "..\..\rust\target\release\openase.exe"
+  #define SourceExe "..\..\rust\target\release\OpenASEplus.exe"
 #endif
 #ifndef OutputDir
   #define OutputDir "..\..\dist"
@@ -39,7 +39,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 LicenseFile=..\..\LICENSE
 SetupIconFile=..\..\rust\assets\icon.ico
-UninstallDisplayIcon={app}\OpenASE-Plus.exe
+UninstallDisplayIcon={app}\OpenASEplus.exe
 UninstallDisplayName=OpenASE-Plus
 OutputDir={#OutputDir}
 OutputBaseFilename={#OutputName}
@@ -57,7 +57,7 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "OpenASE-Plus.exe"; Flags: ignoreversion
+Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "OpenASEplus.exe"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\rust\assets\flags-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -66,15 +66,15 @@ Source: "..\..\rust\assets\flags-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreve
 ; openase://connect/<game>/<host>:<port> links (see rust/src/links.rs).
 Root: HKA; Subkey: "Software\Classes\openase"; ValueType: string; ValueName: ""; ValueData: "URL:OpenASE-Plus link"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\openase"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
-Root: HKA; Subkey: "Software\Classes\openase\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\OpenASE-Plus.exe,0"
-Root: HKA; Subkey: "Software\Classes\openase\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\OpenASE-Plus.exe"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\openase\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\OpenASEplus.exe,0"
+Root: HKA; Subkey: "Software\Classes\openase\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\OpenASEplus.exe"" ""%1"""
 
 [Icons]
-Name: "{autoprograms}\OpenASE-Plus"; Filename: "{app}\OpenASE-Plus.exe"
-Name: "{autodesktop}\OpenASE-Plus"; Filename: "{app}\OpenASE-Plus.exe"; Tasks: desktopicon
+Name: "{autoprograms}\OpenASE-Plus"; Filename: "{app}\OpenASEplus.exe"
+Name: "{autodesktop}\OpenASE-Plus"; Filename: "{app}\OpenASEplus.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\OpenASE-Plus.exe"; Description: "{cm:LaunchProgram,OpenASE-Plus}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\OpenASEplus.exe"; Description: "{cm:LaunchProgram,OpenASE-Plus}"; Flags: nowait postinstall skipifsilent
 
 ; Settings live in %APPDATA%\OpenASE-Plus (upstream OpenASE's are imported once). There is deliberately no [UninstallDelete]
 ; entry for it: uninstalling or upgrading keeps the user's settings.

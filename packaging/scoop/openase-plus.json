@@ -7,12 +7,12 @@
     "hash": "0000000000000000000000000000000000000000000000000000000000000000",
     "extract_dir": "OpenASE-Plus-v1.0.0-windows-x64",
     "bin": [
-        "OpenASE-Plus.exe",
+        "OpenASEplus.exe",
         "openase-cli.exe"
     ],
     "shortcuts": [
         [
-            "OpenASE-Plus.exe",
+            "OpenASEplus.exe",
             "OpenASE-Plus"
         ]
     ],

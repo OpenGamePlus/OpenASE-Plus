@@ -121,7 +121,7 @@ Every [GitHub release](https://github.com/OpenGamePlus/OpenASE-Plus/releases/lat
 
 | System | Package | How to run |
 | --- | --- | --- |
-| Windows 10/11 (x64) | `OpenASE-Plus-<version>-windows-x64.zip` | Unzip, run `OpenASE-Plus.exe`. |
+| Windows 10/11 (x64) | `OpenASE-Plus-<version>-windows-x64.zip` | Unzip, run `OpenASEplus.exe`. |
 | Linux (x64) | `OpenASE-Plus-<version>-linux-x86_64.AppImage` or `OpenASE-Plus-<version>-linux-x64.tar.gz` | AppImage: `chmod +x` it and run it, on any distribution. Archive: extract, run `./openase-plus`; an `openase-plus.desktop` file and icon are included. |
 | macOS 11+ (Apple Silicon and Intel) | `OpenASE-Plus-<version>-macos-universal.zip` | Unzip, move `OpenASE-Plus.app` to Applications. The app is not notarized: the first time, right-click it and choose **Open**, or run `xattr -dr com.apple.quarantine /Applications/OpenASE-Plus.app`. |
 

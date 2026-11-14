@@ -37,7 +37,7 @@ jobs:
         working-directory: rust
         run: cargo build --release
       # Code signing is not set up yet (no certificate). To add it, sign
-      # rust/target/release/openase.exe here, before it is zipped and wrapped
+      # rust/target/release/OpenASEplus.exe here, before it is zipped and wrapped
       # in the installer. SignPath is free for open source projects:
       # https://signpath.org/ (use the signpath/github-action-submit-signing-request
       # action, or call signtool). Keep the exe unsigned until then.
@@ -46,7 +46,7 @@ jobs:
         run: |
           $name = "OpenASE-Plus-$env:TAG-windows-x64"
           New-Item -ItemType Directory $name | Out-Null
-          Copy-Item rust/target/release/openase.exe "$name/OpenASE-Plus.exe"
+          Copy-Item rust/target/release/OpenASEplus.exe "$name/OpenASEplus.exe"
           Copy-Item rust/target/release/openase-cli.exe "$name/openase-cli.exe"
           Copy-Item LICENSE, README.md, rust/assets/flags-LICENSE.txt $name
           Compress-Archive -Path $name -DestinationPath "$name.zip"
@@ -92,7 +92,7 @@ jobs:
         run: |
           name="OpenASE-Plus-$TAG-linux-x64"
           mkdir "$name"
-          cp rust/target/release/openase "$name/openase-plus"
+          cp rust/target/release/OpenASEplus "$name/openase-plus"
           cp rust/target/release/openase-cli "$name/openase-cli"
           cp rust/assets/icon.png "$name/openase-plus.png"
           cp LICENSE README.md rust/assets/flags-LICENSE.txt "$name/"
@@ -117,7 +117,7 @@ jobs:
         run: |
           appdir=OpenASE-Plus.AppDir
           mkdir -p "$appdir/usr/bin"
-          cp rust/target/release/openase "$appdir/usr/bin/openase-plus"
+          cp rust/target/release/OpenASEplus "$appdir/usr/bin/openase-plus"
           cp rust/assets/icon.png "$appdir/openase-plus.png"
           cp rust/assets/icon.png "$appdir/.DirIcon"
           cat > "$appdir/openase-plus.desktop" <<'EOF'
@@ -166,8 +166,8 @@ jobs:
           app="OpenASE-Plus.app"
           mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
           lipo -create -output "$app/Contents/MacOS/OpenASE-Plus" \
-            rust/target/aarch64-apple-darwin/release/openase \
-            rust/target/x86_64-apple-darwin/release/openase
+            rust/target/aarch64-apple-darwin/release/OpenASEplus \
+            rust/target/x86_64-apple-darwin/release/OpenASEplus
           iconset=OpenASE-Plus.iconset
           mkdir "$iconset"
           for size in 16 32 128 256 512; do

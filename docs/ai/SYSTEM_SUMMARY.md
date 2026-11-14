@@ -23,7 +23,7 @@ packaging/           Inno Setup, Scoop, winget generator
 
 | Binary | Source | Use |
 |---|---|---|
-| `openase` | `rust/src/main.rs` | The GUI (`default-run`) |
+| `OpenASEplus` | `rust/src/main.rs` | The GUI (`default-run`; `OpenASEplus.exe` on Windows) |
 | `openase-cli` | `rust/src/bin/openase-cli.rs` | `games`, `scan`, `query`, `--json` ([cli.md](../cli.md)) |
 | `scan` example | `rust/examples/scan.rs` | Masters + queries of one game, printed |
 | `query` example | `rust/examples/query.rs` | One server, everything printed |
