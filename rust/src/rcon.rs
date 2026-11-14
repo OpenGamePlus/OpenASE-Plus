@@ -80,22 +80,6 @@ fn latin1_bytes(text: &str) -> Vec<u8> {
         .collect()
 }
 
-fn udp(host: &str, port: u16, timeout: Duration) -> io::Result<UdpSocket> {
-    let target = (host, port)
-        .to_socket_addrs()?
-        .find(|a| a.is_ipv4())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("no IPv4 address for {host}"),
-            )
-        })?;
-    let socket = UdpSocket::bind("0.0.0.0:0")?;
-    socket.connect(target)?;
-    socket.set_read_timeout(Some(timeout))?;
-    Ok(socket)
-}
-
 /// The first packet (within `timeout`), then any that follow within GRACE.
 fn packets(socket: &UdpSocket, timeout: Duration) -> Result<Vec<Vec<u8>>, RconError> {
     let mut buffer = [0u8; 65536];
@@ -124,7 +108,7 @@ pub fn quake(
     command: &str,
     timeout: Duration,
 ) -> Result<String, RconError> {
-    let socket = udp(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     socket.send(&[OOB, &latin1_bytes(&format!("rcon {password} {command}"))].concat())?;
     let text: String = packets(&socket, timeout)?
         .iter()
@@ -150,7 +134,7 @@ pub fn goldsrc(
     command: &str,
     timeout: Duration,
 ) -> Result<String, RconError> {
-    let socket = udp(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     socket.send(&[OOB, b"challenge rcon\n"].concat())?;
     let reply = packets(&socket, timeout)?.remove(0);
     let reply = latin1(reply.strip_prefix(OOB).unwrap_or_default());

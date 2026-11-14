@@ -28,7 +28,6 @@
 
 use std::collections::HashSet;
 use std::io;
-use std::net::{ToSocketAddrs, UdpSocket};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
@@ -459,29 +458,13 @@ pub fn parse_response(
     Ok(Reply::Server(Box::new(s)))
 }
 
-fn connect(host: &str, port: u16, timeout: Duration) -> io::Result<UdpSocket> {
-    let target = (host, port)
-        .to_socket_addrs()?
-        .find(|address| address.is_ipv4())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("no IPv4 address for {host}"),
-            )
-        })?;
-    let socket = UdpSocket::bind("0.0.0.0:0")?;
-    socket.set_read_timeout(Some(timeout))?;
-    socket.connect(target)?;
-    Ok(socket)
-}
-
 fn query_once(
     game: &Game,
     host: &str,
     port: u16,
     timeout: Duration,
 ) -> io::Result<(Reply, Duration)> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&query_request(0))?;
     let mut buffer = [0u8; 8192];
@@ -524,7 +507,7 @@ pub fn status(
 /// Fetch the master list: numbered packets, the last one marked.
 pub fn master_list(address: &str, timeout: Duration) -> io::Result<Vec<String>> {
     let (host, port) = parse_address(address, 15300)?;
-    let socket = connect(&host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(&host, port, timeout)?;
     socket.send(&master_request())?;
     let deadline = Instant::now() + timeout;
     let (mut seen, mut addresses) = (HashSet::new(), Vec::new());

@@ -23,7 +23,6 @@
 
 use std::collections::{BTreeMap, HashSet};
 use std::io;
-use std::net::{ToSocketAddrs, UdpSocket};
 use std::time::{Duration, Instant};
 
 use crate::catalog::Game;
@@ -216,22 +215,6 @@ pub fn parse_master_response(packet: &[u8]) -> Result<Vec<String>, ParseError> {
         .collect())
 }
 
-fn connect(host: &str, port: u16, timeout: Duration) -> io::Result<UdpSocket> {
-    let target = (host, port)
-        .to_socket_addrs()?
-        .find(|address| address.is_ipv4())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("no IPv4 address for {host}"),
-            )
-        })?;
-    let socket = UdpSocket::bind("0.0.0.0:0")?;
-    socket.set_read_timeout(Some(timeout))?;
-    socket.connect(target)?;
-    Ok(socket)
-}
-
 /// Query a server's status. Returns the normalized server and the round-trip time.
 pub fn status(
     game: &Game,
@@ -239,7 +222,7 @@ pub fn status(
     port: u16,
     timeout: Duration,
 ) -> io::Result<(Server, Duration)> {
-    let socket = connect(host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(host, port, timeout)?;
     let started = Instant::now();
     socket.send(&info_request(CHALLENGE))?;
     let mut buffer = [0u8; 16384];
@@ -264,7 +247,7 @@ pub fn ping(game: &Game, host: &str, port: u16, timeout: Duration) -> io::Result
 pub fn master_list(address: &str, version: &str, timeout: Duration) -> io::Result<Vec<String>> {
     let request = master_request(version)?;
     let (host, port) = parse_address(address, 27650)?;
-    let socket = connect(&host, port, timeout)?;
+    let socket = crate::quake3::udp_connect(&host, port, timeout)?;
     socket.send(&request)?;
     let deadline = Instant::now() + timeout;
     let mut seen = HashSet::new();
