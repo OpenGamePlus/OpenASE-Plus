@@ -1422,7 +1422,13 @@ impl OpenAseApp {
         options
     }
 
+    /// The rows of the list, filtered and sorted.
     fn visible_rows(&self) -> Vec<&Server> {
+        self.sorted(self.filtered_rows())
+    }
+
+    /// The rows the filters keep, in no particular order (enough to count).
+    fn filtered_rows(&self) -> Vec<&Server> {
         let filters = &self.settings.filters;
         let candidates = self.candidates();
         let game = self.nav.game().and_then(catalog::game);
@@ -1431,7 +1437,7 @@ impl OpenAseApp {
             .map(|game| active_groups(game, &filters.checked))
             .unwrap_or_default();
 
-        let mut rows: Vec<&Server> = candidates
+        candidates
             .into_iter()
             .filter(|server| {
                 let unanswered = server.error.is_some();
@@ -1470,8 +1476,11 @@ impl OpenAseApp {
                 }
                 passes_groups(&groups, server)
             })
-            .collect();
+            .collect()
+    }
 
+    /// `rows` in the list's sort order.
+    fn sorted<'a>(&self, mut rows: Vec<&'a Server>) -> Vec<&'a Server> {
         let (col, ascending) = self.sort;
         let direction = |ordering: std::cmp::Ordering| {
             if ascending {
@@ -2897,7 +2906,8 @@ impl OpenAseApp {
     }
 
     fn status_bar(&self, ui: &mut egui::Ui) {
-        let rows = self.visible_rows();
+        // Counting needs no sort: the list sorts once per frame.
+        let rows = self.filtered_rows();
         let total: usize = match self.nav.game() {
             Some(game) => self.store.get(game).map_or(0, Vec::len),
             None => rows.len(),
