@@ -1473,16 +1473,28 @@ impl OpenAseApp {
             .collect();
 
         let (col, ascending) = self.sort;
+        let direction = |ordering: std::cmp::Ordering| {
+            if ascending {
+                ordering
+            } else {
+                ordering.reverse()
+            }
+        };
         // Servers that answered always come first, whatever the sort direction.
+        if is_text_column(col) {
+            // Text keys (names without color codes, lower case) are built once
+            // per row: in the comparator they cost regexes per comparison.
+            let mut keyed: Vec<(bool, String, &Server)> = rows
+                .into_iter()
+                .map(|server| (server.has_info(), sort_text(col, server), server))
+                .collect();
+            keyed.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| direction(a.1.cmp(&b.1))));
+            return keyed.into_iter().map(|(_, _, server)| server).collect();
+        }
         rows.sort_by(|a, b| {
-            b.has_info().cmp(&a.has_info()).then_with(|| {
-                let ordering = compare(col, a, b);
-                if ascending {
-                    ordering
-                } else {
-                    ordering.reverse()
-                }
-            })
+            b.has_info()
+                .cmp(&a.has_info())
+                .then_with(|| direction(compare(col, a, b)))
         });
         rows
     }
@@ -3596,15 +3608,22 @@ fn compare(col: Col, a: &Server, b: &Server) -> std::cmp::Ordering {
             };
             parse(a).cmp(&parse(b)).then(a.port.cmp(&b.port))
         }
-        _ => {
-            let game_a = catalog::game(&a.game);
-            let game_b = catalog::game(&b.game);
-            cell_text(col, a, game_a)
-                .to_lowercase()
-                .cmp(&cell_text(col, b, game_b).to_lowercase())
-        }
+        _ => sort_text(col, a).cmp(&sort_text(col, b)),
     }
     .then_with(|| b.has_info().cmp(&a.has_info()))
+}
+
+/// Columns sorted by their text, see [`sort_text`].
+fn is_text_column(col: Col) -> bool {
+    !matches!(
+        col,
+        Col::Icon | Col::Ping | Col::Flux | Col::Loss | Col::Players | Col::Address
+    )
+}
+
+/// The text a column sorts by: as shown, in lower case.
+fn sort_text(col: Col, server: &Server) -> String {
+    cell_text(col, server, catalog::game(&server.game)).to_lowercase()
 }
 
 /// The filter groups of `game` with at least one option checked.
