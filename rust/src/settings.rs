@@ -512,11 +512,25 @@ impl Settings {
 
     pub fn load() -> Self {
         import_upstream(&upstream_config_dir(), &config_dir());
-        std::fs::read_to_string(Self::path())
-            .ok()
-            .and_then(|text| serde_json::from_str::<Self>(&text).ok())
-            .map(Self::normalized)
-            .unwrap_or_default()
+        Self::load_from(&Self::path())
+    }
+
+    /// Settings from `path`. A file that exists but does not parse is
+    /// renamed to `<name>.bad` first, so the next save cannot overwrite the
+    /// user's favorites and friends with defaults.
+    pub fn load_from(path: &std::path::Path) -> Self {
+        let Ok(text) = std::fs::read_to_string(path) else {
+            return Self::default();
+        };
+        match serde_json::from_str::<Self>(&text) {
+            Ok(settings) => settings.normalized(),
+            Err(_) => {
+                let mut bad = path.as_os_str().to_owned();
+                bad.push(".bad");
+                let _ = std::fs::rename(path, bad);
+                Self::default()
+            }
+        }
     }
 
     fn normalized(mut self) -> Self {
@@ -529,8 +543,7 @@ impl Settings {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let text = serde_json::to_string_pretty(self).map_err(std::io::Error::other)?;
-        std::fs::write(path, text)
+        self.export_to(&path)
     }
 
     /// Games the user can join: a program is set, or a Steam game and a Steam
@@ -644,7 +657,11 @@ impl Settings {
     /// Save to any path (File > Export user profile).
     pub fn export_to(&self, path: &std::path::Path) -> std::io::Result<()> {
         let text = serde_json::to_string_pretty(self).map_err(std::io::Error::other)?;
-        std::fs::write(path, text)
+        // Write then rename, so a crash never leaves half a file.
+        let mut partial = path.as_os_str().to_owned();
+        partial.push(".partial");
+        std::fs::write(&partial, text)?;
+        std::fs::rename(&partial, path)
     }
 
     /// Read a profile written by [`Settings::export_to`].

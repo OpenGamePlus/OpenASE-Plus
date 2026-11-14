@@ -241,3 +241,28 @@ fn upstream_settings_are_imported_once() {
         "{}"
     );
 }
+
+#[test]
+fn settings_round_trip_through_a_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    let mut settings = Settings::default();
+    settings.friends = vec!["Visor".into()];
+    settings.export_to(&path).unwrap();
+    assert_eq!(Settings::load_from(&path).friends, ["Visor"]);
+    assert!(!dir.path().join("settings.json.partial").exists());
+}
+
+#[test]
+fn an_unreadable_settings_file_is_kept_aside() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    std::fs::write(&path, "{ broken").unwrap();
+    let settings = Settings::load_from(&path);
+    assert!(settings.friends.is_empty());
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("settings.json.bad")).unwrap(),
+        "{ broken"
+    );
+    assert!(!path.exists());
+}
