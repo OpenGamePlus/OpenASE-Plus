@@ -67,5 +67,7 @@ Look: `setup_style` sets ASE-like fonts and spacing; `apply_palette` applies
 Amber terminal, Synthwave, GoldSrc; `settings.rs`) picks the light or dark
 base, rebuilt each time by `ase_visuals` (ASE geometry; Windows-like greys on
 the light base only), then the panel, selection-text and widget colors; the
-four list colors on top stay editable.
-Some highlights are still fixed light colors (friend rows, headers).
+four list colors on top stay editable. Bars, headers, hover, frames and
+selected text come from the active visuals; `online_green`, `friend_fill`
+and `readable` (Quake colors) adapt to light or dark. Do not add fixed light
+colors: read them from `ui.visuals()`.

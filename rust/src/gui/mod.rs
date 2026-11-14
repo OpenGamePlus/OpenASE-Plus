@@ -2112,6 +2112,7 @@ impl OpenAseApp {
         let (sort_col, ascending) = self.sort;
         let selected = self.selected.clone();
         let text_color = ui.visuals().text_color();
+        let visuals = ui.visuals().clone();
         let selection = ui.visuals().selection.bg_fill;
         // A "Load more" row ends the list while 333networks lists more servers.
         let more = self
@@ -2134,7 +2135,7 @@ impl OpenAseApp {
             ui.vertical_centered(|ui| {
                 ui.label(
                     RichText::new(tr("<- select a game and click Refresh, or add a server"))
-                        .color(Color32::from_gray(0x70)),
+                        .color(ui.visuals().weak_text_color()),
                 );
             });
             return;
@@ -2239,12 +2240,12 @@ impl OpenAseApp {
                     let full = server.is_full();
                     let friend = self.server_has_friend(server);
                     let highlight = if friend {
-                        Some(Color32::from_rgb(0xe0, 0xf5, 0xe0))
+                        Some(friend_fill(&visuals))
                     } else {
                         self.color_filter(server)
                     };
                     let color = if is_selected {
-                        Color32::WHITE
+                        visuals.selection.stroke.color
                     } else if !server.has_info() {
                         Color32::from_gray(0x90)
                     } else {
@@ -2442,6 +2443,7 @@ impl OpenAseApp {
     fn friends_pane(&mut self, ui: &mut egui::Ui) {
         let friends = self.settings.friends.clone();
         let text_color = ui.visuals().text_color();
+        let green = online_green(ui.visuals());
         let mut select: Option<ServerKey> = None;
         TableBuilder::new(ui)
             .id_salt("friends-pane")
@@ -2480,7 +2482,7 @@ impl OpenAseApp {
                         .map(|server| strip_quake_colors(&server.name))
                         .unwrap_or_default();
                     let color = if location.is_some() {
-                        Color32::from_rgb(0x14, 0x78, 0x1e)
+                        green
                     } else {
                         Color32::from_gray(0x80)
                     };
@@ -2549,7 +2551,7 @@ impl OpenAseApp {
                             ui.painter().rect_filled(
                                 ui.max_rect(),
                                 CornerRadius::ZERO,
-                                Color32::from_rgb(0xe0, 0xf5, 0xe0),
+                                friend_fill(ui.visuals()),
                             );
                         }
                         if colored {
@@ -2723,7 +2725,7 @@ impl eframe::App for OpenAseApp {
         }
 
         let frame = egui::Frame::NONE
-            .fill(Color32::from_gray(0xf0))
+            .fill(ui.visuals().panel_fill)
             .inner_margin(egui::Margin::symmetric(4, 2));
         egui::Panel::top("menu")
             .frame(frame)
@@ -2739,7 +2741,7 @@ impl eframe::App for OpenAseApp {
 
         let list_frame = egui::Frame::NONE
             .fill(rgb(self.palette.list_bg))
-            .stroke(Stroke::new(1.0, Color32::from_gray(0xa0)));
+            .stroke(ui.visuals().widgets.noninteractive.bg_stroke);
         egui::Panel::bottom("details")
             .resizable(true)
             .default_size(200.0)
@@ -2961,6 +2963,39 @@ fn apply_palette(ctx: &egui::Context, colors: &ColorSettings) {
     });
 }
 
+/// "Online" green, readable on the theme's background.
+pub(crate) fn online_green(visuals: &egui::Visuals) -> Color32 {
+    if visuals.dark_mode {
+        Color32::from_rgb(0x5c, 0xd0, 0x6a)
+    } else {
+        Color32::from_rgb(0x14, 0x78, 0x1e)
+    }
+}
+
+/// Background of rows with a friend on them.
+fn friend_fill(visuals: &egui::Visuals) -> Color32 {
+    if visuals.dark_mode {
+        Color32::from_rgb(0x24, 0x4a, 0x2c)
+    } else {
+        Color32::from_rgb(0xe0, 0xf5, 0xe0)
+    }
+}
+
+/// A server-chosen color made readable on the list: near-white is darkened
+/// on a light theme, dark colors (`^0`, `^4`) are lightened on a dark one.
+fn readable(color: Color32, visuals: &egui::Visuals) -> Color32 {
+    let [r, g, b, _] = color.to_array();
+    if visuals.dark_mode {
+        let luma = (299 * u32::from(r) + 587 * u32::from(g) + 114 * u32::from(b)) / 1000;
+        if luma < 90 {
+            return color.lerp_to_gamma(Color32::WHITE, 0.5);
+        }
+    } else if r > 0xd0 && g > 0xd0 && b > 0xd0 {
+        return Color32::from_gray(0x50);
+    }
+    color
+}
+
 pub(crate) fn rgb([r, g, b]: Rgb) -> Color32 {
     Color32::from_rgb(r, g, b)
 }
@@ -3019,7 +3054,7 @@ fn tree_row(
         Sense::click(),
     );
     let text_color = if selected {
-        Color32::WHITE
+        ui.visuals().selection.stroke.color
     } else if ui.visuals().text_color() == rgb(ColorSettings::default().text) {
         Color32::from_gray(0x10)
     } else {
@@ -3035,7 +3070,7 @@ fn tree_row(
         ui.painter().rect_filled(
             label_rect,
             CornerRadius::ZERO,
-            Color32::from_rgb(0xe5, 0xf1, 0xfb),
+            ui.visuals().widgets.hovered.weak_bg_fill,
         );
     }
     ui.painter().galley(
@@ -3052,16 +3087,14 @@ fn tree_row(
 
 fn header_cell(ui: &egui::Ui, rect: egui::Rect) {
     let rect = rect.expand2(vec2(4.0, 2.0));
+    let visuals = ui.visuals();
+    let line = Stroke::new(1.0, visuals.widgets.noninteractive.bg_stroke.color);
     ui.painter()
-        .rect_filled(rect, CornerRadius::ZERO, Color32::from_gray(0xf0));
-    ui.painter().line_segment(
-        [rect.right_top(), rect.right_bottom()],
-        Stroke::new(1.0, Color32::from_gray(0xc8)),
-    );
-    ui.painter().line_segment(
-        [rect.left_bottom(), rect.right_bottom()],
-        Stroke::new(1.0, Color32::from_gray(0xc8)),
-    );
+        .rect_filled(rect, CornerRadius::ZERO, visuals.panel_fill);
+    ui.painter()
+        .line_segment([rect.right_top(), rect.right_bottom()], line);
+    ui.painter()
+        .line_segment([rect.left_bottom(), rect.right_bottom()], line);
 }
 
 fn cell(ui: &mut egui::Ui, text: &str, color: Color32) {
@@ -3072,7 +3105,7 @@ fn cell(ui: &mut egui::Ui, text: &str, color: Color32) {
     );
 }
 
-/// Draw Quake-colored text; near-white colors are darkened for the white list.
+/// Draw Quake-colored text, made readable on the theme ([`readable`]).
 fn colored_label(ui: &mut egui::Ui, raw: &str, default_color: Color32) {
     let default_hex = format!(
         "#{:02x}{:02x}{:02x}",
@@ -3084,11 +3117,7 @@ fn colored_label(ui: &mut egui::Ui, raw: &str, default_color: Color32) {
     let mut job = LayoutJob::default();
     for segment in quake_color_segments(raw, &default_hex) {
         let [r, g, b] = parse_hex(&segment.color).unwrap_or([0x20, 0x20, 0x20]);
-        let color = if r > 0xd0 && g > 0xd0 && b > 0xd0 {
-            Color32::from_gray(0x50)
-        } else {
-            Color32::from_rgb(r, g, b)
-        };
+        let color = readable(Color32::from_rgb(r, g, b), ui.visuals());
         job.append(&segment.text, 0.0, TextFormat::simple(font.clone(), color));
     }
     ui.add(egui::Label::new(job).selectable(false).truncate());

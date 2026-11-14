@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — theme colors fixed after a Windows review
+- The user's Windows build showed dark themes with light menu, toolbar, headers and status bar (unreadable): about 15 fixed light colors predated themes. They now come from `ui.visuals()`; Quake colors go through `readable` (dark `^0`/`^4` lightened on dark themes).
+- Built and tested natively on Windows (MSVC, 195 tests) in the user's E: checkout.
+
 ## 2026-11-14 — map images, phase 7 closed
 - `maps.rs`: `levelshots/<map>` from the `.pk3` files named by the new `levelshots` catalog field (values from JASE), mod folder first, last pk3 in load order wins; decoded with `image` (TGA tried when no magic bytes match). ADR 0007: local files only, no GameTracker.
 - New dependencies `zip` (no default features, deflate via flate2) and `image` (jpeg, tga, png). The system tray was postponed with the user's agreement.

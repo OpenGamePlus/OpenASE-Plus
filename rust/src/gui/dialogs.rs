@@ -272,7 +272,7 @@ impl OpenAseApp {
             .show(ctx, |ui| {
                 for (_, text) in &self.dialogs.notices {
                     egui::Frame::popup(ui.style()).show(ui, |ui| {
-                        ui.label(RichText::new(text).color(Color32::from_rgb(0x14, 0x64, 0x1e)));
+                        ui.label(RichText::new(text).color(super::online_green(ui.visuals())));
                     });
                 }
             });
@@ -500,7 +500,7 @@ impl OpenAseApp {
                             let online = self.friend_location(friend).is_some();
                             ui.colored_label(
                                 if online {
-                                    Color32::from_rgb(0x14, 0x78, 0x1e)
+                                    super::online_green(ui.visuals())
                                 } else {
                                     Color32::from_gray(0x60)
                                 },
@@ -814,8 +814,8 @@ impl OpenAseApp {
                 });
                 ui.add_space(4.0);
                 egui::Frame::NONE
-                    .fill(Color32::WHITE)
-                    .stroke(egui::Stroke::new(1.0, Color32::from_gray(0xa0)))
+                    .fill(ui.visuals().extreme_bg_color)
+                    .stroke(ui.visuals().widgets.noninteractive.bg_stroke)
                     .show(ui, |ui| {
                         ui.set_min_size(vec2(456.0, 110.0));
                         ui.strong(tr("Location"));
@@ -1077,8 +1077,8 @@ fn games_tab(ui: &mut egui::Ui, draft: &mut OptionsDraft) -> Option<String> {
         let top_down = Layout::top_down(Align::Min);
         ui.allocate_ui_with_layout(vec2(220.0, 320.0), top_down, |ui| {
             egui::Frame::NONE
-                .fill(Color32::WHITE)
-                .stroke(egui::Stroke::new(1.0, Color32::from_gray(0xa0)))
+                .fill(ui.visuals().extreme_bg_color)
+                .stroke(ui.visuals().widgets.noninteractive.bg_stroke)
                 .show(ui, |ui| {
                     egui::ScrollArea::vertical()
                         .id_salt("games-list")

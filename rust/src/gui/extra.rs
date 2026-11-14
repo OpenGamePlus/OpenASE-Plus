@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use eframe::egui::{self, Align2, Color32, Key, RichText, vec2};
+use eframe::egui::{self, Align2, Key, RichText, vec2};
 
 use openase::catalog;
 use openase::i18n::{fill, group_name, noop, tr};
@@ -573,7 +573,7 @@ impl OpenAseApp {
         let mut cancel = false;
         window("Setup Wizard").show(ctx, |ui| {
             ui.set_width(460.0);
-            egui::Frame::NONE.fill(Color32::WHITE).inner_margin(12).stroke((1.0, Color32::from_gray(0xa0))).show(ui, |ui| {
+            egui::Frame::NONE.fill(ui.visuals().extreme_bg_color).inner_margin(12).stroke(ui.visuals().widgets.noninteractive.bg_stroke).show(ui, |ui| {
                 ui.set_min_size(vec2(436.0, 230.0));
                 match wizard.page {
                     0 => {
