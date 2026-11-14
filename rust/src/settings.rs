@@ -476,6 +476,15 @@ impl ServerRef {
     pub fn key(&self) -> String {
         format!("{}|{}", self.game, self.address)
     }
+
+    /// The server of a [`ServerRef::key`].
+    pub fn from_key(key: &str) -> Option<ServerRef> {
+        let (game, address) = key.split_once('|')?;
+        Some(ServerRef {
+            game: game.to_string(),
+            address: address.to_string(),
+        })
+    }
 }
 
 /// Extract every `a.b.c.d:port` (or `host:port` line) from a server list file.

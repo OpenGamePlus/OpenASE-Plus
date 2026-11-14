@@ -509,7 +509,7 @@ impl OpenAseApp {
         if self
             .slot_watch
             .as_ref()
-            .is_some_and(|watch| watch.key == id)
+            .is_some_and(|watch| watch.server == key.to_ref())
             && alerts::has_free_slot(server)
         {
             self.slot_watch = None;
@@ -537,7 +537,7 @@ impl OpenAseApp {
         if let Some(watch) = &self.slot_watch
             && watch.expired(now)
         {
-            let address = watch.key.split_once('|').map_or("", |(_, a)| a).to_string();
+            let address = watch.server.address.clone();
             self.slot_watch = None;
             self.status = fill(
                 tr("Stopped watching {}: no free slot in 30 minutes"),
@@ -547,12 +547,12 @@ impl OpenAseApp {
         if self.watch_in_flight {
             return;
         }
-        let mut targets: Vec<String> = Vec::new();
+        let mut targets: Vec<ServerRef> = Vec::new();
         if let Some(watch) = &mut self.slot_watch
             && watch.due(now)
         {
             watch.queried(now);
-            targets.push(watch.key.clone());
+            targets.push(watch.server.clone());
         }
         if !self.settings.party_alerts.is_empty()
             && self
@@ -560,9 +560,14 @@ impl OpenAseApp {
                 .is_none_or(|last| now >= last + alerts::PARTY_INTERVAL)
         {
             self.last_party_poll = Some(now);
-            for id in self.settings.party_alerts.keys() {
-                if !targets.contains(id) {
-                    targets.push(id.clone());
+            for server in self
+                .settings
+                .party_alerts
+                .keys()
+                .filter_map(|k| ServerRef::from_key(k))
+            {
+                if !targets.contains(&server) {
+                    targets.push(server);
                 }
             }
         }
@@ -574,14 +579,11 @@ impl OpenAseApp {
         let ctx = ctx.clone();
         let options = self.settings.network.query_options();
         std::thread::spawn(move || {
-            for id in targets {
-                let Some((game, address)) = id.split_once('|') else {
+            for server in targets {
+                let Some(game) = catalog::game(&server.game) else {
                     continue;
                 };
-                let Some(game) = catalog::game(game) else {
-                    continue;
-                };
-                if let Ok((host, port)) = parse_address(address, game.default_port) {
+                if let Ok((host, port)) = parse_address(&server.address, game.default_port) {
                     let _ = tx.send(Msg::Watched(query_server(game, &host, port, &options)));
                 }
             }
@@ -1586,15 +1588,14 @@ impl OpenAseApp {
                 });
             }
             Action::WatchSlot(key) => {
-                let id = key.to_ref().key();
                 if self
                     .slot_watch
                     .as_ref()
-                    .is_some_and(|watch| watch.key == id)
+                    .is_some_and(|watch| watch.server == key.to_ref())
                 {
                     self.slot_watch = None;
                 } else {
-                    self.slot_watch = Some(SlotWatch::new(id, Instant::now()));
+                    self.slot_watch = Some(SlotWatch::new(key.to_ref(), Instant::now()));
                     self.status = fill(tr("Watching {} for a free slot..."), &[&key.address]);
                 }
             }
@@ -2473,7 +2474,7 @@ impl OpenAseApp {
                     let watching = self
                         .slot_watch
                         .as_ref()
-                        .is_some_and(|watch| watch.key == alert_id);
+                        .is_some_and(|watch| watch.server == key.to_ref());
                     let threshold = self.settings.party_alerts.get(&alert_id).copied();
                     let full = server.is_full();
                     let friend = self.server_has_friend(server);

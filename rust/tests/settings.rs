@@ -318,3 +318,13 @@ fn game_ref_reads_without_cloning_and_defaults_like_game() {
     assert!(!settings.game_ref("q3").visible);
     assert_eq!(settings.game_ref("q3"), &settings.game("q3"));
 }
+
+#[test]
+fn server_ref_keys_round_trip() {
+    let server = ServerRef {
+        game: "q3".into(),
+        address: "192.0.2.1:27960".into(),
+    };
+    assert_eq!(ServerRef::from_key(&server.key()), Some(server));
+    assert_eq!(ServerRef::from_key("no separator"), None);
+}
