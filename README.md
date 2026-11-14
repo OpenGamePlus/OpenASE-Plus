@@ -101,8 +101,9 @@ game types, filter groups, registry detection and the command line used to join.
   every scanned server.
 - **File menu**: export / import your whole profile, save / import server lists,
   update check against GitHub Releases, setup wizard.
-- **English and French interface**: Options > General > Language. "System"
-  follows the language of your operating system.
+- **Seven languages**: English, French, Spanish, Portuguese, Italian, German and
+  Russian, in Options > General > Language. "System" follows the language of your
+  operating system.
 - **Customizable toolbar**: choose the buttons in Options > Toolbar, or
   right-click the toolbar.
 - **Colors**: Options > Colors sets the list background, alternating rows,

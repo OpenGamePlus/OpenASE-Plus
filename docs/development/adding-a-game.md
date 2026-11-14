@@ -58,9 +58,9 @@ splitting: `rust/src/launch.rs`.
 ## Interface texts
 
 Visible GUI strings: `tr("English")`; with values one whole-sentence entry with `{}` placeholders, `fill(&tr("... {} ..."), &[&v])`;
-in constants `noop("...")`, translated where shown. Each needs a French entry
-in `rust/src/i18n.rs`; `rust/tests/i18n.rs` fails otherwise. Language names
-are not translated.
+in constants `noop("...")`, translated where shown. Each needs a line `English<TAB>translation` in every
+`rust/src/locales/*.tsv` (fr, es, pt, it, de, ru; `\t`, `\n`, `\\` escapes);
+`rust/tests/i18n.rs` fails otherwise. Language names are not translated.
 
 ## Check
 

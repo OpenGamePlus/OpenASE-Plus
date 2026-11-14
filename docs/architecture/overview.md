@@ -60,7 +60,7 @@ Rules for these layers: [boundaries.md](boundaries.md).
 | `rust/src/instance.rs` | service | One running instance: a second one hands its link over localhost TCP |
 | `rust/src/alerts.rs` | service | Slot and party alert decisions (no GUI) |
 | `rust/src/update.rs` | service | Update check against GitHub Releases |
-| `rust/src/i18n.rs` | service | English and French texts: `tr`, `fill`, `noop` |
+| `rust/src/i18n.rs` | service | `tr`, `fill`, `noop`; English source, tables in `rust/src/locales/` (fr, es, pt, it, de, ru) |
 
 ## Data flow of a scan
 

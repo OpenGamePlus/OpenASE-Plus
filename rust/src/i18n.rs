@@ -1,65 +1,167 @@
-//! English and French interface texts.
+//! Interface texts: English in the source, translated through tables.
 //!
 //! Source code keeps English literals (`tr("Refresh")`); `tr` returns the
-//! French text when French is active and the input unchanged otherwise, so a
-//! string without a French entry simply shows in English. Strings with values
-//! use `{}` placeholders filled by [`fill`], one entry per whole sentence.
-//! `tests/i18n.rs` fails when a `tr("...")` literal has no French entry.
+//! text of the active language from `src/locales/<code>.tsv` (one line per
+//! text, `English<TAB>translation`, with `\t`, `\n` and `\\` escapes) and
+//! the English input when a line is missing. Strings with values use `{}`
+//! placeholders filled by [`fill`], one entry per whole sentence.
+//! `tests/i18n.rs` fails when a `tr("...")` literal is missing from a table.
 
+use std::collections::HashMap;
 use std::fmt::Display;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 use serde::{Deserialize, Serialize};
 
 /// Interface language chosen in Options.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub enum Language {
-    /// French when the operating system is set to French, English otherwise.
+    /// The operating system's language when it is one of ours, else English.
     #[default]
     System,
     English,
     French,
+    Spanish,
+    Portuguese,
+    Italian,
+    German,
+    Russian,
 }
 
-impl Language {
-    pub const ALL: [Language; 3] = [Language::System, Language::English, Language::French];
+/// Translated languages: (language, ISO 639-1 code, table).
+const TABLES: [(Language, &str, &str); 6] = [
+    (Language::French, "fr", include_str!("locales/fr.tsv")),
+    (Language::Spanish, "es", include_str!("locales/es.tsv")),
+    (Language::Portuguese, "pt", include_str!("locales/pt.tsv")),
+    (Language::Italian, "it", include_str!("locales/it.tsv")),
+    (Language::German, "de", include_str!("locales/de.tsv")),
+    (Language::Russian, "ru", include_str!("locales/ru.tsv")),
+];
 
-    /// Name shown in the language list (the language names are not translated).
+impl Language {
+    pub const ALL: [Language; 8] = [
+        Language::System,
+        Language::English,
+        Language::French,
+        Language::Spanish,
+        Language::Portuguese,
+        Language::Italian,
+        Language::German,
+        Language::Russian,
+    ];
+
+    /// Name shown in the language list (each in its own language).
     pub fn label(self) -> &'static str {
         match self {
             Language::System => noop("System"),
             Language::English => "English",
             Language::French => "Français",
+            Language::Spanish => "Español",
+            Language::Portuguese => "Português",
+            Language::Italian => "Italiano",
+            Language::German => "Deutsch",
+            Language::Russian => "Русский",
+        }
+    }
+
+    /// The language `tr` uses: `System` resolved, English for untranslated.
+    pub fn resolved(self) -> Language {
+        match self {
+            Language::System => system_language()
+                .and_then(|code| from_code(&code))
+                .unwrap_or(Language::English),
+            other => other,
         }
     }
 
     pub fn is_french(self) -> bool {
-        match self {
-            Language::System => system_is_french(),
-            Language::English => false,
-            Language::French => true,
-        }
+        self.resolved() == Language::French
     }
 }
 
-static FRENCH: AtomicBool = AtomicBool::new(false);
+/// The language of an ISO code or locale name (`es`, `pt_BR.UTF-8`, `de-AT`).
+pub fn from_code(code: &str) -> Option<Language> {
+    let code = code.get(..2)?.to_ascii_lowercase();
+    if code == "en" {
+        return Some(Language::English);
+    }
+    TABLES
+        .iter()
+        .find(|(_, c, _)| *c == code)
+        .map(|(l, _, _)| *l)
+}
+
+fn unescape(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut chars = text.chars();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        match chars.next() {
+            Some('t') => out.push('\t'),
+            Some('n') => out.push('\n'),
+            Some(other) => out.push(other),
+            None => out.push('\\'),
+        }
+    }
+    out
+}
+
+/// One parsed table: English text -> translation (leaked once, for `&'static`).
+fn parse(table: &str) -> HashMap<String, &'static str> {
+    table
+        .lines()
+        .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
+        .filter_map(|line| line.split_once('\t'))
+        .map(|(en, tr)| (unescape(en), &*Box::leak(unescape(tr).into_boxed_str())))
+        .collect()
+}
+
+fn tables() -> &'static HashMap<Language, HashMap<String, &'static str>> {
+    static TABLES_PARSED: OnceLock<HashMap<Language, HashMap<String, &'static str>>> =
+        OnceLock::new();
+    TABLES_PARSED.get_or_init(|| TABLES.iter().map(|(l, _, t)| (*l, parse(t))).collect())
+}
+
+/// The translation of an English text in `language`, `None` when missing.
+pub fn translate(language: Language, text: &str) -> Option<&'static str> {
+    tables().get(&language.resolved())?.get(text).copied()
+}
+
+/// The French table, kept for callers and tests.
+pub fn french(text: &str) -> Option<&'static str> {
+    translate(Language::French, text)
+}
+
+static CURRENT: AtomicU8 = AtomicU8::new(Language::English as u8);
 
 /// Make [`tr`] follow `language` from now on.
 pub fn set_language(language: Language) {
-    FRENCH.store(language.is_french(), Ordering::Relaxed);
+    CURRENT.store(language.resolved() as u8, Ordering::Relaxed);
+}
+
+/// The language [`tr`] currently uses (never `System`).
+pub fn current() -> Language {
+    let index = CURRENT.load(Ordering::Relaxed);
+    Language::ALL
+        .into_iter()
+        .find(|l| *l as u8 == index)
+        .unwrap_or(Language::English)
 }
 
 /// Is the interface currently in French?
 pub fn is_french() -> bool {
-    FRENCH.load(Ordering::Relaxed)
+    current() == Language::French
 }
 
-/// Translate an English interface text (identity when French is not active).
+/// Translate an English interface text (identity in English or when missing).
 pub fn tr(text: &'static str) -> &'static str {
-    if is_french() {
-        french(text).unwrap_or(text)
-    } else {
-        text
+    match current() {
+        Language::English | Language::System => text,
+        language => translate(language, text).unwrap_or(text),
     }
 }
 
@@ -88,13 +190,9 @@ pub fn fill(template: &str, args: &[&dyn Display]) -> String {
 
 /// Display name of a favorite or friend group ("Favorites1" -> "Favoris1").
 pub fn group_name(group: &str) -> String {
-    for (english, fallback) in [("Favorites", "Favorites"), ("Friends", "Friends")] {
+    for english in ["Favorites", "Friends"] {
         if let Some(number) = group.strip_prefix(english) {
-            let shown = if is_french() {
-                french(fallback).unwrap_or(fallback)
-            } else {
-                fallback
-            };
+            let shown = translate(current(), english).unwrap_or(english);
             return format!("{shown}{number}");
         }
     }
@@ -103,7 +201,7 @@ pub fn group_name(group: &str) -> String {
 
 /// Is the operating system interface in French?
 pub fn system_is_french() -> bool {
-    system_language().is_some_and(|code| code.to_ascii_lowercase().starts_with("fr"))
+    system_language().is_some_and(|code| from_code(&code) == Some(Language::French))
 }
 
 #[cfg(windows)]
@@ -114,8 +212,17 @@ fn system_language() -> Option<String> {
     }
     // SAFETY: plain query without arguments.
     let id = unsafe { GetUserDefaultUILanguage() };
-    // Primary language 0x0c is French, whatever the region.
-    Some(if id & 0x3ff == 0x0c { "fr" } else { "en" }.to_string())
+    // Primary language ids, whatever the region.
+    let code = match id & 0x3ff {
+        0x0c => "fr",
+        0x0a => "es",
+        0x16 => "pt",
+        0x10 => "it",
+        0x07 => "de",
+        0x19 => "ru",
+        _ => "en",
+    };
+    Some(code.to_string())
 }
 
 #[cfg(not(windows))]
@@ -124,466 +231,4 @@ fn system_language() -> Option<String> {
         .iter()
         .filter_map(|name| std::env::var(name).ok())
         .find(|value| !value.is_empty())
-}
-
-/// French text of an English source string, `None` when there is none.
-///
-/// Placeholders (`{}`) must appear in the same number as in the English text.
-/// Texts that read the same in French are listed too, so that the test can
-/// tell them from forgotten ones.
-pub fn french(text: &str) -> Option<&'static str> {
-    Some(match text {
-        // Names and words that do not change.
-        "OpenASE-Plus" => "OpenASE-Plus",
-        "Ping" => "Ping",
-        "Flux" => "Flux",
-        "DSL" => "DSL",
-        "Score" => "Score",
-        "Version {}" => "Version {}",
-        "   OK   " => "   OK   ",
-
-        // Menus.
-        "File" => "Fichier",
-        "View" => "Affichage",
-        "Filter" => "Filtre",
-        "Server" => "Serveur",
-        "Player" => "Joueur",
-        "Friends" => "Amis",
-        "Tools" => "Outils",
-        "Help" => "Aide",
-        "Toolbar" => "Barre d’outils",
-        "Export user profile..." => "Exporter le profil utilisateur…",
-        "Export user profile" => "Exporter le profil utilisateur",
-        "Import user profile..." => "Importer le profil utilisateur…",
-        "Import user profile" => "Importer le profil utilisateur",
-        "OpenASE-Plus profile" => "Profil OpenASE-Plus",
-        "Save server list..." => "Enregistrer la liste des serveurs…",
-        "Save server list" => "Enregistrer la liste des serveurs",
-        "Import server list..." => "Importer une liste de serveurs…",
-        "Import server list" => "Importer une liste de serveurs",
-        "Check for updates" => "Rechercher des mises à jour",
-        "Automatic update check" => "Recherche automatique des mises à jour",
-        "Setup Wizard..." => "Assistant de configuration…",
-        "Setup Wizard" => "Assistant de configuration",
-        "Exit" => "Quitter",
-        "Refresh\tF5" => "Actualiser\tF5",
-        "Show selected\tCtrl+E" => "Afficher la sélection\tCtrl+E",
-        "Clear modifiers\tCtrl+D" => "Effacer les modificateurs\tCtrl+D",
-        "Collapse all\tCtrl+Q" => "Tout réduire\tCtrl+Q",
-        "Not empty" => "Non vides",
-        "Not full" => "Non pleins",
-        "No password" => "Sans mot de passe",
-        "Hide unresponsive servers" => "Masquer les serveurs sans réponse",
-        "New filter..." => "Nouveau filtre…",
-        "Edit filter..." => "Modifier le filtre…",
-        "Make color filter..." => "Créer un filtre de couleur…",
-        "Delete filter" => "Supprimer le filtre",
-        "Configure games..." => "Configurer les jeux…",
-        "Add friend..." => "Ajouter un ami…",
-        "Manage friends..." => "Gérer les amis…",
-        "Friend name search..." => "Recherche d’un nom d’ami…",
-        "Show servers with friends" => "Afficher les serveurs avec des amis",
-        "OpenASE-Plus Help\tF1" => "Aide d’OpenASE-Plus\tF1",
-        "License" => "Licence",
-        "Online manual" => "Manuel en ligne",
-        "Message board" => "Forum de discussion",
-        "Website" => "Site web",
-        "About OpenASE-Plus..." => "À propos d’OpenASE-Plus…",
-        "About OpenASE-Plus" => "À propos d’OpenASE-Plus",
-        "Refresh list\tF5" => "Actualiser la liste\tF5",
-        "Join\tEnter" => "Rejoindre\tEntrée",
-        "Copy address" => "Copier l’adresse",
-        "Add server..." => "Ajouter un serveur…",
-        "Find LAN servers" => "Chercher des serveurs LAN",
-        "Find player..." => "Rechercher un joueur…",
-        "Options..." => "Options…",
-
-        // Toolbar and its menu.
-        "Refresh server list" => "Actualiser la liste des serveurs",
-        "Refresh server list (F5)" => "Actualiser la liste des serveurs (F5)",
-        "Stop" => "Arrêter",
-        "Refresh selected server" => "Actualiser le serveur sélectionné",
-        "Ping visible servers" => "Pinger les serveurs visibles",
-        "Query the servers shown in the list (at most {})" => {
-            "Interroger les serveurs affichés dans la liste ({} au maximum)"
-        }
-        "Join server" => "Rejoindre le serveur",
-        "Join server (Enter)" => "Rejoindre le serveur (Entrée)",
-        "Add to / remove from favorites" => "Ajouter aux favoris / retirer des favoris",
-        "Add server" => "Ajouter un serveur",
-        "Find player" => "Rechercher un joueur",
-        "Options" => "Options",
-        "Customize toolbar..." => "Personnaliser la barre d’outils…",
-        "Reset toolbar" => "Réinitialiser la barre d’outils",
-
-        // Filter tree.
-        "Favorites" => "Favoris",
-        "{} ({} on)" => "{} ({} en ligne)",
-        "Special" => "Spécial",
-        "recently added" => "ajoutés récemment",
-        "recently imported" => "importés récemment",
-        "LAN servers" => "Serveurs LAN",
-        "recently joined" => "rejoints récemment",
-        "My filters" => "Mes filtres",
-        "{} (color)" => "{} (couleur)",
-        "(refresh to fill)" => "(actualisez pour remplir)",
-        "(none)" => "(aucun)",
-        "Modifiers" => "Modificateurs",
-        "Players" => "Joueurs",
-        "Hide unresponsive" => "Masquer sans réponse",
-        "less than {}" => "moins de {}",
-        "Country" => "Pays",
-        "Country *" => "Pays *",
-
-        // Server list, panes and context menu.
-        "Location" => "Lieu",
-        "Name" => "Nom",
-        "PL" => "PP",
-        "Game" => "Jeu",
-        "Map" => "Carte",
-        "Address" => "Adresse",
-        "<- select a game and click Refresh, or add a server" => {
-            "<- choisissez un jeu et cliquez sur Actualiser, ou ajoutez un serveur"
-        }
-        "Join" => "Rejoindre",
-        "Refresh" => "Actualiser",
-        "Remove from favorites" => "Retirer des favoris",
-        "Add to favorites" => "Ajouter aux favoris",
-        "Add to favorites group" => "Ajouter au groupe de favoris",
-        "Friend - on" => "Amis - en ligne",
-        "Friend - off" => "Amis - hors ligne",
-        "Player Name" => "Nom du joueur",
-        "Time" => "Temps",
-        "Key" => "Clé",
-        "Value" => "Valeur",
-        "(no response)" => "(pas de réponse)",
-        "unscanned" => "non analysé",
-        "Unknown" => "Inconnu",
-
-        // Status bar and notices.
-        "Ready" => "Prêt",
-        "Loading..." => "Chargement…",
-        "Disabled" => "Désactivée",
-        "{} is playing on {}" => "{} joue sur {}",
-        "servers" => "serveurs",
-        "known servers" => "serveurs connus",
-        "visible servers" => "serveurs visibles",
-        "imported servers" => "serveurs importés",
-        "Looking for servers on the local network..." => {
-            "Recherche de serveurs sur le réseau local…"
-        }
-        "Scanning {}" => "Analyse de {}",
-        "Querying {} master servers..." => "Interrogation des serveurs maîtres de {}…",
-        "No {} to refresh" => "Pas de {} à actualiser",
-        "Refreshing {}" => "Actualisation des {}",
-        "Invalid address {}" => "Adresse {} non valide",
-        "No server list could be downloaded:\n\n{}" => {
-            "Aucune liste de serveurs n’a pu être téléchargée :\n\n{}"
-        }
-        "Some masters failed: {}" => "Certains serveurs maîtres ont échoué : {}",
-        "Scan stopped" => "Analyse arrêtée",
-        "Scan complete" => "Analyse terminée",
-        "Refreshed {}" => "{} actualisé",
-        "{} did not answer" => "{} n’a pas répondu",
-        "{} IPv4 ranges loaded" => "{} plages IPv4 chargées",
-        "Not available: {}" => "Indisponible : {}",
-        "GeoIP database not available: {}" => "Base GeoIP indisponible : {}",
-        "No server found on the local network" => "Aucun serveur trouvé sur le réseau local",
-        "LAN search failed: {}" => "Échec de la recherche LAN : {}",
-        "OpenASE-Plus {} is up to date." => "OpenASE-Plus {} est à jour.",
-        "Could not check for updates: {}" => "Impossible de rechercher les mises à jour : {}",
-        "Launched {}" => "{} lancé",
-        "Opened {}" => "{} ouvert",
-        "Added to {}" => "Ajouté à {}",
-        "Copied {}" => "{} copié",
-        "Unknown game" => "Jeu inconnu",
-        "Could not save settings: {}" => "Impossible d’enregistrer les paramètres : {}",
-        "{} servers, {}/{} players total, {} visible" => {
-            "{} serveurs, {}/{} joueurs au total, {} visibles"
-        }
-        "{} of {} servers, {}/{} players total, {} visible" => {
-            "{} serveurs sur {}, {}/{} joueurs au total, {} visibles"
-        }
-        "Load more servers ({} of {})" => "Charger plus de serveurs ({} sur {})",
-        "Loading more servers..." => "Chargement d’autres serveurs…",
-        "{} more servers loaded" => "{} serveurs de plus chargés",
-        "Could not load more servers: {}" => "Impossible de charger plus de serveurs : {}",
-        "Modifiers cleared" => "Modificateurs effacés",
-        "Profile exported to {}" => "Profil exporté vers {}",
-        "Export failed: {}" => "Échec de l’exportation : {}",
-        "Profile imported from {}" => "Profil importé depuis {}",
-        "Import failed: {}" => "Échec de l’importation : {}",
-        "Deleted filter {}" => "Filtre {} supprimé",
-        "The server list is empty." => "La liste de serveurs est vide.",
-        "Saved {} servers to {}" => "{} serveurs enregistrés dans {}",
-        "Could not save: {}" => "Enregistrement impossible : {}",
-        "{} added to your friends" => "{} ajouté à vos amis",
-        "No ip:port entries found in this file." => {
-            "Aucune entrée ip:port trouvée dans ce fichier."
-        }
-        "Imported {} servers into {}" => "{} serveurs importés dans {}",
-        "Cannot read {}: {}" => "Impossible de lire {} : {}",
-        "Set the program location of {} in Options > Games first." => {
-            "Indiquez d’abord l’emplacement du programme de {} dans Options > Jeux."
-        }
-
-        // Dialogs: About, Add server, password, friends, find player.
-        "An open-source game server browser in the spirit of The All-Seeing Eye." => {
-            "Un navigateur de serveurs de jeu open source, dans l’esprit de The All-Seeing Eye."
-        }
-        "New code, not affiliated with Yahoo or the original authors." => {
-            "Code entièrement nouveau, sans lien avec Yahoo ni les auteurs d’origine."
-        }
-        "Free software under the GNU GPL v3 or later." => {
-            "Logiciel libre sous licence GNU GPL v3 ou ultérieure."
-        }
-        "Server lists from 333networks, OpenSpy, dpmaster and the other community master servers." => {
-            "Listes de serveurs fournies par 333networks, OpenSpy, dpmaster et les autres serveurs maîtres communautaires."
-        }
-        "Add Server" => "Ajouter un serveur",
-        "Cancel" => "Annuler",
-        "Close" => "Fermer",
-        "   Add   " => "  Ajouter  ",
-        "   Join   " => "  Rejoindre  ",
-        "Password required" => "Mot de passe requis",
-        "This server needs a password." => "Ce serveur demande un mot de passe.",
-        "OpenASE-Plus looks for these names on every server it scans." => {
-            "OpenASE-Plus recherche ces noms sur chaque serveur analysé."
-        }
-        "No friends yet." => "Aucun ami pour l’instant.",
-        "online" => "en ligne",
-        "offline" => "hors ligne",
-        "Remove" => "Retirer",
-        "Add" => "Ajouter",
-        "Player name" => "Nom du joueur",
-        "Find Player" => "Rechercher un joueur",
-        "Player name contains" => "Le nom du joueur contient",
-        "{} players found in scanned servers" => "{} joueurs trouvés sur les serveurs analysés",
-        "Searching for {}" => "Recherche de {}",
-        "No installation found." => "Aucune installation trouvée.",
-        "Search complete." => "Recherche terminée.",
-        "Select a sound" => "Choisir un son",
-        "WAV sound" => "Son WAV",
-
-        // Options.
-        "General" => "Général",
-        "Network" => "Réseau",
-        "Events" => "Événements",
-        "Games" => "Jeux",
-        "Colors" => "Couleurs",
-        "Language" => "Langue",
-        "System" => "Système",
-        "Counter-Strike 1.6 server lists come from the Steam Web API, which needs your own free key." => {
-            "Les listes de serveurs de Counter-Strike 1.6 viennent de l’API Web Steam, qui demande votre propre clé gratuite."
-        }
-        "Steam Web API key" => "Clé de l’API Web Steam",
-        "Get a key at steamcommunity.com/dev/apikey" => {
-            "Obtenir une clé sur steamcommunity.com/dev/apikey"
-        }
-        "Show server countries (downloads a free IP-to-country database once a month)" => {
-            "Afficher le pays des serveurs (télécharge une base de données IP-pays gratuite une fois par mois)"
-        }
-        "Database: {}." => "Base de données : {}.",
-        "Takes effect at the next start." => "Prend effet au prochain démarrage.",
-        "Settings file" => "Fichier de paramètres",
-        "Advanced connection settings" => "Paramètres de connexion avancés",
-        "Timeout when querying servers (ms)" => "Délai d’attente des requêtes aux serveurs (ms)",
-        "Number of times to ping a server" => "Nombre de pings par serveur",
-        "Number of times to retry a scan" => "Nombre de nouvelles tentatives d’une analyse",
-        "Servers queried at the same time" => "Serveurs interrogés simultanément",
-        "Maximum servers per refresh" => "Nombre maximal de serveurs par actualisation",
-        "Restore defaults" => "Rétablir les valeurs par défaut",
-        "Ping is the average round-trip time, Flux half the spread between the fastest and slowest answer, PL the share of unanswered queries." => {
-            "Le ping est le temps d’aller-retour moyen, le flux la moitié de l’écart entre la réponse la plus rapide et la plus lente, PP la part de requêtes sans réponse."
-        }
-        "Friend joins a server" => "Un ami rejoint un serveur",
-        "Show a notice" => "Afficher une notification",
-        "Play the system notification sound" => "Jouer le son de notification du système",
-        "Monitored server" => "Serveur surveillé",
-        "Refresh the selected server every" => "Actualiser le serveur sélectionné toutes les",
-        "seconds" => "secondes",
-        "Installed games" => "Jeux installés",
-        "Not installed" => "Non installés",
-        "Select a game on the left." => "Sélectionnez un jeu à gauche.",
-        "Visible in filter list" => "Visible dans la liste des filtres",
-        "Config file" => "Fichier de configuration",
-        "Browse" => "Parcourir",
-        "Browse..." => "Parcourir…",
-        "Select config file" => "Choisir le fichier de configuration",
-        "Program location" => "Emplacement du programme",
-        "Select game executable" => "Choisir l’exécutable du jeu",
-        "Executable" => "Exécutable",
-        "All files" => "Tous les fichiers",
-        "Auto-Search" => "Recherche auto",
-        "allow invitations for this game" => "autoriser les invitations pour ce jeu",
-        "draw player names with game colors" => {
-            "afficher les noms des joueurs avec les couleurs du jeu"
-        }
-        "Default sound" => "Son par défaut",
-        "No sound" => "Aucun son",
-        "Sound file..." => "Fichier son…",
-        "Path of a .wav file" => "Chemin d’un fichier .wav",
-        "Play" => "Écouter",
-        "Choose the buttons of the toolbar and their order. You can also right-click the toolbar." => {
-            "Choisissez les boutons de la barre d’outils et leur ordre. Vous pouvez aussi faire un clic droit sur la barre d’outils."
-        }
-        "Up" => "Monter",
-        "Down" => "Descendre",
-        "Reset to default" => "Rétablir par défaut",
-        "Changes are shown right away; Cancel puts the old colors back." => {
-            "Les changements s’affichent tout de suite ; Annuler rétablit les anciennes couleurs."
-        }
-        "List background" => "Fond de la liste",
-        "Alternating row" => "Ligne alternée",
-        "Selection" => "Sélection",
-        "Text" => "Texte",
-        "Draw Quake color codes in server and player names" => {
-            "Afficher les codes couleur Quake dans les noms de serveurs et de joueurs"
-        }
-        "Reset to defaults" => "Rétablir les valeurs par défaut",
-
-        // Setup wizard.
-        "Welcome to OpenASE-Plus!" => "Bienvenue dans OpenASE-Plus !",
-        "This is your first time running OpenASE-Plus, so let's set a few things up." => {
-            "C’est la première fois que vous lancez OpenASE-Plus : configurons quelques réglages."
-        }
-        "First, tell OpenASE-Plus about your internet connection." => {
-            "Commencez par indiquer votre connexion internet à OpenASE-Plus."
-        }
-        "Refreshing a server list sends thousands of small queries; matching them to your connection keeps pings accurate." => {
-            "Actualiser une liste de serveurs envoie des milliers de petites requêtes ; les adapter à votre connexion garde des pings précis."
-        }
-        "You can run this wizard again from File > Setup Wizard." => {
-            "Vous pouvez relancer cet assistant depuis Fichier > Assistant de configuration."
-        }
-        "Your connection" => "Votre connexion",
-        "Slow (mobile, satellite)" => "Lente (mobile, satellite)",
-        "Cable or fiber (recommended)" => "Câble ou fibre (recommandé)",
-        "Very fast, low latency" => "Très rapide, faible latence",
-        "{} servers at once, {} ms timeout" => "{} serveurs à la fois, délai de {} ms",
-        "If pings look too high, come back here and pick a slower setting. Fine tuning lives in Options > Network." => {
-            "Si les pings semblent trop élevés, revenez ici et choisissez un réglage plus lent. Le réglage fin se trouve dans Options > Réseau."
-        }
-        "You and your games" => "Vous et vos jeux",
-        "Games shown in the filter tree:" => "Jeux affichés dans l’arbre des filtres :",
-        "{}  (installed)" => "{}  (installé)",
-        "Setup done." => "Configuration terminée.",
-        "Tips:" => "Astuces :",
-        "•  F5 refreshes the selected game, double-click or Enter joins a server." => {
-            "•  F5 actualise le jeu sélectionné ; double-clic ou Entrée pour rejoindre un serveur."
-        }
-        "•  Tick filters in the tree: game types, mods, maps, Kill Cam, countries..." => {
-            "•  Cochez des filtres dans l’arbre : types de jeu, mods, cartes, Kill Cam, pays…"
-        }
-        "•  Friends > Add friend tracks players on every server you scan." => {
-            "•  Amis > Ajouter un ami suit des joueurs sur chaque serveur analysé."
-        }
-        "•  Counter-Strike 1.6 lists need a free Steam Web API key (Options > General)." => {
-            "•  Les listes de Counter-Strike 1.6 demandent une clé d’API Web Steam gratuite (Options > Général)."
-        }
-        "Have fun, and see you on the servers." => {
-            "Amusez-vous bien, et à bientôt sur les serveurs."
-        }
-        "Next >" => "Suivant >",
-        "Finish" => "Terminer",
-        "< Back" => "< Précédent",
-
-        // Add friend, import, filter editor, license, update.
-        "Add Friend" => "Ajouter un ami",
-        "Enter the player's name as it appears on servers. Color codes are ignored and partial names match." => {
-            "Saisissez le nom du joueur tel qu’il apparaît sur les serveurs. Les codes couleur sont ignorés et les noms partiels conviennent."
-        }
-        "Go to Friend Name Search" => "Aller à la recherche d’un nom d’ami",
-        "Group" => "Groupe",
-        "Server list" => "Liste de serveurs",
-        "Add to" => "Ajouter à",
-        "Any text file with ip:port entries works: OpenASE-Plus lists, GameSpy exports, configs..." => {
-            "Tout fichier texte contenant des entrées ip:port convient : listes OpenASE-Plus, exports GameSpy, configurations…"
-        }
-        "  Import  " => "  Importer  ",
-        "Edit filter" => "Modifier le filtre",
-        "New filter" => "Nouveau filtre",
-        "My filter" => "Mon filtre",
-        "Any game" => "Tous les jeux",
-        "Show servers where all of these are true:" => {
-            "Afficher les serveurs qui remplissent toutes ces conditions :"
-        }
-        "Any server rule, e.g. g_gametype" => "Toute règle de serveur, p. ex. g_gametype",
-        "+ Add rule" => "+ Ajouter une règle",
-        "Color filter: highlight matching servers everywhere" => {
-            "Filtre de couleur : met en évidence partout les serveurs correspondants"
-        }
-        "is" => "est",
-        "is not" => "n’est pas",
-        "less than" => "inférieur à",
-        "greater than" => "supérieur à",
-        "contains" => "contient",
-        "does not contain" => "ne contient pas",
-        "OpenASE-Plus is free software under the GNU General Public License, version 3 or later." => {
-            "OpenASE-Plus est un logiciel libre sous licence GNU General Public License, version 3 ou ultérieure."
-        }
-        "Update available" => "Mise à jour disponible",
-        "OpenASE-Plus {} is available. You are running {}." => {
-            "OpenASE-Plus {} est disponible. Vous utilisez la version {}."
-        }
-        "Download it from GitHub Releases" => "Télécharger depuis les versions GitHub",
-        "Later" => "Plus tard",
-        "Playing now" => "En jeu maintenant",
-        "No game is set up: set its program in Options > Games" => {
-            "Aucun jeu configuré : indiquez son programme dans Options > Jeux"
-        }
-        "Querying the master servers of {} games..." => {
-            "Interrogation des serveurs maîtres de {} jeux…"
-        }
-        "Installed games only" => "Jeux installés uniquement",
-        "Hide empty" => "Masquer les vides",
-        "Hide full" => "Masquer les pleins",
-        "Hide passworded" => "Masquer ceux avec mot de passe",
-        "Max ping" => "Ping max.",
-        "No limit" => "Sans limite",
-        "All countries" => "Tous les pays",
-        "{} countries" => "{} pays",
-        // Themes.
-        "Theme" => "Thème",
-        "Classic" => "Classique",
-        "Dark" => "Sombre",
-        "Terminal" => "Terminal",
-        "Amber terminal" => "Terminal ambre",
-        "Synthwave" => "Synthwave",
-        "GoldSrc (Counter-Strike 1.6)" => "GoldSrc (Counter-Strike 1.6)",
-        // RCON.
-        "RCON console..." => "Console RCON…",
-        "Password" => "Mot de passe",
-        "RCON: {}" => "RCON : {}",
-        "Command, e.g. status" => "Commande, par ex. status",
-        "Send" => "Envoyer",
-        "No answer from the server" => "Le serveur ne répond pas",
-        "Wrong RCON password" => "Mot de passe RCON incorrect",
-        "The server gave no RCON challenge (is RCON enabled?)" => {
-            "Le serveur n’a pas donné de challenge RCON (RCON est-il activé ?)"
-        }
-        "This game has no RCON" => "Ce jeu n’a pas de RCON",
-        "Invalid answer from the server" => "Réponse invalide du serveur",
-        "Network error: {}" => "Erreur réseau : {}",
-        // openase:// links.
-        "Open link" => "Ouvrir le lien",
-        "Join this server?" => "Rejoindre ce serveur ?",
-        "Copy openase:// link" => "Copier le lien openase://",
-        "Querying..." => "Interrogation…",
-        // Slot and match alerts.
-        "Alert me when a slot is free" => "M’avertir quand une place se libère",
-        "Stop watching for a free slot" => "Ne plus guetter une place libre",
-        "Watching {} for a free slot..." => "Guet d’une place libre sur {}…",
-        "A slot is free on {} ({}/{})" => "Une place est libre sur {} ({}/{})",
-        "Stopped watching {}: no free slot in 30 minutes" => {
-            "Guet arrêté sur {} : aucune place libre en 30 minutes"
-        }
-        "Alert when players reach" => "M’avertir à partir de",
-        "At {} players" => "{} joueurs",
-        "No alert" => "Aucune alerte",
-        "A match is on at {}: {} players" => "Une partie a lieu sur {} : {} joueurs",
-        "I will alert you when {} has {} players" => "Vous serez averti quand {} aura {} joueurs",
-        "No more match alerts for {}" => "Plus d’alerte de partie pour {}",
-        _ => return None,
-    })
 }

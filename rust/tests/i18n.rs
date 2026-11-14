@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use openase::i18n::{self, Language, fill, french, group_name, tr};
+use openase::i18n::{self, Language, fill, french, from_code, group_name, tr, translate};
 
 /// The language is a process-wide switch: tests that change it run one at a time.
 static LANGUAGE: Mutex<()> = Mutex::new(());
@@ -133,39 +133,73 @@ fn source_texts() -> Vec<(String, String)> {
     found
 }
 
+/// The translated languages: every one needs every source text.
+const TRANSLATED: [Language; 6] = [
+    Language::French,
+    Language::Spanish,
+    Language::Portuguese,
+    Language::Italian,
+    Language::German,
+    Language::Russian,
+];
+
 #[test]
-fn every_source_text_has_a_french_entry() {
+fn every_source_text_is_translated_in_every_language() {
     let texts = source_texts();
     assert!(
         texts.len() > 150,
         "scanner found only {} texts",
         texts.len()
     );
-    let mut missing: Vec<String> = texts
-        .iter()
-        .filter(|(_, text)| french(text).is_none())
-        .map(|(file, text)| format!("{file}: {text:?}"))
-        .collect();
+    let mut missing: Vec<String> = Vec::new();
+    for language in TRANSLATED {
+        for (file, text) in &texts {
+            if translate(language, text).is_none() {
+                missing.push(format!("{language:?} {file}: {text:?}"));
+            }
+        }
+    }
     missing.sort();
     missing.dedup();
     assert!(
         missing.is_empty(),
-        "texts without a French entry in src/i18n.rs:\n{}",
+        "texts missing from src/locales/*.tsv ({}):\n{}",
+        missing.len(),
         missing.join("\n")
     );
 }
 
 #[test]
-fn french_entries_keep_their_placeholders() {
+fn translations_keep_placeholders_and_shortcuts() {
     let mut bad = Vec::new();
-    for (_, text) in source_texts() {
-        if let Some(fr) = french(&text)
-            && count_placeholders(&text) != count_placeholders(fr)
-        {
-            bad.push(format!("{text:?} -> {fr:?}"));
+    for language in TRANSLATED {
+        for (_, text) in source_texts() {
+            if let Some(translated) = translate(language, &text)
+                && (count_placeholders(&text) != count_placeholders(translated)
+                    || text.contains('\t') != translated.contains('\t'))
+            {
+                bad.push(format!("{language:?} {text:?} -> {translated:?}"));
+            }
         }
     }
-    assert!(bad.is_empty(), "placeholder mismatch:\n{}", bad.join("\n"));
+    assert!(
+        bad.is_empty(),
+        "placeholder or shortcut mismatch:\n{}",
+        bad.join("\n")
+    );
+}
+
+#[test]
+fn locale_codes_pick_their_language() {
+    assert_eq!(from_code("es_CL.UTF-8"), Some(Language::Spanish));
+    assert_eq!(from_code("pt-BR"), Some(Language::Portuguese));
+    assert_eq!(from_code("de_AT"), Some(Language::German));
+    assert_eq!(from_code("ru"), Some(Language::Russian));
+    assert_eq!(from_code("it_IT"), Some(Language::Italian));
+    assert_eq!(from_code("fr_CA"), Some(Language::French));
+    assert_eq!(from_code("en_US"), Some(Language::English));
+    assert_eq!(from_code("ja_JP"), None);
+    assert_eq!(french("Refresh"), Some("Actualiser"));
 }
 
 #[test]

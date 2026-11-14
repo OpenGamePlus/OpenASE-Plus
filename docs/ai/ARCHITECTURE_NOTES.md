@@ -7,7 +7,7 @@ Normative summary. Full rules and exceptions: [boundaries.md](../architecture/bo
 - Run network, DNS, disk search and process waits in worker threads; report through `Msg`; tag scan messages with `generation`.
 - Add games as `games.json` entries; add protocols as module + `Protocol`/`Master` variant + `query.rs` branch.
 - Treat server and master text as untrusted; validate anything that reaches a command line.
-- Put every visible string through `tr` / `fill` / `noop` with a French entry.
+- Put every visible string through `tr` / `fill` / `noop`, translated in every `src/locales/*.tsv`.
 - Write offline tests with captured packets.
 
 ## Must not

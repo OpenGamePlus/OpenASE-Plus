@@ -15,7 +15,7 @@ ADR first ([adr/](adr/README.md)).
 | B6 | Protocol modules return `model::Server` / `Listed`; they do not know the GUI, settings or the catalog's display data. |
 | B7 | Text from servers and masters is untrusted: shown as plain text, decoded with `text.rs`, never passed to a shell. Same for `openase://` links: only `links::parse` reads them, and they never join without the user's yes. RCON answers are shown as plain text; a command is one line (`rcon::clean_command`). RCON passwords live in memory only. |
 | B8 | Values never shape a command line: `launch::join_args` splits the template with markers, then fills values into single arguments; `Game::launch_mod` keeps only folder-like mod names. No shell: URLs open with `launch::url_command` (`rundll32 url.dll,FileProtocolHandler` on Windows). |
-| B9 | Every user-visible GUI string goes through `tr` / `fill` / `noop` and has a French entry in `i18n.rs` (`rust/tests/i18n.rs` enforces it). |
+| B9 | Every user-visible GUI string goes through `tr` / `fill` / `noop` and has a line in every `rust/src/locales/*.tsv` table (`rust/tests/i18n.rs` enforces it, with the same `{}` and shortcuts). |
 | B10 | Tests are offline: captured packets or hand-written samples, no live server ([ADR 0003](adr/0003-offline-tests.md)). |
 | B11 | Nothing from the proprietary All-Seeing Eye and no copyrighted game assets in the repository ([ADR 0004](adr/0004-no-proprietary-ase-files.md)). |
 

@@ -1,0 +1,347 @@
+# English	Russian. \t, \n and \\ are escapes. One whole sentence per line.
+OpenASE-Plus	OpenASE-Plus
+Ping	Ping
+Flux	Flux
+DSL	DSL
+Score	Счёт
+Version {}	Версия {}
+   OK   	   OK
+File	Файл
+View	Вид
+Filter	Фильтр
+Server	Сервер
+Player	Игрок
+Friends	Друзья
+Tools	Инструменты
+Help	Справка
+Toolbar	Панель инструментов
+Export user profile...	Экспорт профиля пользователя…
+Export user profile	Экспорт профиля пользователя
+Import user profile...	Импорт профиля пользователя…
+Import user profile	Импорт профиля пользователя
+OpenASE-Plus profile	Профиль OpenASE-Plus
+Save server list...	Сохранить список серверов…
+Save server list	Сохранить список серверов
+Import server list...	Импортировать список серверов…
+Import server list	Импортировать список серверов
+Check for updates	Проверить обновления
+Automatic update check	Автоматическая проверка обновлений
+Setup Wizard...	Мастер настройки…
+Setup Wizard	Мастер настройки
+Exit	Выход
+Refresh\tF5	Обновить\tF5
+Show selected\tCtrl+E	Показать выбранное\tCtrl+E
+Clear modifiers\tCtrl+D	Сбросить модификаторы\tCtrl+D
+Collapse all\tCtrl+Q	Свернуть всё\tCtrl+Q
+Not empty	Не пустые
+Not full	Не полные
+No password	Без пароля
+Hide unresponsive servers	Скрыть неотвечающие серверы
+New filter...	Новый фильтр…
+Edit filter...	Изменить фильтр…
+Make color filter...	Создать цветовой фильтр…
+Delete filter	Удалить фильтр
+Configure games...	Настроить игры…
+Add friend...	Добавить друга…
+Manage friends...	Управление друзьями…
+Friend name search...	Поиск друга по имени…
+Show servers with friends	Показать серверы с друзьями
+OpenASE-Plus Help\tF1	Справка OpenASE-Plus\tF1
+License	Лицензия
+Online manual	Руководство онлайн
+Message board	Форум
+Website	Веб-сайт
+About OpenASE-Plus...	О программе OpenASE-Plus…
+About OpenASE-Plus	О программе OpenASE-Plus
+Refresh list\tF5	Обновить список\tF5
+Join\tEnter	Подключиться\tEnter
+Copy address	Копировать адрес
+Add server...	Добавить сервер…
+Find LAN servers	Найти серверы LAN
+Find player...	Найти игрока…
+Options...	Параметры…
+Refresh server list	Обновить список серверов
+Refresh server list (F5)	Обновить список серверов (F5)
+Stop	Стоп
+Refresh selected server	Обновить выбранный сервер
+Ping visible servers	Пинговать видимые серверы
+Query the servers shown in the list (at most {})	Опросить серверы из списка (не более {})
+Join server	Подключиться к серверу
+Join server (Enter)	Подключиться к серверу (Enter)
+Add to / remove from favorites	Добавить в избранное / удалить из избранного
+Add server	Добавить сервер
+Find player	Найти игрока
+Options	Параметры
+Customize toolbar...	Настроить панель инструментов…
+Reset toolbar	Сбросить панель инструментов
+Favorites	Избранное
+{} ({} on)	{} (в сети: {})
+Special	Особые
+recently added	недавно добавленные
+recently imported	недавно импортированные
+LAN servers	Серверы LAN
+recently joined	недавние подключения
+My filters	Мои фильтры
+{} (color)	{} (цвет)
+(refresh to fill)	(обновите для заполнения)
+(none)	(нет)
+Modifiers	Модификаторы
+Players	Игроки
+Hide unresponsive	Скрыть неотвечающие
+less than {}	меньше {}
+Country	Страна
+Country *	Страна *
+Location	Расположение
+Name	Название
+PL	PL
+Game	Игра
+Map	Карта
+Address	Адрес
+<- select a game and click Refresh, or add a server	<- выберите игру и нажмите «Обновить» или добавьте сервер
+Join	Подключиться
+Refresh	Обновить
+Remove from favorites	Удалить из избранного
+Add to favorites	Добавить в избранное
+Add to favorites group	Добавить в группу избранного
+Friend - on	Друзья - в сети
+Friend - off	Друзья - не в сети
+Player Name	Имя игрока
+Time	Время
+Key	Ключ
+Value	Значение
+(no response)	(нет ответа)
+unscanned	не опрошен
+Unknown	Неизвестно
+Ready	Готово
+Loading...	Загрузка…
+Disabled	Отключено
+{} is playing on {}	{} играет на {}
+servers	серверы
+known servers	известные серверы
+visible servers	видимые серверы
+imported servers	импортированные серверы
+Looking for servers on the local network...	Поиск серверов в локальной сети…
+Scanning {}	Опрос: {}
+Querying {} master servers...	Опрос мастер-серверов {}…
+No {} to refresh	Нечего обновлять: {}
+Refreshing {}	Обновление: {}
+Invalid address {}	Неверный адрес {}
+No server list could be downloaded:\n\n{}	Не удалось загрузить ни одного списка серверов:\n\n{}
+Some masters failed: {}	Некоторые мастер-серверы не ответили: {}
+Scan stopped	Опрос остановлен
+Scan complete	Опрос завершён
+Refreshed {}	Обновлено: {}
+{} did not answer	{} не ответил
+{} IPv4 ranges loaded	Загружено диапазонов IPv4: {}
+Not available: {}	Недоступно: {}
+GeoIP database not available: {}	База GeoIP недоступна: {}
+No server found on the local network	В локальной сети серверы не найдены
+LAN search failed: {}	Ошибка поиска в LAN: {}
+OpenASE-Plus {} is up to date.	OpenASE-Plus {}: обновлений нет.
+Could not check for updates: {}	Не удалось проверить обновления: {}
+Launched {}	Запущено: {}
+Opened {}	Открыто: {}
+Added to {}	Добавлено в {}
+Copied {}	Скопировано: {}
+Unknown game	Неизвестная игра
+Could not save settings: {}	Не удалось сохранить настройки: {}
+{} servers, {}/{} players total, {} visible	Серверов: {}, всего игроков: {}/{}, видимых: {}
+{} of {} servers, {}/{} players total, {} visible	Серверов: {} из {}, всего игроков: {}/{}, видимых: {}
+Load more servers ({} of {})	Загрузить ещё серверы ({} из {})
+Loading more servers...	Загрузка дополнительных серверов…
+{} more servers loaded	Загружено ещё серверов: {}
+Could not load more servers: {}	Не удалось загрузить ещё серверы: {}
+Modifiers cleared	Модификаторы сброшены
+Profile exported to {}	Профиль экспортирован в {}
+Export failed: {}	Ошибка экспорта: {}
+Profile imported from {}	Профиль импортирован из {}
+Import failed: {}	Ошибка импорта: {}
+Deleted filter {}	Фильтр {} удалён
+The server list is empty.	Список серверов пуст.
+Saved {} servers to {}	Сохранено серверов: {} в {}
+Could not save: {}	Не удалось сохранить: {}
+{} added to your friends	{} добавлен в друзья
+No ip:port entries found in this file.	В этом файле не найдено записей ip:port.
+Imported {} servers into {}	Импортировано серверов: {} в {}
+Cannot read {}: {}	Не удалось прочитать {}: {}
+Set the program location of {} in Options > Games first.	Сначала укажите расположение программы {} в Параметры > Игры.
+An open-source game server browser in the spirit of The All-Seeing Eye.	Браузер игровых серверов с открытым исходным кодом в духе The All-Seeing Eye.
+New code, not affiliated with Yahoo or the original authors.	Новый код, не связанный с Yahoo или первоначальными авторами.
+Free software under the GNU GPL v3 or later.	Свободное ПО под лицензией GNU GPL v3 или более поздней.
+Server lists from 333networks, OpenSpy, dpmaster and the other community master servers.	Списки серверов от 333networks, OpenSpy, dpmaster и других мастер-серверов сообщества.
+Add Server	Добавить сервер
+Cancel	Отмена
+Close	Закрыть
+   Add   	  Добавить
+   Join   	  Подключиться
+Password required	Требуется пароль
+This server needs a password.	Для этого сервера нужен пароль.
+OpenASE-Plus looks for these names on every server it scans.	OpenASE-Plus ищет эти имена на каждом опрашиваемом сервере.
+No friends yet.	Друзей пока нет.
+online	в сети
+offline	не в сети
+Remove	Удалить
+Add	Добавить
+Player name	Имя игрока
+Find Player	Поиск игрока
+Player name contains	Имя игрока содержит
+{} players found in scanned servers	Найдено игроков на опрошенных серверах: {}
+Searching for {}	Поиск: {}
+No installation found.	Установка не найдена.
+Search complete.	Поиск завершён.
+Select a sound	Выбор звука
+WAV sound	Звук WAV
+General	Общие
+Network	Сеть
+Events	События
+Games	Игры
+Colors	Цвета
+Language	Язык
+System	Система
+Counter-Strike 1.6 server lists come from the Steam Web API, which needs your own free key.	Списки серверов Counter-Strike 1.6 берутся из Steam Web API, для которого нужен собственный бесплатный ключ.
+Steam Web API key	Ключ Steam Web API
+Get a key at steamcommunity.com/dev/apikey	Получить ключ на steamcommunity.com/dev/apikey
+Show server countries (downloads a free IP-to-country database once a month)	Показывать страны серверов (раз в месяц загружается бесплатная база IP-страна)
+Database: {}.	База данных: {}.
+Takes effect at the next start.	Вступит в силу при следующем запуске.
+Settings file	Файл настроек
+Advanced connection settings	Дополнительные параметры соединения
+Timeout when querying servers (ms)	Тайм-аут опроса серверов (мс)
+Number of times to ping a server	Число пингов на сервер
+Number of times to retry a scan	Число повторных попыток опроса
+Servers queried at the same time	Одновременно опрашиваемых серверов
+Maximum servers per refresh	Максимум серверов за обновление
+Restore defaults	Восстановить по умолчанию
+Ping is the average round-trip time, Flux half the spread between the fastest and slowest answer, PL the share of unanswered queries.	Ping — среднее время приёма-передачи, Flux — половина разброса между самым быстрым и самым медленным ответом, PL — доля запросов без ответа.
+Friend joins a server	Друг подключается к серверу
+Show a notice	Показать уведомление
+Play the system notification sound	Воспроизвести системный звук уведомления
+Monitored server	Отслеживаемый сервер
+Refresh the selected server every	Обновлять выбранный сервер каждые
+seconds	с
+Installed games	Установленные игры
+Not installed	Не установленные
+Select a game on the left.	Выберите игру слева.
+Visible in filter list	Показывать в списке фильтров
+Config file	Файл конфигурации
+Browse	Обзор
+Browse...	Обзор…
+Select config file	Выбор файла конфигурации
+Program location	Расположение программы
+Select game executable	Выбор исполняемого файла игры
+Executable	Исполняемый файл
+All files	Все файлы
+Auto-Search	Автопоиск
+allow invitations for this game	разрешить приглашения для этой игры
+draw player names with game colors	показывать имена игроков игровыми цветами
+Default sound	Звук по умолчанию
+No sound	Без звука
+Sound file...	Звуковой файл…
+Path of a .wav file	Путь к файлу .wav
+Play	Прослушать
+Choose the buttons of the toolbar and their order. You can also right-click the toolbar.	Выберите кнопки панели инструментов и их порядок. Можно также щёлкнуть панель правой кнопкой мыши.
+Up	Вверх
+Down	Вниз
+Reset to default	Сбросить по умолчанию
+Changes are shown right away; Cancel puts the old colors back.	Изменения видны сразу; «Отмена» вернёт прежние цвета.
+List background	Фон списка
+Alternating row	Чередующаяся строка
+Selection	Выделение
+Text	Текст
+Draw Quake color codes in server and player names	Отображать цветовые коды Quake в именах серверов и игроков
+Reset to defaults	Восстановить по умолчанию
+Welcome to OpenASE-Plus!	Добро пожаловать в OpenASE-Plus!
+This is your first time running OpenASE-Plus, so let's set a few things up.	Вы впервые запускаете OpenASE-Plus, давайте кое-что настроим.
+First, tell OpenASE-Plus about your internet connection.	Сначала укажите OpenASE-Plus ваше интернет-соединение.
+Refreshing a server list sends thousands of small queries; matching them to your connection keeps pings accurate.	Обновление списка серверов отправляет тысячи небольших запросов; их настройка под ваше соединение сохраняет точность пинга.
+You can run this wizard again from File > Setup Wizard.	Мастер можно запустить снова: Файл > Мастер настройки.
+Your connection	Ваше соединение
+Slow (mobile, satellite)	Медленное (мобильное, спутниковое)
+Cable or fiber (recommended)	Кабель или оптоволокно (рекомендуется)
+Very fast, low latency	Очень быстрое, низкая задержка
+{} servers at once, {} ms timeout	Серверов одновременно: {}, тайм-аут: {} мс
+If pings look too high, come back here and pick a slower setting. Fine tuning lives in Options > Network.	Если пинг кажется завышенным, вернитесь сюда и выберите более медленный вариант. Тонкая настройка — в Параметры > Сеть.
+You and your games	Вы и ваши игры
+Games shown in the filter tree:	Игры в дереве фильтров:
+{}  (installed)	{}  (установлена)
+Setup done.	Настройка завершена.
+Tips:	Советы:
+•  F5 refreshes the selected game, double-click or Enter joins a server.	•  F5 обновляет выбранную игру; двойной щелчок или Enter — подключение к серверу.
+•  Tick filters in the tree: game types, mods, maps, Kill Cam, countries...	•  Отмечайте фильтры в дереве: режимы игры, моды, карты, Kill Cam, страны…
+•  Friends > Add friend tracks players on every server you scan.	•  Друзья > Добавить друга — отслеживание игроков на каждом опрашиваемом сервере.
+•  Counter-Strike 1.6 lists need a free Steam Web API key (Options > General).	•  Для списков Counter-Strike 1.6 нужен бесплатный ключ Steam Web API (Параметры > Общие).
+Have fun, and see you on the servers.	Приятной игры, до встречи на серверах!
+Next >	Далее >
+Finish	Готово
+< Back	< Назад
+Add Friend	Добавить друга
+Enter the player's name as it appears on servers. Color codes are ignored and partial names match.	Введите имя игрока так, как оно отображается на серверах. Цветовые коды игнорируются, допускаются части имени.
+Go to Friend Name Search	Перейти к поиску друга по имени
+Group	Группа
+Server list	Список серверов
+Add to	Добавить в
+Any text file with ip:port entries works: OpenASE-Plus lists, GameSpy exports, configs...	Подойдёт любой текстовый файл с записями ip:port: списки OpenASE-Plus, экспорт GameSpy, конфиги…
+  Import  	  Импорт
+Edit filter	Изменить фильтр
+New filter	Новый фильтр
+My filter	Мой фильтр
+Any game	Любая игра
+Show servers where all of these are true:	Показать серверы, где выполнены все условия:
+Any server rule, e.g. g_gametype	Любое правило сервера, напр. g_gametype
++ Add rule	+ Добавить правило
+Color filter: highlight matching servers everywhere	Цветовой фильтр: выделять подходящие серверы везде
+is	равно
+is not	не равно
+less than	меньше
+greater than	больше
+contains	содержит
+does not contain	не содержит
+OpenASE-Plus is free software under the GNU General Public License, version 3 or later.	OpenASE-Plus — свободное ПО под лицензией GNU General Public License версии 3 или более поздней.
+Update available	Доступно обновление
+OpenASE-Plus {} is available. You are running {}.	Доступна версия OpenASE-Plus {}. У вас установлена {}.
+Download it from GitHub Releases	Скачать с GitHub Releases
+Later	Позже
+Playing now	Сейчас играют
+No game is set up: set its program in Options > Games	Нет настроенных игр: укажите программу в Параметры > Игры
+Querying the master servers of {} games...	Опрос мастер-серверов игр (всего: {})…
+Installed games only	Только установленные игры
+Hide empty	Скрыть пустые
+Hide full	Скрыть полные
+Hide passworded	Скрыть с паролем
+Max ping	Макс. пинг
+No limit	Без ограничения
+All countries	Все страны
+{} countries	Стран: {}
+Theme	Тема
+Classic	Классическая
+Dark	Тёмная
+Terminal	Терминал
+Amber terminal	Янтарный терминал
+Synthwave	Synthwave
+GoldSrc (Counter-Strike 1.6)	GoldSrc (Counter-Strike 1.6)
+RCON console...	Консоль RCON…
+Password	Пароль
+RCON: {}	RCON: {}
+Command, e.g. status	Команда, напр. status
+Send	Отправить
+No answer from the server	Сервер не отвечает
+Wrong RCON password	Неверный пароль RCON
+The server gave no RCON challenge (is RCON enabled?)	Сервер не выдал RCON challenge (RCON включён?)
+This game has no RCON	В этой игре нет RCON
+Invalid answer from the server	Неверный ответ сервера
+Network error: {}	Ошибка сети: {}
+Open link	Открыть ссылку
+Join this server?	Подключиться к этому серверу?
+Copy openase:// link	Копировать ссылку openase://
+Querying...	Опрос…
+Alert me when a slot is free	Сообщить, когда освободится место
+Stop watching for a free slot	Не ждать свободного места
+Watching {} for a free slot...	Ожидание свободного места на {}…
+A slot is free on {} ({}/{})	Освободилось место на {} ({}/{})
+Stopped watching {}: no free slot in 30 minutes	Ожидание на {} прекращено: за 30 минут место не освободилось
+Alert when players reach	Сообщить, когда игроков будет
+At {} players	Игроков: {}
+No alert	Без оповещения
+A match is on at {}: {} players	Идёт матч на {}, игроков: {}
+I will alert you when {} has {} players	Вы получите оповещение, когда на {} будет игроков: {}
+No more match alerts for {}	Оповещения о матчах для {} отключены

@@ -3,6 +3,11 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-14 — five more languages
+- i18n moved from a French `match` to one TSV table per language (`rust/src/locales/`, embedded, parsed once); fr migrated by script, es/pt/it/de/ru translated by five parallel agents with shared rules; Spanish uses "cupo" (as in JASE). Tests now require every source text in every table, same `{}` and shortcuts.
+- System language detection covers the six languages (Windows LANGID, LC_*/LANG). egui's Ubuntu font has Cyrillic.
+- Open: no native-speaker review; some strings may be too long for their widgets.
+
 ## 2026-11-14 — new app icon
 - The user chose a neon cyan Eye of Providence (eye, inscribed triangle, circle) on JASE's dark background, from a stock reference redrawn from scratch (generic symbol, no copying). Drawn with ImageMagick primitives in `scripts/make_icon.sh` (its SVG renderer is unreliable); 16 and 24 px use a bolder variant without the circle.
 

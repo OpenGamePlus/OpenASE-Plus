@@ -30,5 +30,5 @@ the winget package and a Scoop bucket do not exist yet.
 - Join commands of many newer games not tested with the game installed (upstream issue #1).
 - No code signing; IPv6 addresses not supported (`parse_address`).
 - `openase://` links do nothing on macOS (delivered as Apple Events, which eframe does not expose; the scheme is not registered there) and need the installer on Windows (not the portable zip). Untested by hand on Windows.
-- Only English and French.
+- Translations other than French were made in one pass and not reviewed by native speakers; long strings may not fit some buttons and columns.
 - Docs checker does not check bare file names without `/` (`quake3.rs`, `ROADMAP.md`), skip fenced code for paths, check memory date order, or cover `ROADMAP.md` / `CHANGELOG.md`.
