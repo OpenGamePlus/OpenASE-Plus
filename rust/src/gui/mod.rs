@@ -2936,6 +2936,8 @@ fn apply_palette(ctx: &egui::Context, colors: &ColorSettings) {
         egui::Theme::Light
     };
     ctx.set_theme(base);
+    let bevel = theme.bevel().map(|(light, dark)| (rgb(light), rgb(dark)));
+    ctx.data_mut(|data| data.insert_temp(bevel_id(), bevel));
     // Rebuilt from the base each time, so nothing of a previous theme stays.
     ctx.style_mut_of(base, |style| {
         style.visuals = ase_visuals(theme.dark());
@@ -2950,6 +2952,10 @@ fn apply_palette(ctx: &egui::Context, colors: &ColorSettings) {
         }
         if let Some(text) = theme.selection_text() {
             visuals.selection.stroke.color = rgb(text);
+        }
+        if let Some(border) = theme.border() {
+            visuals.widgets.noninteractive.bg_stroke.color = rgb(border);
+            visuals.window_stroke.color = rgb(border);
         }
         if let Some((idle, hovered)) = theme.widgets() {
             let widgets = &mut visuals.widgets;
@@ -3085,16 +3091,39 @@ fn tree_row(
     (toggled, response.clicked())
 }
 
+/// Where `apply_palette` keeps the theme's bevel colors for `header_cell`.
+fn bevel_id() -> egui::Id {
+    egui::Id::unique("theme-bevel")
+}
+
 fn header_cell(ui: &egui::Ui, rect: egui::Rect) {
     let rect = rect.expand2(vec2(4.0, 2.0));
     let visuals = ui.visuals();
-    let line = Stroke::new(1.0, visuals.widgets.noninteractive.bg_stroke.color);
-    ui.painter()
-        .rect_filled(rect, CornerRadius::ZERO, visuals.panel_fill);
-    ui.painter()
-        .line_segment([rect.right_top(), rect.right_bottom()], line);
-    ui.painter()
-        .line_segment([rect.left_bottom(), rect.right_bottom()], line);
+    let painter = ui.painter();
+    painter.rect_filled(rect, CornerRadius::ZERO, visuals.panel_fill);
+    let bevel: Option<(Color32, Color32)> = ui.ctx().data(|d| d.get_temp(bevel_id())).flatten();
+    let (light, dark) = bevel.unwrap_or_else(|| {
+        let line = visuals.widgets.noninteractive.bg_stroke.color;
+        (Color32::TRANSPARENT, line)
+    });
+    // Raised: light top and left edges, dark bottom and right ones.
+    let (inner, outer) = (rect.shrink(0.5), rect);
+    painter.line_segment(
+        [inner.left_top(), inner.right_top()],
+        Stroke::new(1.0, light),
+    );
+    painter.line_segment(
+        [inner.left_top(), inner.left_bottom()],
+        Stroke::new(1.0, light),
+    );
+    painter.line_segment(
+        [outer.right_top(), outer.right_bottom()],
+        Stroke::new(1.0, dark),
+    );
+    painter.line_segment(
+        [outer.left_bottom(), outer.right_bottom()],
+        Stroke::new(1.0, dark),
+    );
 }
 
 fn cell(ui: &mut egui::Ui, text: &str, color: Color32) {

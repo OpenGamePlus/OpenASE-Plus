@@ -275,6 +275,26 @@ impl Theme {
         }
     }
 
+    /// Frames, separators and header lines; `None` keeps egui's.
+    pub fn border(self) -> Option<Rgb> {
+        match self {
+            Theme::Classic => None,
+            Theme::Dark => Some([0x2a, 0x2e, 0x37]),
+            Theme::Terminal => Some([0x1d, 0x6b, 0x2c]),
+            Theme::Amber => Some([0x5a, 0x3a, 0x00]),
+            Theme::Synthwave => Some([0xff, 0x3f, 0xa4]),
+            Theme::GoldSrc => Some([0x29, 0x2c, 0x21]),
+        }
+    }
+
+    /// Raised 3D edges of headers, (light, dark), as in Half-Life's VGUI.
+    pub fn bevel(self) -> Option<(Rgb, Rgb)> {
+        match self {
+            Theme::GoldSrc => Some(([0x8c, 0x92, 0x84], [0x29, 0x2c, 0x21])),
+            _ => None,
+        }
+    }
+
     /// Fill of buttons and other controls, (idle, hovered); `None` keeps egui's.
     pub fn widgets(self) -> Option<(Rgb, Rgb)> {
         match self {
