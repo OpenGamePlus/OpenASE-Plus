@@ -98,7 +98,29 @@ pub fn join_args(
         ("ip", server.host.clone()),
         ("port", server.join_port.to_string()),
     ]);
-    split_args(&expand_template(&game.join, &vars))
+    // Split the template with markers in place of the values, then fill the
+    // values in: a space or quote in a name or password never adds arguments.
+    let marker = |name: &str| format!("\u{E000}{name}\u{E001}");
+    let marks: HashMap<&str, String> = vars
+        .iter()
+        .map(|(&name, value)| {
+            (
+                name,
+                if value.is_empty() {
+                    String::new()
+                } else {
+                    marker(name)
+                },
+            )
+        })
+        .collect();
+    split_args(&expand_template(&game.join, &marks))
+        .into_iter()
+        .map(|arg| {
+            vars.iter()
+                .fold(arg, |arg, (&name, value)| arg.replace(&marker(name), value))
+        })
+        .collect()
 }
 
 /// What [`join`] did.
@@ -147,18 +169,21 @@ pub fn join(
 
 /// Open a URL with the system handler.
 pub fn open_url(url: &str) -> io::Result<()> {
-    let mut command = if cfg!(windows) {
-        let mut command = Command::new("cmd");
-        command.args(["/C", "start", "", url]);
-        command
+    url_command(url).spawn().map(|_| ())
+}
+
+/// The command that opens `url`. Never a shell: on Windows `cmd /C start`
+/// would run `&` or `|` in a host or password as commands.
+pub fn url_command(url: &str) -> Command {
+    let (program, mut args) = if cfg!(windows) {
+        ("rundll32", vec!["url.dll,FileProtocolHandler"])
     } else if cfg!(target_os = "macos") {
-        let mut command = Command::new("open");
-        command.arg(url);
-        command
+        ("open", vec![])
     } else {
-        let mut command = Command::new("xdg-open");
-        command.arg(url);
-        command
+        ("xdg-open", vec![])
     };
-    command.spawn().map(|_| ())
+    args.push(url);
+    let mut command = Command::new(program);
+    command.args(args);
+    command
 }

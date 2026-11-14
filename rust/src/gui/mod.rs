@@ -176,6 +176,13 @@ pub enum Msg {
     },
     /// Saved servers to move from a game port to their query port.
     PortFixes(Vec<(ServerRef, ServerRef)>),
+    /// Addresses from Add server (`group` None) or Import list, moved to
+    /// their query port off the UI thread.
+    Resolved {
+        game: String,
+        addresses: Vec<String>,
+        group: Option<String>,
+    },
 }
 
 struct Scan {
@@ -795,6 +802,16 @@ impl OpenAseApp {
                         self.dialogs.error = Some(fill(tr("LAN search failed: {}"), &[&error]))
                     }
                 },
+                Msg::Resolved {
+                    game,
+                    addresses,
+                    group,
+                } => match group {
+                    None => addresses
+                        .iter()
+                        .for_each(|address| self.finish_add(ctx, &game, address)),
+                    Some(group) => self.finish_import(ctx, &game, &group, addresses),
+                },
                 Msg::PortFixes(fixes) => {
                     for (old, new) in &fixes {
                         self.settings.replace_server(old, new);
@@ -1033,13 +1050,37 @@ impl OpenAseApp {
         let game = catalog::game(game_id).ok_or_else(|| tr("Unknown game").to_string())?;
         let (host, port) =
             parse_address(address.trim(), game.default_port).map_err(|error| error.to_string())?;
-        // Players share the game port of Unreal engine servers: switch to the
-        // query port so OpenASE never queries the game port.
+        self.resolve_in_background(ctx, &game.id, vec![format!("{host}:{port}")], None);
+        Ok(())
+    }
+
+    /// Players share the game port of Unreal engine servers: move typed or
+    /// imported addresses to their query port in a worker (it sends a query),
+    /// so OpenASE never queries the game port. Answers with `Msg::Resolved`.
+    pub(crate) fn resolve_in_background(
+        &self,
+        ctx: &egui::Context,
+        game: &str,
+        addresses: Vec<String>,
+        group: Option<String>,
+    ) {
         let timeout = self.settings.network.query_options().timeout;
-        let port = openase::query::resolve_query_port(game, &host, port, timeout);
+        let (tx, ctx, game) = (self.tx.clone(), ctx.clone(), game.to_string());
+        std::thread::spawn(move || {
+            let addresses = extra::resolve_query_ports(&game, addresses, timeout);
+            let _ = tx.send(Msg::Resolved {
+                game,
+                addresses,
+                group,
+            });
+            ctx.request_repaint();
+        });
+    }
+
+    fn finish_add(&mut self, ctx: &egui::Context, game: &str, address: &str) {
         let key = ServerKey {
-            game: game.id.clone(),
-            address: format!("{host}:{port}"),
+            game: game.to_string(),
+            address: address.to_string(),
         };
         if !self.settings.is_favorite(&key.to_ref()) {
             self.settings.toggle_favorite(key.to_ref());
@@ -1049,7 +1090,6 @@ impl OpenAseApp {
         self.nav = Nav::Favorites;
         self.selected = Some(key.clone());
         self.query_single(ctx, &key);
-        Ok(())
     }
 
     // ----- UI: menus and toolbar -------------------------------------------

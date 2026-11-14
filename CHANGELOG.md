@@ -3,6 +3,16 @@
 All notable changes to OpenASE. Downloads for every version are on the
 [releases page](https://github.com/tsautier/OpenASE/releases).
 
+## Unreleased
+
+### Fixes
+- **Security:** a player name, password or server address with spaces or quotes can no
+  longer add arguments to the game's command line.
+- **Security (Windows):** Steam joins no longer go through `cmd`, so `&` or `|` in a server
+  address or password cannot run commands.
+- Add server and Import server list no longer freeze the window while Unreal engine servers
+  are checked for their query port.
+
 ## 0.9.6 — 2026-11-11
 
 A lighter client for the 17 games listed by 333networks, after feedback from its admins.
