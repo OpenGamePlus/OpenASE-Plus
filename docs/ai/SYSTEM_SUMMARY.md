@@ -1,6 +1,6 @@
 # System summary
 
-Last updated: 2026-11-14. Version 1.0.0 (released 2026-11-14), forked from OpenASE 0.9.6.
+Last updated: 2026-11-15. Version 1.1.0 (released 2026-11-15), forked from OpenASE 0.9.6.
 
 ## Tree
 

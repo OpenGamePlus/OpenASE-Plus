@@ -4,13 +4,20 @@ All notable changes to OpenASE-Plus, and before 1.0.0 to OpenASE. Downloads
 are on the [OpenASE-Plus releases page](https://github.com/OpenGamePlus/OpenASE-Plus/releases);
 versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases).
 
-## Unreleased
+## 1.1.0 — 2026-11-15
+
+### Server list
 - **Version** column in the server list, before Address: the version each server
   reports (`shortversion`, `gamever`, or the engine string cut short, like JASE);
   CoD2x servers (1.4.x) show as "1.4 (CoD2x)".
 - More masters, from JASE: ioquake3 and Maverick (Quake 3), ioquake3 (OpenArena),
   CoD2x (Call of Duty 2), ouned.de (Jedi Outcast), dpmaster.tchr.no (Xonotic, Warsow)
   and OpenSpy (Unreal Tournament).
+
+### Documentation
+- README rewritten for players, games grouped by protocol, with a user guide
+  (`docs/user-guide.md`) and the master list per game (`docs/games-and-masters.md`).
+- README in French, Spanish, Portuguese, Italian, German and Russian.
 
 ## 1.0.0 — 2026-11-14 (first OpenASE-Plus release)
 

@@ -3,6 +3,10 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-15 — 1.1.0 release
+- Version 1.1.0 (minor: new features, nothing removed): Version column, JASE masters, README for players in seven languages.
+- Tag `v1.1.0` pushed from `main`; the release workflow builds and publishes. Scoop / winget manifests still at 1.0.0, updated by hand after the release.
+
 ## 2026-11-15 — translated READMEs
 - `README.<lang>.md` for the six app languages (fr, es, pt, it, de, ru), same layout as `README.md`, language bar on top of all seven; linked docs stay in English.
 - The docs checker now also checks the six translations; DEVELOPMENT_GUIDE: a README change updates them.
