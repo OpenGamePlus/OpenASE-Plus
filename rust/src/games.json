@@ -10,7 +10,9 @@
     "masters": [
       { "kind": "quake3", "address": "master.quake3arena.com:27950", "query": "getservers 68 empty full" },
       { "kind": "quake3", "address": "master0.excessiveplus.net:27950", "query": "getservers 68 empty full" },
-      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers 68 empty full" }
+      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers 68 empty full" },
+      { "kind": "quake3", "address": "master.ioquake3.org:27950", "query": "getservers 68 empty full" },
+      { "kind": "quake3", "address": "master.maverickservers.com:27950", "query": "getservers 68 empty full" }
     ],
     "game_type_key": "g_gametype",
     "game_types": [
@@ -81,7 +83,8 @@
     "protocol": "quake3",
     "default_port": 27960,
     "masters": [
-      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers 71 empty full" }
+      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers 71 empty full" },
+      { "kind": "quake3", "address": "master.ioquake3.org:27950", "query": "getservers 71 empty full" }
     ],
     "game_type_key": "g_gametype",
     "game_types": [
@@ -118,7 +121,8 @@
     "protocol": "quake3",
     "default_port": 26000,
     "masters": [
-      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers Xonotic 3 empty full" }
+      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers Xonotic 3 empty full" },
+      { "kind": "quake3", "address": "dpmaster.tchr.no:27950", "query": "getservers Xonotic 3 empty full" }
     ],
     "game_type_key": "",
     "game_types": [],
@@ -141,7 +145,8 @@
     "protocol": "quake3",
     "default_port": 44400,
     "masters": [
-      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers Warsow 22 empty full" }
+      { "kind": "quake3", "address": "dpmaster.deathmask.net:27950", "query": "getservers Warsow 22 empty full" },
+      { "kind": "quake3", "address": "dpmaster.tchr.no:27950", "query": "getservers Warsow 22 empty full" }
     ],
     "game_type_key": "gametype",
     "game_types": [],
@@ -309,8 +314,11 @@
     "default_port": 28960,
     "masters": [
       { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 118 full empty" },
-      { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 115 full empty" }
+      { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 115 full empty" },
+      { "kind": "quake3", "address": "master.cod2x.me:20710", "query": "getservers 118 full empty" },
+      { "kind": "quake3", "address": "master.cod2x.me:20710", "query": "getservers 115 full empty" }
     ],
+    "version_aliases": [ { "prefix": "1.4", "name": "1.4 (CoD2x)" } ],
     "game_type_key": "g_gametype",
     "game_types": [
       { "value": "dm", "name": "Deathmatch" },
@@ -384,7 +392,9 @@
       { "kind": "quake3", "address": "master.jkhub.org:28060", "query": "getservers 16 empty full" },
       { "kind": "quake3", "address": "master.jkhub.org:28060", "query": "getservers 15 empty full" },
       { "kind": "quake3", "address": "master.jk2mv.org:28060", "query": "getservers 16 empty full" },
-      { "kind": "quake3", "address": "master.jk2mv.org:28060", "query": "getservers 15 empty full" }
+      { "kind": "quake3", "address": "master.jk2mv.org:28060", "query": "getservers 15 empty full" },
+      { "kind": "quake3", "address": "master.ouned.de:28060", "query": "getservers 16 empty full" },
+      { "kind": "quake3", "address": "master.ouned.de:28060", "query": "getservers 15 empty full" }
     ],
     "game_type_key": "g_gametype",
     "game_types": [
@@ -490,7 +500,8 @@
     "default_port": 7778,
     "game_port_query_offset": 1,
     "masters": [
-      { "kind": "networks333", "gamename": "ut" }
+      { "kind": "networks333", "gamename": "ut" },
+      { "kind": "gamespy", "address": "master.openspy.net:28900", "gamename": "ut", "key": "Z5Nfb0" }
     ],
     "game_type_key": "gametype",
     "game_types": [

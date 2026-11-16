@@ -32,7 +32,7 @@ packaging/           Inno Setup, Scoop, winget generator
 
 | Subsystem | State |
 |---|---|
-| Catalog | 80 games, 16 query protocols, 15 master kinds, 108 master entries |
+| Catalog | 80 games, 16 query protocols, 15 master kinds, 118 master entries |
 | Queries | All protocols tested offline; Ping / Flux / PL from samples |
 | 333networks | JSON lists, pages of 100, queries on demand ([ADR 0005](../architecture/adr/0005-333networks-light-lists.md)) |
 | Steam | Web API list; needs the user's key; not checked live |

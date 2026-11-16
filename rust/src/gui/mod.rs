@@ -142,10 +142,11 @@ enum Col {
     Players,
     GameType,
     Map,
+    Version,
     Address,
 }
 
-const COLUMNS: [(Col, &str, f32); 10] = [
+const COLUMNS: [(Col, &str, f32); 11] = [
     (Col::Icon, "", 44.0),
     (Col::Location, noop("Location"), 40.0),
     (Col::Name, noop("Name"), 300.0),
@@ -155,6 +156,7 @@ const COLUMNS: [(Col, &str, f32); 10] = [
     (Col::Players, noop("Players"), 84.0),
     (Col::GameType, noop("Game"), 120.0),
     (Col::Map, noop("Map"), 120.0),
+    (Col::Version, noop("Version"), 90.0),
     (Col::Address, noop("Address"), 150.0),
 ];
 

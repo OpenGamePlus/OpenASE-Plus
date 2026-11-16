@@ -159,6 +159,13 @@ pub struct RegistryEntry {
     pub exe: String,
 }
 
+/// See [`Game::version_aliases`].
+#[derive(Debug, Clone, Deserialize)]
+pub struct VersionAlias {
+    pub prefix: String,
+    pub name: String,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Game {
     pub id: String,
@@ -178,6 +185,10 @@ pub struct Game {
     pub game_type_key: String,
     #[serde(default)]
     pub game_types: Vec<GameType>,
+    /// Versions shown under one name: a `prefix` matches the version itself or
+    /// `prefix.` + more ("1.4" groups CoD2x's "1.4.6.8", "1.4.4.6"...).
+    #[serde(default)]
+    pub version_aliases: Vec<VersionAlias>,
     #[serde(default)]
     pub mod_key: String,
     #[serde(default)]
@@ -210,6 +221,18 @@ pub struct Game {
 }
 
 impl Game {
+    /// Display name of a server version, after [`Game::version_aliases`].
+    pub fn version_name(&self, version: &str) -> String {
+        self.version_aliases
+            .iter()
+            .find(|alias| {
+                version
+                    .strip_prefix(alias.prefix.as_str())
+                    .is_some_and(|rest| rest.is_empty() || rest.starts_with('.'))
+            })
+            .map_or_else(|| version.to_string(), |alias| alias.name.clone())
+    }
+
     /// Display name for a raw game type value.
     pub fn game_type_name(&self, value: &str) -> String {
         self.game_types

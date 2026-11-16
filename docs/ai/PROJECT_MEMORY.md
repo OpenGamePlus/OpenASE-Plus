@@ -3,6 +3,20 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-15 — translated READMEs
+- `README.<lang>.md` for the six app languages (fr, es, pt, it, de, ru), same layout as `README.md`, language bar on top of all seven; linked docs stay in English.
+- The docs checker now also checks the six translations; DEVELOPMENT_GUIDE: a README change updates them.
+
+## 2026-11-15 — README for everyone
+- README rewritten in JASE's style for players: tagline, emoji feature list, games grouped by query protocol, four-step Get started, Learn more links.
+- Technical parts moved out: per-game masters to `docs/games-and-masters.md`; install details, features, shortcuts, Steam key and settings folders to `docs/user-guide.md`; References to `docs/architecture/protocols.md`; building already in `docs/development/building.md`.
+- Dropped from the README: the master-server count (went stale with every master added).
+
+## 2026-11-15 — masters from JASE
+- Ten master entries from JASE's `masters.json` added to `games.json`: ioquake3 and maverickservers (Q3), ioquake3 (OA), cod2x (CoD2), ouned.de (JK2), dpmaster.tchr.no (Xonotic, Warsow), OpenSpy GameSpy (UT99).
+- Skipped: master.etlegacy.com (same IP as etmaster.etlegacy.com), ms.cs16.net (Valve master protocol, no master kind for it yet), Tactical Ops and D-Day (games, not masters).
+- Version column before Address: `Server::version()` in `model.rs` (short rule keys, else `short_engine_version`, ported from JASE), then the game's new `version_aliases` (CoD2x 1.4.x → "1.4 (CoD2x)"); not filterable from the column.
+
 ## 2026-11-14 — 1.0.0 release
 - README rewritten in the OpenGamePlus family layout: `docs/banner.svg` (the app icon as emblem), badges, tagline, screenshots, "What works today" for players and server admins, NOTE / IMPORTANT callouts.
 - CHANGELOG 1.0.0 dated; `plus-identity` merged into `main` and tagged `v1.0.0`, which runs the release workflow.

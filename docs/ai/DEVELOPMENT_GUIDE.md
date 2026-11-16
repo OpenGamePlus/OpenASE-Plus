@@ -14,7 +14,9 @@ the why when not obvious. Docs changes go in the same commit as the code they de
 
 | Change | Update |
 |---|---|
-| Game added or removed | `README.md` games table, `ROADMAP.md`, counts in [SYSTEM_SUMMARY](SYSTEM_SUMMARY.md), `rust/tests/protocols.rs` id list |
+| Game added or removed | `README.md` games table, [games-and-masters](../games-and-masters.md), `ROADMAP.md`, counts in [SYSTEM_SUMMARY](SYSTEM_SUMMARY.md), `rust/tests/protocols.rs` id list |
+| `README.md` text changed | the six translations `README.<lang>.md` (fr, es, pt, it, de, ru) |
+| Master added or removed in `games.json` | [games-and-masters](../games-and-masters.md) |
 | New protocol or master kind | [protocols.md](../architecture/protocols.md), [adding-a-game](../development/adding-a-game.md) if fields changed, SYSTEM_SUMMARY |
 | New `games.json` field | [adding-a-game](../development/adding-a-game.md) |
 | New module or a module changes layer | [overview.md](../architecture/overview.md), [boundaries.md](../architecture/boundaries.md) |
@@ -28,7 +30,7 @@ the why when not obvious. Docs changes go in the same commit as the code they de
 
 ## Docs checker
 `rust/tests/docs.rs` runs with `cargo test` (alone: `cargo test --test docs`).
-It checks `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, `packaging/README.md`
+It checks `README.md` and its translations (`README.<lang>.md`), `CONTRIBUTING.md`, `AGENTS.md`, `packaging/README.md`
 and `docs/**/*.md` (not `docs/superpowers/`, local notes, git-ignored):
 
 - relative links that do not exist, and `#anchors` that match no heading;

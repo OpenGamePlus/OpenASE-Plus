@@ -661,6 +661,7 @@ fn cell_text(col: Col, server: &Server, game: Option<&Game>) -> String {
             }
         }
         Col::Map => server.map.clone(),
+        Col::Version => server.version(),
         Col::Address => server.join_address(),
     }
 }
