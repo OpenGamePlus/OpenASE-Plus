@@ -4,7 +4,7 @@ All notable changes to OpenASE-Plus, and before 1.0.0 to OpenASE. Downloads
 are on the [OpenASE-Plus releases page](https://github.com/OpenGamePlus/OpenASE-Plus/releases);
 versions up to 0.9.6 on [OpenASE's](https://github.com/tsautier/OpenASE/releases).
 
-## Unreleased
+## 1.1.1 — 2026-11-15
 - Call of Duty masters are asked for every protocol version, as in JASE: CoD2x 1.4
   servers (protocols 119 and 120, hundreds of servers) and older or patched versions
   of CoD, United Offensive and CoD4 now show up in the scan, not only when added by hand.

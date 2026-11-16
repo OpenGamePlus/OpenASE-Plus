@@ -3,6 +3,9 @@
 Append-only, newest first. Never rewrite a stage; correct it in a new one.
 Format and rules: [DEVELOPMENT_GUIDE](DEVELOPMENT_GUIDE.md).
 
+## 2026-11-15 — 1.1.1 release
+- Patch release with the CoD protocol fix (PR #5); tag `v1.1.1` from `main`. Scoop / winget manifests still at 1.0.0.
+
 ## 2026-11-15 — every CoD protocol on the masters
 - Bug: CoD2x servers (e.g. Chilean and Brazilian ones) only showed when added by hand; the masters list them under protocol 120, and `games.json` only asked 118 and 115.
 - Fix: the Call of Duty games ask every protocol JASE asked (CoD 1 2 4 5 6, UO 21 22 24, CoD2 115 117 118 119 120 on both masters, CoD4 1 5 6 7 8); each probed live, all answer.
