@@ -60,3 +60,30 @@ how the list is fetched. They are independent: SWAT 4 is queried with
 the first); `query::apply_ping_stats` sets Ping = mean, Flux = (max − min) / 2,
 PL = lost / attempts in %. A ping request that is rate-limited or not supported
 is retried once after a pause instead of counting as loss.
+
+## References
+
+- Quake 3 connectionless queries: Jacek Fedorynski, "Quake 3 Network Protocol"
+  (2020), https://www.jfedor.org/quake3/
+- Valve server queries (A2S): Valve Developer Wiki, "Server queries".
+- GameSpy master protocol: 333networks, https://333networks.com/
+- GameSpy v2 / v3 and server browsing (Battlefield, Halo, F.E.A.R., SWAT 4):
+  OpenSpy, https://github.com/openspy
+- Unreal Engine 2 master (UT2003, UT2004): 333networks and OpenSpy, as above.
+- Multi Theft Auto master list: mtasa-blue source,
+  https://github.com/multitheftauto/mtasa-blue
+- Quake 2 and QuakeWorld protocols: connectionless queries as in the id
+  Software sources, with the community masters at QuakeServers.net.
+- Starsiege: Tribes and Tribes 2 queries, and the Tribes 2 master list:
+  TribesNext, http://www.tribesnext.com/ and the qstat protocol descriptions
+  (https://github.com/multiplay/qstat).
+- DOOM 3 and Quake 4 `getInfo` / `getServers` (id Tech 4): the dhewm3 modwiki
+  and the qstat descriptions.
+- Savage: The Battle for Newerth: query as described by qstat, server list from
+  Savage DRX, https://savagedrx.com/
+- Raven Shield: beacon protocol as described by qstat, server list from the
+  OpenRVS project, https://openrvs.org/
+- Ghost Recon and The Sum of All Fears: the Red Storm status query, as
+  described by qstat.
+- Yahoo acquired The All-Seeing Eye in September 2004:
+  https://www.gamedeveloper.com/game-platforms/yahoo-games-adds-all-seeing-eye-gamespot-syndication

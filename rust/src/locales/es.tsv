@@ -96,6 +96,7 @@ Name	Nombre
 PL	PL
 Game	Juego
 Map	Mapa
+Version	Versión
 Address	Dirección
 <- select a game and click Refresh, or add a server	<- selecciona un juego y pulsa Actualizar, o añade un servidor
 Join	Unirse

@@ -40,6 +40,7 @@ Copy an entry of the same protocol. Quake 3, shortened:
 | `steam_appid` | no | Steam app id (`cs16`: `10`); joins through `steam://connect` when no program is set |
 | `game_type_key`, `game_types` | no | Rule with the game type; raw value → name (unknown shown raw) |
 | `mod_key`, `base_mod` | no | Rule with the mod (`gamename` in Quake 3, `folder` in CS 1.6); the base mod is not passed as `{mod}` |
+| `version_aliases` | no | `{ "prefix", "name" }`: Version column shows `name` for `prefix` or `prefix.`… (`1.4` → "1.4 (CoD2x)") |
 | `filters` | no | Tree checkboxes: `"dynamic": true` builds options from scanned values; otherwise `options`, each a `label` and the raw `values` it matches |
 | `levelshots` | no | Folder under the install folder whose `.pk3` files hold `levelshots/<map>.{jpg,tga,png}` (Quake 3 engine games: `baseq3`, `etmain`...) |
 | `registry`, `exe_names` | no | Install detection: full registry `key`, the `value` holding the folder, `exe` relative to that folder; names for disk search (add Linux and macOS names) |
@@ -66,4 +67,4 @@ in constants `noop("...")`, translated where shown. Each needs a line `English<T
 
 1. Live: `cargo run --example scan -- <id> 20` (server count, sane names, maps, players, ping), then `cargo run --release` and find the game in the tree; join if installed.
 2. Tests in `rust/tests/protocols.rs`: add the id to `catalog_has_every_game_with_masters_and_join_template` (exact list), game types to `game_type_names_are_mapped`, a captured packet test for any parser change.
-3. Update the games table in `README.md` and `ROADMAP.md`, and the counts in [SYSTEM_SUMMARY](../ai/SYSTEM_SUMMARY.md).
+3. Update the games tables in `README.md` (by protocol) and [games and masters](../games-and-masters.md), `ROADMAP.md`, and the counts in [SYSTEM_SUMMARY](../ai/SYSTEM_SUMMARY.md).

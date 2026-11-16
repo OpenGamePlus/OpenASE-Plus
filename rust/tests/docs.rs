@@ -136,6 +136,12 @@ fn walk(root: &Path, dir: &Path) -> Vec<String> {
 fn documents(root: &Path) -> Vec<String> {
     let mut docs: Vec<String> = [
         "README.md",
+        "README.fr.md",
+        "README.es.md",
+        "README.pt.md",
+        "README.it.md",
+        "README.de.md",
+        "README.ru.md",
         "CONTRIBUTING.md",
         "AGENTS.md",
         "packaging/README.md",

@@ -229,3 +229,32 @@ fn parse_getservers_response_accepts_unpadded_eot() {
         vec!["10.0.0.2:27961".to_string()]
     );
 }
+
+#[test]
+fn server_version_prefers_short_keys_and_cuts_engine_strings() {
+    use openase::model::{Server, short_engine_version};
+    assert_eq!(
+        short_engine_version("ioq3 1.36+u2022/Debian linux-x86_64"),
+        "ioq3 1.36"
+    );
+    assert_eq!(
+        short_engine_version("Wolf 1.41b-MP win-x86 Dec 2003"),
+        "Wolf 1.41b"
+    );
+    assert_eq!(
+        short_engine_version("ET Legacy v2.86.2 linux-x86_64"),
+        "ET Legacy v2.86.2"
+    );
+    assert_eq!(short_engine_version("  no digits here "), "no digits here");
+    let mut s = Server::new("cod2", "192.0.2.1", 28960);
+    assert_eq!(s.version(), "");
+    s.rules
+        .insert("version".into(), "CoD2 MP 1.3 build pc_1.3_1_1".into());
+    assert_eq!(s.version(), "CoD2 MP 1.3");
+    s.rules.insert("shortversion".into(), "1.3".into());
+    assert_eq!(s.version(), "1.3");
+    s.rules.insert("shortversion".into(), "1.4.6.8".into());
+    assert_eq!(s.version(), "1.4 (CoD2x)");
+    s.rules.insert("shortversion".into(), "1.45".into());
+    assert_eq!(s.version(), "1.45");
+}

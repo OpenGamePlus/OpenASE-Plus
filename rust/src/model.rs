@@ -110,6 +110,27 @@ impl Server {
         }
     }
 
+    /// Version the server reports, short: the first rule present among the
+    /// short keys, else the long engine string cut down ("ioq3 1.36+u2022 linux" → "ioq3 1.36"),
+    /// then named by the game's `version_aliases`.
+    pub fn version(&self) -> String {
+        let short = ["shortversion", "gamever", "gameversion"]
+            .iter()
+            .find_map(|key| self.rules.get(*key).filter(|v| !v.trim().is_empty()))
+            .map(|v| v.trim().to_string());
+        let version = short.unwrap_or_else(|| {
+            let long = self
+                .rules
+                .get("version")
+                .or_else(|| self.rules.get("si_version"));
+            long.map(|v| short_engine_version(v)).unwrap_or_default()
+        });
+        match crate::catalog::game(&self.game) {
+            Some(game) => game.version_name(&version),
+            None => version,
+        }
+    }
+
     pub fn is_full(&self) -> bool {
         self.max_players
             .is_some_and(|max| max > 0 && self.num_players >= max)
@@ -140,4 +161,20 @@ impl Listed {
 /// Parse a rule value as an unsigned integer.
 pub fn parse_count(value: Option<&String>) -> Option<usize> {
     value.and_then(|raw| raw.trim().parse().ok())
+}
+
+/// The words of an engine version string up to the first that starts with a
+/// digit (or "v" + digit), cut at its first `+ _ / -`: "Wolf 1.41b-MP win-x86" → "Wolf 1.41b".
+pub fn short_engine_version(version: &str) -> String {
+    let words: Vec<&str> = version.split_whitespace().collect();
+    for (i, word) in words.iter().enumerate() {
+        let digits = word.strip_prefix('v').unwrap_or(word);
+        if digits.starts_with(|c: char| c.is_ascii_digit()) {
+            let cut = word.split(['+', '_', '/', '-']).next().unwrap_or(word);
+            let mut short = words[..i].to_vec();
+            short.push(cut);
+            return short.join(" ");
+        }
+    }
+    words.join(" ")
 }
