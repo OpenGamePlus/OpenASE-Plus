@@ -276,7 +276,10 @@
     "default_port": 28960,
     "masters": [
       { "kind": "quake3", "address": "codmaster.activision.com:20510", "query": "getservers 6 full empty" },
-      { "kind": "quake3", "address": "codmaster.activision.com:20510", "query": "getservers 5 full empty" }
+      { "kind": "quake3", "address": "codmaster.activision.com:20510", "query": "getservers 5 full empty" },
+      { "kind": "quake3", "address": "codmaster.activision.com:20510", "query": "getservers 4 full empty" },
+      { "kind": "quake3", "address": "codmaster.activision.com:20510", "query": "getservers 2 full empty" },
+      { "kind": "quake3", "address": "codmaster.activision.com:20510", "query": "getservers 1 full empty" }
     ],
     "game_type_key": "g_gametype",
     "game_types": [
@@ -313,9 +316,15 @@
     "protocol": "quake3",
     "default_port": 28960,
     "masters": [
+      { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 120 full empty" },
+      { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 119 full empty" },
       { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 118 full empty" },
+      { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 117 full empty" },
       { "kind": "quake3", "address": "cod2master.activision.com:20710", "query": "getservers 115 full empty" },
+      { "kind": "quake3", "address": "master.cod2x.me:20710", "query": "getservers 120 full empty" },
+      { "kind": "quake3", "address": "master.cod2x.me:20710", "query": "getservers 119 full empty" },
       { "kind": "quake3", "address": "master.cod2x.me:20710", "query": "getservers 118 full empty" },
+      { "kind": "quake3", "address": "master.cod2x.me:20710", "query": "getservers 117 full empty" },
       { "kind": "quake3", "address": "master.cod2x.me:20710", "query": "getservers 115 full empty" }
     ],
     "version_aliases": [ { "prefix": "1.4", "name": "1.4 (CoD2x)" } ],
@@ -354,7 +363,11 @@
     "protocol": "quake3",
     "default_port": 28960,
     "masters": [
-      { "kind": "quake3", "address": "cod4master.activision.com:20810", "query": "getservers 6 full empty" }
+      { "kind": "quake3", "address": "cod4master.activision.com:20810", "query": "getservers 8 full empty" },
+      { "kind": "quake3", "address": "cod4master.activision.com:20810", "query": "getservers 7 full empty" },
+      { "kind": "quake3", "address": "cod4master.activision.com:20810", "query": "getservers 6 full empty" },
+      { "kind": "quake3", "address": "cod4master.activision.com:20810", "query": "getservers 5 full empty" },
+      { "kind": "quake3", "address": "cod4master.activision.com:20810", "query": "getservers 1 full empty" }
     ],
     "game_type_key": "g_gametype",
     "game_types": [
@@ -938,6 +951,7 @@
     "protocol": "quake3",
     "default_port": 28960,
     "masters": [
+      { "kind": "quake3", "address": "coduomaster.activision.com:20610", "query": "getservers 24 full empty" },
       { "kind": "quake3", "address": "coduomaster.activision.com:20610", "query": "getservers 22 full empty" },
       { "kind": "quake3", "address": "coduomaster.activision.com:20610", "query": "getservers 21 full empty" }
     ],
